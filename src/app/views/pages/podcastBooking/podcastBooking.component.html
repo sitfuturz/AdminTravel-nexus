@@ -1,0 +1,277 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-calendar-check me-2"></i>Booking Management
+      </h4>
+    </div>
+    
+    <div class="card-body p-0">
+      <!-- Filter Section -->
+      <div class="p-3 border-bottom bg-light">
+        <div class="row align-items-center">
+          <div class="col-md-4 mb-2 mb-md-0">
+            <label class="form-label fw-semibold">Select Podcaster:</label>
+            <ng-select [items]="podcasts"
+                      bindLabel="podcasterName" 
+                      bindValue="_id"
+                      [(ngModel)]="selectedPodcastId"
+                      (change)="onPodcastChange()"
+                      [placeholder]="loadingPodcasts ? 'Loading podcasters...' : 'Choose a podcaster'"
+                      [loading]="loadingPodcasts"
+                      [clearable]="true">
+              <ng-option *ngFor="let podcast of podcasts" [value]="podcast._id">
+                {{podcast.podcasterName}} - {{formatDate(podcast.startDate)}}
+              </ng-option>
+            </ng-select>
+          </div>
+          
+          <div class="col-md-6 mb-2 mb-md-0" *ngIf="selectedPodcastId">
+            <label class="form-label fw-semibold">Search Bookings:</label>
+            <input type="text" 
+                   class="form-control"
+                   placeholder="Search by user name, email, or notes..."
+                   [(ngModel)]="searchQuery"
+                   (input)="onSearch()">
+          </div>
+          
+          <div class="col-md-2" *ngIf="selectedPodcastId">
+            <label class="form-label fw-semibold">Items per page:</label>
+            <ng-select [items]="[10,25,50,100]" 
+                      (change)="onChange()" 
+                      [(ngModel)]="payload.limit" 
+                      placeholder="10">
+            </ng-select>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3 text-muted">Loading bookings...</p>
+    </div>
+
+    <!-- No Podcast Selected -->
+    <div *ngIf="!selectedPodcastId && !loading" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
+        <h5>Select a Podcaster</h5>
+        <p class="text-muted">Please select a podcaster from the dropdown above to view their bookings.</p>
+      </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="table-responsive" *ngIf="!loading && selectedPodcastId && bookings.docs && bookings.docs.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4 py-3">User Details</th>
+            <th class="py-3">Slot Information</th>
+            <th class="py-3">Status</th>
+            <th class="py-3">Admin Notes</th>
+            <th class="py-3">Booking Date</th>
+            <th class="text-end pe-4 py-3">Action</th>
+          </tr>
+        </thead>
+        
+        <tbody>
+          <tr *ngFor="let booking of bookings.docs | paginate: {itemsPerPage: payload.limit, currentPage: payload.page, totalItems: bookings.totalDocs}; let i=index" 
+              class="border-bottom">
+            
+            <!-- User Details -->
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center mb-2">
+                  <img [src]="booking.userId.profilePic ? imageurl + booking.userId.profilePic : 'assets/images/placeholder-image.png'" 
+                  [alt]="booking.userId.name"   
+                  class="rounded-circle me-3"
+                  style="width: 40px; height: 40px; object-fit: cover;"
+                  onerror="this.src='assets/images/placeholder-image.png'">
+                  <div class="ms-3">
+                    <div class="fw-bold text-dark">{{booking.userId.name}}</div>
+                    <small class="text-muted d-block">{{booking.userId.chapter_name}}</small>
+                    <small class="text-muted">{{booking.userId.mobile_number}}</small>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Slot Information -->
+            <td class="py-3">
+              <div class="slot-info">
+                <div class="fw-semibold text-primary">
+                  <i class="bi bi-calendar3 me-1"></i>{{formatDate(booking.slotId.date)}}
+                </div>
+                <div class="text-muted">
+                  <i class="bi bi-clock me-1"></i>{{formatTime(booking.slotId.startTime)}} - {{formatTime(booking.slotId.endTime)}}
+                </div>
+                <small class="text-muted">
+                  Capacity: {{booking.slotId.bookedCount}}/{{booking.slotId.capacity}}
+                </small>
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td class="py-3">
+              <span class="badge rounded-pill px-3 py-2" 
+                    [ngClass]="getStatusBadgeClass(booking.status)">
+                <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
+                {{booking.status | titlecase}}
+              </span>
+            </td>
+
+            <!-- Admin Notes -->
+            <td class="py-3">
+              <div class="admin-notes" style="max-width: 200px;">
+                <span *ngIf="booking.adminNotes; else noNotes" 
+                      class="text-muted"
+                      [title]="booking.adminNotes">
+                  {{booking.adminNotes.length > 50 ? (booking.adminNotes | slice:0:50) + '...' : booking.adminNotes}}
+                </span>
+                <ng-template #noNotes>
+                  <span class="text-muted fst-italic">No notes</span>
+                </ng-template>
+              </div>
+            </td>
+
+            <!-- Booking Date -->
+            <td class="py-3">
+              <div class="text-muted">
+                {{formatDate(booking.createdAt)}}
+              </div>
+              <small class="text-muted">
+                {{booking.createdAt | date:'shortTime'}}
+              </small>
+            </td>
+
+            <!-- Actions -->
+            <td class="text-end pe-4 py-3">
+              <button class="btn btn-sm btn-outline-primary rounded-pill"
+                      (click)="openStatusUpdateModal(booking)">
+                <i class="bi bi-pencil-square me-1"></i>
+                Update Status
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- Pagination Controls -->
+      <div class="d-flex justify-content-between align-items-center p-3">
+        <div class="text-muted">
+          Showing {{bookings.pagingCounter}} to {{(bookings.page * bookings.limit) > bookings.totalDocs ? bookings.totalDocs : (bookings.page * bookings.limit)}} 
+          of {{bookings.totalDocs}} bookings
+        </div>
+        <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+      </div>
+    </div>
+
+    <!-- No Bookings Found -->
+    <div *ngIf="!loading && selectedPodcastId && (!bookings.docs || bookings.docs.length === 0)" 
+         class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
+        <h5>No Bookings Found</h5>
+        <p class="text-muted">
+          {{searchQuery ? 'No bookings match your search criteria.' : 'This podcaster doesn\'t have any bookings yet.'}}
+        </p>
+        <button *ngIf="searchQuery" 
+                class="btn btn-outline-primary rounded-pill mt-3" 
+                (click)="searchQuery = ''; onSearch()">
+          <i class="bi bi-arrow-clockwise me-2"></i>Clear Search
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Booking Status Update Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="bookingModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="bookingModalTitle">
+          <i class="bi bi-pencil-square me-2"></i>Update Booking Status
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body p-4" *ngIf="selectedBooking">
+        <!-- User Info Display -->
+        <div class="mb-4 p-3 bg-light rounded-3">
+          <div class="d-flex align-items-center mb-2">
+            <img [src]="selectedBooking.userId.profilePic ? imageurl + selectedBooking.userId.profilePic : 'assets/images/placeholder-image.png'" 
+                 [alt]="selectedBooking.userId.name"   
+                 class="rounded-circle me-3"
+                 style="width: 40px; height: 40px; object-fit: cover;"
+                 onerror="this.src='assets/images/placeholder-image.png'">
+            <div>
+              <div class="fw-bold">{{selectedBooking.userId.name}}</div>
+              <small class="text-muted">{{selectedBooking.userId.chapter_name}}</small>
+            </div>
+          </div>
+          <div class="text-muted">
+            <i class="bi bi-calendar3 me-1"></i>{{formatDate(selectedBooking.slotId.date)}} 
+            <span class="ms-3">
+              <i class="bi bi-clock me-1"></i>{{formatTime(selectedBooking.slotId.startTime)}} - {{formatTime(selectedBooking.slotId.endTime)}}
+            </span>
+          </div>
+        </div>
+
+        <form>
+          <!-- Status Selection -->
+          <div class="mb-3">
+            <label for="bookingStatus" class="form-label fw-semibold">Booking Status</label>
+            <ng-select [items]="statusOptions"
+                      bindLabel="label" 
+                      bindValue="value"
+                      [(ngModel)]="bookingUpdate.action"
+                      name="bookingStatus"
+                      placeholder="Select status">
+              <ng-option *ngFor="let status of statusOptions" [value]="status.value">
+                <span class="badge rounded-pill px-2 py-1" [ngClass]="status.class">
+                  {{status.label}}
+                </span>
+              </ng-option>
+            </ng-select>
+          </div>
+          
+          <!-- Admin Notes -->
+          <div class="mb-3">
+            <label for="adminNotes" class="form-label fw-semibold">
+              Admin Notes 
+              <small class="text-muted">(Optional)</small>
+            </label>
+            <textarea class="form-control" 
+                     id="adminNotes" 
+                     rows="3"
+                     placeholder="Add any notes about this booking update..."
+                     [(ngModel)]="bookingUpdate.adminNotes" 
+                     name="adminNotes"
+                     maxlength="500"></textarea>
+            <small class="text-muted">{{bookingUpdate.adminNotes.length}}/500 characters</small>
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" 
+                class="btn btn-primary rounded-pill" 
+                (click)="updateBookingStatus()" 
+                [disabled]="!bookingUpdate.action || loading">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          <i class="bi bi-save me-1" *ngIf="!loading"></i> 
+          {{loading ? 'Updating...' : 'Update Status'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

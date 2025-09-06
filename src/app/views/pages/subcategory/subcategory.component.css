@@ -1,0 +1,370 @@
+/* SubCategory Component Styles */
+
+.container-fluid {
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+  }
+  
+  .card {
+    transition: all 0.3s ease;
+    border: none !important;
+  }
+  
+  
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #4e73df 100%);
+    color: white;
+  }
+  
+  .card-header h4 {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    transition: all 0.3s ease;
+  }
+  
+  .badge:hover {
+    transform: scale(1.05);
+  }
+
+  
+  .form-control {
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+  
+  .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+  
+  .table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  
+  .table thead th {
+    background-color: #f8f9fa;
+    border: none;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 16px 12px;
+  }
+  
+  .table tbody tr {
+    transition: all 0.2s ease;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+  }
+  
+  .table tbody td {
+    padding: 16px 12px;
+    border-top: 1px solid #f1f3f4;
+    vertical-align: middle;
+  }
+  
+
+  
+  
+  .dropdown-toggle {
+    border: 1px solid #667eea;
+    color: #667eea;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .dropdown-toggle:hover {
+    background-color: #667eea;
+    border-color: #667eea;
+    color: white;
+    /* transform: translateY(-1px); */
+  }
+  
+  .dropdown-menu {
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 8px 0;
+  }
+  
+  .dropdown-item {
+    padding: 10px 16px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #667eea;
+    /* transform: translateX(4px); */
+  }
+  
+  .dropdown-item.text-danger:hover {
+    background-color: #fff5f5;
+    color: #dc3545;
+  }
+  
+  .spinner-grow {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .empty-state {
+    padding: 40px 20px;
+  }
+  
+  .empty-state i {
+    opacity: 0.6;
+  }
+  
+  .empty-state h5 {
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .empty-state p {
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  
+  /* Modal Styles */
+  .modal-content {
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  }
+  
+  .modal-header {
+    border-bottom: 1px solid #f1f3f4;
+    padding: 20px 24px;
+  }
+  
+  .modal-header h5 {
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+  }
+  
+  .modal-body {
+    padding: 24px;
+  }
+  
+  .modal-footer {
+    border-top: 1px solid #f1f3f4;
+    padding: 20px 24px;
+  }
+  
+  .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  
+  .form-check-label {
+    font-weight: 500;
+    color: #495057;
+  }
+  
+  .form-check-input:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+  
+  .btn-outline-secondary {
+    border: 1px solid #6c757d;
+    color: #6c757d;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    /* transform: translateY(-1px); */
+  }
+  
+  /* Search and Filter Section */
+  .border-bottom {
+    border-color: #f1f3f4 !important;
+  }
+  
+  
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .container-fluid {
+      padding: 10px;
+    }
+    
+    .card-header {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+    }
+    
+    .d-flex.w-100 {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .table-responsive {
+      font-size: 14px;
+    }
+    
+    .modal-dialog {
+      margin: 10px;
+    }
+    
+    .empty-state {
+      padding: 20px 10px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .btn-light,
+    .btn-primary,
+    .btn-outline-secondary {
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+    
+    .table thead th,
+    .table tbody td {
+      padding: 12px 8px;
+      font-size: 13px;
+    }
+    
+    .badge {
+      font-size: 10px;
+      padding: 4px 8px;
+    }
+  }
+  
+  /* Animation Classes */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .card {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  /* Custom ng-select styles */
+  ::ng-deep .ng-select {
+    min-height: 45px;
+  }
+  
+  ::ng-deep .ng-select.ng-select-single .ng-select-container {
+    height: 45px;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+
+  }
+  
+  ::ng-deep .ng-select.ng-select-focused .ng-select-container {
+    border-color: #667eea;
+    
+  }
+  
+  ::ng-deep .ng-select .ng-placeholder {
+    color: #6c757d;
+    font-size: 14px;
+  }
+  
+  ::ng-deep .ng-select .ng-arrow-wrapper {
+    width: 20px;
+  }
+  
+  ::ng-deep .ng-select.ng-select-disabled .ng-select-container {
+    background-color: #f8f9fa;
+    color: #6c757d;
+  }
+  
+  /* Pagination Styles */
+  ::ng-deep .ngx-pagination {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+  }
+  
+  ::ng-deep .ngx-pagination .current {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+    font-weight: 600;
+  }
+  
+  ::ng-deep .ngx-pagination a,
+  ::ng-deep .ngx-pagination button {
+    color: #667eea;
+    border: 1px solid #e1e5e9;
+    padding: 8px 12px;
+    margin: 0 2px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+  
+  ::ng-deep .ngx-pagination a:hover,
+  ::ng-deep .ngx-pagination button:hover {
+    background-color: #667eea;
+    color: white;
+    transform: translateY(-1px);
+  }
+  
+  /* Loading State */
+  .spinner-grow.text-primary {
+    color: #667eea !important;
+  }
+  
+  /* Custom Scrollbar */
+  .table-responsive::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  .table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+  
+  .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }

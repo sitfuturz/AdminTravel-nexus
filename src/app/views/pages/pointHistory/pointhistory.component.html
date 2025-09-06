@@ -1,0 +1,159 @@
+<div class="container-fluid">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+        <h4 class="mb-0 fw-bold text-white">
+          <i class="bi bi-trophy me-2"></i>Points History
+        </h4>
+        <div class="export-buttons">
+          <button class="btn btn-sm btn-light me-2" [disabled]="loading || exporting || !pointsHistory.docs || pointsHistory.docs.length === 0" (click)="exportToExcel()">
+            <i class="bi bi-file-excel me-1"></i>Export Excel
+          </button>
+          <button class="btn btn-sm btn-light" [disabled]="loading || exporting || !pointsHistory.docs || pointsHistory.docs.length === 0" (click)="exportToPDF()">
+            <i class="bi bi-file-pdf me-1"></i>Export PDF
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mb-md-0">
+            <div class="me-2" style="min-width: 200px;">
+              <label for="chapterSelect" class="form-label mb-1">Chapter</label>
+              <ng-select 
+                id="chapterSelect"
+                [items]="chapters"
+                bindLabel="name"
+                bindValue="name"
+                placeholder="--Select--"
+                [(ngModel)]="filters.chapter_name"
+                (change)="onFilterChange()">
+              </ng-select>
+            </div>
+            <div class="me-2">
+              <label for="fromDateInput" class="form-label mb-1">From Date</label>
+              <input 
+                id="fromDateInput"
+                type="date" 
+                class="form-control" 
+                [(ngModel)]="filters.fromDate" 
+                (change)="onFilterChange()"
+                placeholder="From Date">
+            </div>
+            <div class="me-2">
+              <label for="toDateInput" class="form-label mb-1">To Date</label>
+              <input 
+                id="toDateInput"
+                type="date" 
+                class="form-control" 
+                [(ngModel)]="filters.toDate" 
+                (change)="onFilterChange()"
+                placeholder="To Date">
+            </div>
+            <div class="mt-4">
+              <button class="btn btn-outline-secondary" (click)="resetFilters()">
+                <i class="bi bi-x-circle me-1"></i>Reset
+              </button>
+            </div>
+          </div>
+          <div class="d-flex align-items-center">
+            <div class="ms-2">
+              <ng-select 
+                id="limitSelect"
+                [items]="[10, 25, 50, 100]" 
+                [(ngModel)]="filters.limit" 
+                (change)="onFilterChange()" 
+                placeholder="Items per page">
+              </ng-select>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div *ngIf="loading" class="text-center my-5 py-5">
+        <div class="spinner-grow text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+  
+      <div *ngIf="exporting" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background: rgba(0,0,0,0.3); z-index: 1050;">
+        <div class="bg-white p-4 rounded shadow-lg text-center">
+          <div class="spinner-border text-primary mb-3" role="status">
+            <span class="visually-hidden">Exporting...</span>
+          </div>
+          <p class="mb-0">Preparing export file...</p>
+        </div>
+      </div>
+  
+      <div class="table-responsive" *ngIf="!loading && pointsHistory.docs && pointsHistory.docs.length > 0">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="py-3">Sr No</th>
+              <th class="py-3">Name</th>
+              <th class="py-3">Chapter</th>
+              <th class="py-3">One to One</th>
+              <th class="py-3">Referral</th>
+              <th class="py-3">Regular Attendance</th>
+              <th class="py-3">Induction</th>
+              <th class="py-3">Visitor</th>
+              <th class="py-3">Event Attendance</th>
+              <th class="py-3">TYFCB</th>
+              <th class="py-3">Testimonial</th>
+              <th class="py-3">Total Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let point of pointsHistory.docs | paginate: { id: paginationConfig.id, itemsPerPage: pointsHistory.limit, currentPage: pointsHistory.page, totalItems: pointsHistory.totalDocs }; let i = index" class="border-bottom">
+              <td class="py-3">{{ (pointsHistory.page - 1) * pointsHistory.limit + i + 1 }}</td>
+              <td class="py-3">
+                <div class="d-flex align-items-center">
+                  <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border-2 border-white"
+                    style="width: 32px; height: 32px; color: white;">
+                    {{point.name ? point.name.charAt(0).toUpperCase() : 'U'}}
+                  </div>
+                  <div>
+                    <div class="fw-bold text-dark">{{point.name || 'Unknown'}}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3">{{point.chapter_name || 'N/A'}}</td>
+              <td class="py-3">{{point.one_to_one || 0}}</td>
+              <td class="py-3">{{point.referal || 0}}</td>
+              <td class="py-3">{{point.attendance_regular || 0}}</td>
+              <td class="py-3">{{point.induction || 0}}</td>
+              <td class="py-3">{{point.visitor || 0}}</td>
+              <td class="py-3">{{point.event_attendance || 0}}</td>
+              <td class="py-3">{{point.tyfcb || 0}}</td>
+              <td class="py-3">{{point.testimonial || 0}}</td>
+              <td class="py-3">{{point.totalPointsSum || 0}}</td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+          <div *ngIf="pointsHistory.docs && pointsHistory.docs.length > 0" class="text-muted">
+            Showing {{ (pointsHistory.page - 1) * pointsHistory.limit + 1 }} to 
+            {{ Math.min(pointsHistory.page * pointsHistory.limit, pointsHistory.totalDocs) }} 
+            of {{ pointsHistory.totalDocs }} entries
+          </div>
+          <pagination-controls 
+            [id]="paginationConfig.id"
+            (pageChange)="onPageChange($event)"
+            previousLabel="Previous"
+            nextLabel="Next"
+            [directionLinks]="true">
+          </pagination-controls>
+        </div>
+      </div>
+  
+      <div *ngIf="!loading && (!pointsHistory.docs || pointsHistory.docs.length === 0)" class="text-center my-5 py-4 px-4">
+        <div class="empty-state">
+          <i class="bi bi-trophy fs-1 text-muted mb-3"></i>
+          <h5>No Points History Found</h5>
+          <p class="text-muted">Try adjusting your filter criteria or date range.</p>
+          <button class="btn btn-outline-primary rounded-pill mt-3" (click)="resetFilters()">
+            <i class="bi bi-arrow-repeat me-2"></i>Reset Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,201 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white ">
+        <i class="bi bi-trophy me-2"></i>Leaderboard Points Management
+      </h4>
+     
+    </div>
+    <div class="card-body p-0">
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <div class="d-flex w-100 align-items-center">
+          <div class="flex-grow-1 me-2">
+            <input type="text" class="form-control"
+                   placeholder="Search points..."
+                   [(ngModel)]="searchQuery"
+                   (input)="onSearch()">
+          </div>
+          <div>
+            <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit" placeholder="Items per page"></ng-select>
+          </div>
+        </div>
+      </div>
+    </div>
+     
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && leaderboard.docs && leaderboard.docs.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4 py-3">Activity Name</th>
+            <th class="py-3 text-center">Points</th>
+            <th class="py-3 text-center">Month Count</th>
+            <!-- Special columns for TYFCB -->
+            <th class="py-3 text-center" *ngIf="hasTYFCBPoint()">Amount Limit</th>
+            <th class="py-3 text-center" *ngIf="hasTYFCBPoint()">From Date</th>
+            <th class="py-3 text-center" *ngIf="hasTYFCBPoint()">To Date</th>
+            <th class="text-end pe-4 py-3">Action</th>
+          </tr>
+        </thead>
+        
+        <tbody>
+          <tr *ngFor="let point of leaderboard.docs | paginate: {itemsPerPage: payload.limit, currentPage: payload.page, totalItems: leaderboard.totalDocs}; let i=index" class="border-bottom">
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center">
+                <div class="bg-gradient-primary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm  border-2 border-white"
+                  style="width: 40px; height: 40px; color: white;">
+                  {{point.name ? point.name.charAt(0).toUpperCase() : 'P'}}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{point.name || 'Unnamed Activity'}}</div>
+                  <small class="text-muted d-block">ID: {{point._id ? point._id.substring(0, 8) : 'N/A'}}</small>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 text-center">
+              <span class="badge rounded-pill bg-primary px-3 py-2 fs-6">
+                {{point.point}}
+              </span>
+            </td>
+            <td class="py-3 text-center">
+              <span class="badge rounded-pill bg-info px-3 py-2 fs-6">
+                {{point.month_count || 0}}
+              </span>
+            </td>
+            <!-- Special columns for TYFCB -->
+            <td class="py-3 text-center" *ngIf="hasTYFCBPoint()">
+              <span *ngIf="point.name === 'tyfcb'" class="badge rounded-pill bg-success px-3 py-2 fs-6">
+                {{point.amount_limit || 0}}
+              </span>
+              <span *ngIf="point.name !== 'tyfcb'">-</span>
+            </td>
+            <td class="py-3 text-center" *ngIf="hasTYFCBPoint()">
+              <span *ngIf="point.name === 'tyfcb'" class="badge rounded-pill bg-secondary px-3 py-2 fs-6">
+                {{point.from_date ? formatDate(point.from_date) : 'N/A'}}
+              </span>
+              <span *ngIf="point.name !== 'tyfcb'">-</span>
+            </td>
+            <td class="py-3 text-center" *ngIf="hasTYFCBPoint()">
+              <span *ngIf="point.name === 'tyfcb'" class="badge rounded-pill bg-secondary px-3 py-2 fs-6">
+                {{point.to_date ? formatDate(point.to_date) : 'N/A'}}
+              </span>
+              <span *ngIf="point.name !== 'tyfcb'">-</span>
+            </td>
+            <td class="text-end pe-4 py-3">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button" 
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                  <li><a class="dropdown-item" (click)="openEditPointModal(point)" style="cursor: pointer;">
+                    <i class="bi bi-pencil-fill me-2 text-primary"></i> Edit
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" (click)="deletePoint(point._id)" style="cursor: pointer;">
+                    <i class="bi bi-trash-fill me-2"></i> Delete
+                  </a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- Pagination Controls -->
+      <div class="d-flex justify-content-end p-3">
+        <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+      </div>
+    </div>
+
+    <!-- No Points Found -->
+    <div *ngIf="!loading && (!leaderboard.docs || leaderboard.docs.length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-trophy fs-1 text-muted mb-3"></i>
+        <h5>No Points Found</h5>
+        <p class="text-muted">Try adding some points or adjusting your search criteria.</p>
+        <button class="btn btn-primary rounded-pill mt-3" (click)="openAddPointModal()">
+          <i class="bi bi-plus-circle me-2"></i>Add Point
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Point Modal (Add/Edit) -->
+<div class="modal fade" id="pointModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="pointModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="pointModalTitle">
+          <i class="bi bi-trophy me-2"></i> {{editMode ? 'Edit Point' : 'Add New Point'}}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form>
+          <!-- Activity Name Field -->
+          <div class="mb-3">
+            <label for="pointName" class="form-label">Activity Name</label>
+            <input type="text" class="form-control" id="pointName" placeholder="Enter activity name" 
+                   [(ngModel)]="newPoint.name" name="pointName" required readonly>
+          </div>
+          
+          <!-- Points Field -->
+          <div class="mb-3">                 
+            <label for="pointValue" class="form-label">Points</label>
+            <input type="number" class="form-control" id="pointValue" placeholder="Enter point value" 
+                  [(ngModel)]="newPoint.point" name="pointValue" min="0" required >
+          </div>
+          
+          <!-- Month Count Field -->
+          <div class="mb-3">                 
+            <label for="monthCount" class="form-label">Month Count</label>
+            <input type="number" class="form-control" id="monthCount" placeholder="Enter month count" 
+                  [(ngModel)]="newPoint.month_count" name="monthCount" min="0" required>
+          </div>
+          
+          <!-- Special fields for TYFCB -->
+          <div *ngIf="(selectedPoint && selectedPoint.name === 'tyfcb') || (!editMode && newPoint.name === 'tyfcb')">
+            <h6 class="mt-4 mb-3 border-bottom pb-2">TYFCB Specific Settings</h6>
+            
+            <!-- Amount Limit -->
+            <div class="mb-3">                 
+              <label for="amountLimit" class="form-label">Amount Limit</label>
+              <input type="number" class="form-control" id="amountLimit" placeholder="Enter amount limit" 
+                    [(ngModel)]="newPoint.amount_limit" name="amountLimit" min="0">
+            </div>
+            
+            <!-- From Date -->
+            <div class="mb-3">                 
+              <label for="fromDate" class="form-label">From Date</label>
+              <input type="date" class="form-control" id="fromDate" 
+                    [(ngModel)]="newPoint.from_date" name="fromDate">
+            </div>
+            
+            <!-- To Date -->
+            <div class="mb-3">                 
+              <label for="toDate" class="form-label">To Date</label>
+              <input type="date" class="form-control" id="toDate" 
+                    [(ngModel)]="newPoint.to_date" name="toDate">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="savePoint()" [disabled]="!newPoint.name || newPoint.point === null">
+          <i class="bi bi-save me-1"></i> {{editMode ? 'Update' : 'Save'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

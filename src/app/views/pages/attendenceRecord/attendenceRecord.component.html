@@ -1,0 +1,163 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-calendar-check me-2"></i>Attendance Records
+      </h4>
+      <div class="export-buttons">
+        <button class="btn btn-sm btn-light me-2" [disabled]="loading || exporting || !attendanceRecords?.docs?.length" (click)="exportToExcel()">
+          <i class="bi bi-file-excel me-1"></i>Export Excel
+        </button>
+        <button class="btn btn-sm btn-light" [disabled]="loading || exporting || !attendanceRecords?.docs?.length" (click)="exportToPDF()">
+          <i class="bi bi-file-pdf me-1"></i>Export PDF
+        </button>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mb-md-0">
+          <div class="me-2" style="min-width: 200px;" *ngIf="!chaptersLoading">
+            <label for="chapterSelect" class="form-label mb-1">Chapter</label>
+            <ng-select 
+              id="chapterSelect"
+              [items]="chapters"
+              bindLabel="name"
+              bindValue="name"
+              placeholder="--Select Chapter--"
+              [(ngModel)]="filters.chapter"
+              (change)="onChapterChange()"
+              [disabled]="chaptersLoading"
+              [clearable]="true">
+            </ng-select>
+          </div>
+          <div class="me-2" style="min-width: 200px;" *ngIf="!eventsLoading">
+            <label for="eventSelect" class="form-label mb-1">Event</label>
+            <ng-select 
+              id="eventSelect"
+              [items]="events"
+              bindLabel="name"
+              bindValue="_id"
+              placeholder="--Select Event--"
+              [(ngModel)]="filters.eventId"
+              (change)="onEventChange()"
+              [disabled]="eventsLoading || !filters.chapter"
+              [clearable]="true">
+            </ng-select>
+          </div>
+          <div class="mt-4">
+            <button class="btn btn-outline-secondary" (click)="resetFilters()" [disabled]="loading || chaptersLoading || eventsLoading">
+              <i class="bi bi-x-circle me-1"></i>Reset
+            </button>
+          </div>
+        </div>
+        <div class="d-flex align-items-center">
+          <div class="ms-2">
+         
+            <ng-select 
+              id="limitSelect"
+              [items]="[10, 25, 50, 100]"
+              [(ngModel)]="filters.limit"
+              (change)="onFilterChange()"
+              placeholder="Items per page">
+            </ng-select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div *ngIf="exporting" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background: rgba(0,0,0,0.3); z-index: 1050;">
+      <div class="bg-white p-4 rounded shadow-lg text-center">
+        <div class="spinner-border text-primary mb-3" role="status">
+          <span class="visually-hidden">Exporting...</span>
+        </div>
+        <p class="mb-0">Preparing export file...</p>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && (attendanceRecords?.docs ?? []).length > 0">
+      <div class="p-3 bg-light">
+        <h5 class="mb-0">Event: {{ eventDetails?.name }} ({{ eventDetails?.chapter_name }})</h5>
+        <small class="text-muted">
+          {{ eventDetails?.date | date: 'medium' }} | {{ eventDetails?.mode }} | {{ eventDetails?.location }}
+        </small>
+      </div>
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="py-3">Sr No</th>
+            <th class="py-3">Member Name</th>
+            <th class="py-3">Email</th>
+            <th class="py-3">Mobile</th>
+            <th class="py-3">Status</th>
+            <th class="py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let record of attendanceRecords.docs | paginate: { id: paginationConfig.id, itemsPerPage: attendanceRecords.limit, currentPage: attendanceRecords.page, totalItems: attendanceRecords.totalDocs }; let i = index">
+            <td class="py-3">{{ (attendanceRecords.page - 1) * attendanceRecords.limit + i + 1 }}</td>
+            <td class="py-3">
+              <div class="d-flex align-items-center">
+                <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border-2 border-white"
+                  style="width: 32px; height: 32px; color: white;">
+                  {{ record.name ? record.name.charAt(0).toUpperCase() : 'U' }}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{ record.name || 'Unknown' }}</div>
+                  <small class="text-muted d-block">{{ record.chapter_name || 'N/A' }}</small>
+                </div>
+              </div>
+            </td>
+            <td class="py-3">{{ record.email }}</td>
+            <td class="py-3">{{ record.mobile_number }}</td>
+            <td class="py-3">
+              <span class="badge" [ngClass]="{'bg-success': record.status === 'present', 'bg-danger': record.status === 'absent'}">
+                {{ record.status | titlecase }}
+              </span>
+            </td>
+            <td class="py-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" [checked]="record.status === 'present'"
+                  (change)="toggleAttendanceStatus(record.userId)" [disabled]="toggling[record.userId]">
+                <span *ngIf="toggling[record.userId]" class="spinner-border spinner-border-sm ms-2" role="status"></span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="d-flex justify-content-between align-items-center p-3 border-top">
+        <div class="text-muted">
+          Showing {{ (attendanceRecords.page - 1) * attendanceRecords.limit + 1 }} to
+          {{ Math.min(attendanceRecords.page * attendanceRecords.limit, attendanceRecords.totalDocs) }}
+          of {{ attendanceRecords.totalDocs }} entries
+        </div>
+        <pagination-controls 
+          [id]="paginationConfig.id"
+          [maxSize]="5"
+          [responsive]="true"
+          (pageChange)="onPageChange($event)"
+          previousLabel="Previous"
+          nextLabel="Next"
+          [directionLinks]="true">
+        </pagination-controls>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && ((attendanceRecords?.docs ?? []).length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
+        <h5>No Attendance Records Found</h5>
+        <p class="text-muted">Please select a chapter and event to view attendance records.</p>
+        <button class="btn btn-outline-primary rounded-pill mt-3" (click)="resetFilters()">
+          <i class="bi bi-arrow-repeat me-2"></i>Reset Filters
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

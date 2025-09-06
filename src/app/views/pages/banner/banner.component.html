@@ -1,0 +1,345 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-image me-2"></i>Banner Management
+      </h4>
+      <button class="btn btn-light rounded-pill px-4" (click)="openAddBannerModal()">
+        <i class="bi bi-plus-circle me-2"></i>Add Banner
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <div class="d-flex w-100 align-items-center">
+          <!-- <div class="flex-grow-1 me-2">
+            <input type="text" class="form-control"
+                  placeholder="Search banners..."
+                  [(ngModel)]="searchQuery"
+                  (input)="onSearch()">
+          </div>
+          <div>
+            <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit" placeholder="Items per page"></ng-select>
+          </div> -->
+        </div>
+      </div>
+    </div>
+     
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && banners.banners && banners.banners.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4 py-3">Banner</th>
+            <th class="py-3">Title</th>
+            <th class="py-3">Contact</th>
+            <th class="py-3">Date Range</th>
+            <th class="py-3">Status</th>
+            <th class="py-3">Created At</th>
+            <th class="text-end pe-4 py-3">Action</th>
+          </tr>
+        </thead>
+        
+        <tbody>
+          <tr *ngFor="let banner of banners.banners; let i=index" class="border-bottom">
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center">
+                <div class="banner-image-container me-3 position-relative" style="cursor: pointer;" (click)="openImagePreview(banner)">
+                  <img *ngIf="banner.image" 
+                       [src]="getImageUrl(banner.image)" 
+                       alt="Banner Image"
+                       class="banner-thumbnail rounded shadow-sm"
+                       style="width: 60px; height: 40px; object-fit: cover;">
+                  <div *ngIf="!banner.image" 
+                       class="bg-gradient-primary rounded d-flex align-items-center justify-content-center shadow-sm"
+                       style="width: 60px; height: 40px; color: white;">
+                    <i class="bi bi-image"></i>
+                  </div>
+                  <!-- Eye icon overlay -->
+                  <div class="position-absolute top-0 end-0 bg-dark bg-opacity-75 rounded-circle p-1" 
+                       style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin: 2px;">
+                    <i class="bi bi-eye text-white" style="font-size: 10px;"></i>
+                  </div>
+                </div>
+              </div>
+
+            </td>
+            <td class="py-3">
+              <div>
+                <div class="fw-bold text-dark">{{banner.title || 'Untitled'}}</div>
+                <small class="text-muted d-block" *ngIf="banner.description">{{banner.description}}</small>
+             
+              </div>
+            </td>
+            <td class="py-3">
+              <span class="text-muted">{{banner.contact || 'N/A'}}</span>
+            </td>
+            <td class="py-3">
+              <div *ngIf="banner.fromDate || banner.toDate">
+                <small class="d-block">
+                  <strong>From:</strong> {{formatDate(banner.fromDate)}}
+                </small>
+                <small class="d-block">
+                  <strong>To:</strong> {{formatDate(banner.toDate)}}
+                </small>
+              </div>
+              <span *ngIf="!banner.fromDate && !banner.toDate" class="text-muted">No date range</span>
+            </td>
+            <td class="py-3">
+              <span class="badge rounded-pill" 
+                    [ngClass]="banner.isActive ? 'badge bg-success' : 'badge bg-danger'"
+                    style="cursor: pointer;"
+                    (click)="toggleBannerStatus(banner)">
+                {{banner.isActive ? 'Active' : 'Inactive'}}
+              </span>
+            </td>
+            <td class="py-3">
+              {{formatDate(banner.createdAt)}}
+            </td>
+            <td class="text-end pe-4 py-3">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button" 
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                  <li><a class="dropdown-item" (click)="openEditBannerModal(banner)" style="cursor: pointer;">
+                    <i class="bi bi-pencil-fill me-2 text-primary"></i> Edit
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" (click)="deleteBanner(banner._id)" style="cursor: pointer;">
+                    <i class="bi bi-trash-fill me-2"></i> Delete
+                  </a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- Pagination Controls -->
+      <div class="d-flex justify-content-end p-3" *ngIf="banners.total > payload.limit">
+        <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+      </div>
+    </div>
+
+    <!-- No Banners Found -->
+    <div *ngIf="!loading && (!banners.banners || banners.banners.length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-image fs-1 text-muted mb-3"></i>
+        <h5>No Banners Found</h5>
+        <p class="text-muted">Try adding some banners or adjusting your search criteria.</p>
+        <button class="btn btn-primary rounded-pill mt-3" (click)="openAddBannerModal()">
+          <i class="bi bi-plus-circle me-2"></i>Add Banner
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" role="dialog" aria-labelledby="imagePreviewModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="imagePreviewModalTitle">
+          <i class="bi bi-image me-2"></i>Banner Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0" *ngIf="selectedBannerForPreview">
+        <div class="row g-0">
+          <!-- Image Section -->
+          <div class="col-md-8">
+            <div class="position-relative">
+              <img [src]="getImageUrl(selectedBannerForPreview.image)" 
+                   [alt]="selectedBannerForPreview.title"
+                   class="img-fluid w-100"
+                   style="max-height: 500px; object-fit: contain; background: #f8f9fa;">
+              <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge rounded-pill" 
+                      [ngClass]="selectedBannerForPreview.isActive ? 'bg-success' : 'bg-danger'">
+                  {{selectedBannerForPreview.isActive ? 'Active' : 'Inactive'}}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Details Section -->
+          <div class="col-md-4 bg-light">
+            <div class="p-4">
+              <h4 class="fw-bold text-dark mb-3">{{selectedBannerForPreview.title || 'Untitled'}}</h4>
+              
+              <div class="mb-3" *ngIf="selectedBannerForPreview.description">
+                <h6 class="text-muted mb-2">Description</h6>
+                <p class="text-dark">{{selectedBannerForPreview.description}}</p>
+              </div>
+              
+              <div class="row mb-3" *ngIf="selectedBannerForPreview.contact">
+                <div class="col-12">
+                  <h6 class="text-muted mb-2">Contact</h6>
+                  <p class="text-dark">{{selectedBannerForPreview.contact}}</p>
+                </div>
+              </div>
+              
+              <div class="row mb-3" *ngIf="selectedBannerForPreview.redirectUrl">
+                <div class="col-12">
+                  <h6 class="text-muted mb-2">Redirect URL</h6>
+                  <a [href]="selectedBannerForPreview.redirectUrl" target="_blank" 
+                     class="text-primary text-decoration-none">
+                    <i class="bi bi-link-45deg me-1"></i>
+                    {{selectedBannerForPreview.redirectUrl}}
+                  </a>
+                </div>
+              </div>
+              
+              <div class="row mb-3" *ngIf="selectedBannerForPreview.fromDate || selectedBannerForPreview.toDate">
+                <div class="col-12">
+                  <h6 class="text-muted mb-2">Date Range</h6>
+                  <div *ngIf="selectedBannerForPreview.fromDate">
+                    <small class="d-block text-dark">
+                      <strong>From:</strong> {{formatDate(selectedBannerForPreview.fromDate)}}
+                    </small>
+                  </div>
+                  <div *ngIf="selectedBannerForPreview.toDate">
+                    <small class="d-block text-dark">
+                      <strong>To:</strong> {{formatDate(selectedBannerForPreview.toDate)}}
+                    </small>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-12">
+                  <h6 class="text-muted mb-2">Created</h6>
+                  <p class="text-dark">{{formatDate(selectedBannerForPreview.createdAt)}}</p>
+                </div>
+              </div>
+              
+              
+             
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-outline-primary rounded-pill me-2" 
+        *ngIf="selectedBannerForPreview"
+        (click)="openEditBannerModal(selectedBannerForPreview)" 
+        data-bs-dismiss="modal">
+  <i class="bi bi-pencil-fill me-1"></i>Edit Banner
+</button>
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Banner Modal (Add/Edit) -->
+<div class="modal fade" id="bannerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="bannerModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="bannerModalTitle">
+          <i class="bi bi-image me-2"></i> {{editMode ? 'Edit Banner' : 'Add New Banner'}}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form #bannerForm="ngForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="bannerTitle" class="form-label">Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="bannerTitle" placeholder="Enter banner title" 
+                    [(ngModel)]="newBanner.title" name="bannerTitle" required #titleInput="ngModel"
+                    [class.is-invalid]="titleInput.invalid && (titleInput.dirty || titleInput.touched || formSubmitted)">
+              <div class="invalid-feedback" *ngIf="titleInput.invalid && (titleInput.dirty || titleInput.touched || formSubmitted)">
+                Title is required.
+              </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="bannerImage" class="form-label">Banner Image <span class="text-danger">*</span></label>
+              <input type="file" class="form-control" id="bannerImage" accept="image/*"
+                     (change)="onImageSelect($event)" name="bannerImage" #imageInput
+                     [class.is-invalid]="!newBanner.image && !editMode && formSubmitted">
+              <div class="invalid-feedback" *ngIf="!newBanner.image && !editMode && formSubmitted">
+                Banner image is required.
+              </div>
+              <small class="form-text text-muted">Supported formats: JPG, PNG, GIF (Max: 10MB). Required dimensions: 1200x400 pixels.</small>
+            </div>
+            </div>
+          <div class="mb-3">
+            <label for="bannerDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="bannerDescription" rows="3" placeholder="Enter banner description" 
+                     [(ngModel)]="newBanner.description" name="bannerDescription"></textarea>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="bannerContact" class="form-label">Contact</label>
+              <input type="text" class="form-control" id="bannerContact" placeholder="Enter contact details" 
+                    [(ngModel)]="newBanner.contact" name="bannerContact">
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="bannerRedirectUrl" class="form-label">Redirect URL</label>
+              <input type="url" class="form-control" id="bannerRedirectUrl" placeholder="https://example.com" 
+                    [(ngModel)]="newBanner.redirectUrl" name="bannerRedirectUrl" #urlInput="ngModel"
+                    [class.is-invalid]="urlInput.invalid && (urlInput.dirty || urlInput.touched || formSubmitted)">
+              <div class="invalid-feedback" *ngIf="urlInput.invalid && (urlInput.dirty || urlInput.touched || formSubmitted)">
+                Please enter a valid URL.
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="bannerFromDate" class="form-label">From Date</label>
+              <input type="date" class="form-control" id="bannerFromDate"
+                    [(ngModel)]="newBanner.fromDate" name="bannerFromDate">
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="bannerToDate" class="form-label">To Date</label>
+              <input type="date" class="form-control" id="bannerToDate"
+                    [(ngModel)]="newBanner.toDate" name="bannerToDate">
+            </div>
+          </div>
+          
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="bannerStatus" 
+                  [(ngModel)]="newBanner.isActive" name="bannerStatus">
+            <label class="form-check-label" for="bannerStatus">
+              {{newBanner.isActive ? 'Active' : 'Inactive'}}
+            </label>
+          </div>
+
+          <!-- Image Preview -->
+          <div *ngIf="imagePreview" class="mb-3">
+            <label class="form-label">Image Preview:</label>
+            <div class="border rounded p-2">
+              <img [src]="imagePreview" alt="Preview" class="img-thumbnail" style="max-height: 200px;">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="saveBanner(bannerForm)" 
+                [disabled]="loading">
+          <i class="bi bi-save me-1"></i> {{editMode ? 'Update' : 'Save'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

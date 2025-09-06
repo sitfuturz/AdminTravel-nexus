@@ -1,0 +1,254 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-award me-2"></i>Badge Management
+      </h4>
+      <button class="btn btn-light rounded-pill px-4" (click)="openAddBadgeModal()">
+        <i class="bi bi-plus-circle me-2"></i>Add Badge
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <div class="d-flex w-100 align-items-center">
+          <div class="flex-grow-1 me-2">
+            <input type="text" class="form-control"
+                  placeholder="Search badges..."
+                  [(ngModel)]="searchQuery"
+                  (input)="onSearch()">
+          </div>
+          <div>
+            <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit" placeholder="Items per page"></ng-select>
+          </div>
+        </div>
+      </div>
+    </div>
+     
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && badges?.docs && badges.docs.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4 py-3">Badge</th>
+            <th class="py-3">Name</th>
+            <th class="py-3">Description</th>
+            <th class="py-3">Status</th>
+            <th class="py-3">Created At</th>
+            <th class="text-end pe-4 py-3">Action</th>
+          </tr>
+        </thead>
+        
+        <tbody>
+          <tr *ngFor="let badge of badges.docs | paginate: { itemsPerPage: payload.limit, currentPage: payload.page, totalItems: badges.totalDocs }; let i=index" class="border-bottom">
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center">
+                <div class="badge-image-container me-3 position-relative" style="cursor: pointer;" (click)="openImagePreview(badge)">
+                  <img *ngIf="badge.image" 
+                       [src]="getImageUrl(badge.image)" 
+                       alt="Badge Image"
+                       class="badge-thumbnail rounded shadow-sm"
+                       style="width: 60px; height: 60px; object-fit: cover;">
+                  <div *ngIf="!badge.image" 
+                       class="bg-gradient-primary rounded d-flex align-items-center justify-content-center shadow-sm"
+                       style="width: 60px; height: 60px; color: white;">
+                    <i class="bi bi-award"></i>
+                  </div>
+                  <div class="position-absolute top-0 end-0 bg-dark bg-opacity-75 rounded-circle p-1" 
+                       style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin: 2px;">
+                    <i class="bi bi-eye text-white" style="font-size: 10px;"></i>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="fw-bold text-dark">{{badge.name || 'Untitled'}}</div>
+            </td>
+            <td class="py-3">
+              <span class="text-muted">{{badge.description || 'N/A'}}</span>
+            </td>
+            <td class="py-3">
+              <span class="badge rounded-pill" 
+                    [ngClass]="badge.isActive ? 'badge bg-success' : 'badge bg-danger'"
+                    style="cursor: pointer;"
+                    (click)="toggleBadgeStatus(badge)">
+                {{badge.isActive ? 'Active' : 'Inactive'}}
+              </span>
+            </td>
+            <td class="py-3">
+              {{formatDate(badge.createdAt)}}
+            </td>
+            <td class="text-end pe-4 py-3">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button" 
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                  <li><a class="dropdown-item" (click)="openEditBadgeModal(badge)" style="cursor: pointer;">
+                    <i class="bi bi-pencil-fill me-2 text-primary"></i> Edit
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" (click)="deleteBadge(badge._id)" style="cursor: pointer;">
+                    <i class="bi bi-trash-fill me-2"></i> Delete
+                  </a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+   
+        <div class="d-flex justify-content-end p-3">
+          <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+        </div>
+      </div>
+   
+
+    <div *ngIf="!loading && (!badges?.docs || badges.docs.length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-award fs-1 text-muted mb-3"></i>
+        <h5>No Badges Found</h5>
+        <p class="text-muted">Try adding some badges or adjusting your search criteria.</p>
+        <button class="btn btn-primary rounded-pill mt-3" (click)="openAddBadgeModal()">
+          <i class="bi bi-plus-circle me-2"></i>Add Badge
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" role="dialog" aria-labelledby="imagePreviewModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="imagePreviewModalTitle">
+          <i class="bi bi-award me-2"></i>Badge Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0" *ngIf="selectedBadgeForPreview">
+        <div class="row g-0">
+          <div class="col-md-8">
+            <div class="position-relative">
+              <img [src]="getImageUrl(selectedBadgeForPreview.image)" 
+                   [alt]="selectedBadgeForPreview.name"
+                   class="img-fluid w-100"
+                   style="max-height: 400px; object-fit: contain; background: #f8f9fa;">
+              <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge rounded-pill" 
+                      [ngClass]="selectedBadgeForPreview.isActive ? 'bg-success' : 'bg-danger'">
+                  {{selectedBadgeForPreview.isActive ? 'Active' : 'Inactive'}}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4 bg-light">
+            <div class="p-4">
+              <h4 class="fw-bold text-dark mb-3">{{selectedBadgeForPreview.name || 'Untitled'}}</h4>
+              
+              <div class="mb-3" *ngIf="selectedBadgeForPreview.description">
+                <h6 class="text-muted mb-2">Description</h6>
+                <p class="text-dark">{{selectedBadgeForPreview.description}}</p>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-12">
+                  <h6 class="text-muted mb-2">Created</h6>
+                  <p class="text-dark">{{formatDate(selectedBadgeForPreview.createdAt)}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-outline-primary rounded-pill me-2" 
+                *ngIf="selectedBadgeForPreview"
+                (click)="openEditBadgeModal(selectedBadgeForPreview)" 
+                data-bs-dismiss="modal">
+          <i class="bi bi-pencil-fill me-1"></i>Edit Badge
+        </button>
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="badgeModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="badgeModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="badgeModalTitle">
+          <i class="bi bi-award me-2"></i> {{editMode ? 'Edit Badge' : 'Add New Badge'}}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form #badgeForm="ngForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="badgeName" class="form-label">Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="badgeName" placeholder="Enter badge name" 
+                    [(ngModel)]="newBadge.name" name="badgeName" required #nameInput="ngModel"
+                    [class.is-invalid]="nameInput.invalid && (nameInput.dirty || nameInput.touched || formSubmitted)">
+              <div class="invalid-feedback" *ngIf="nameInput.invalid && (nameInput.dirty || nameInput.touched || formSubmitted)">
+                Name is required.
+              </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="badgeImage" class="form-label">Badge Image <span class="text-danger">*</span></label>
+              <input type="file" class="form-control" id="badgeImage" accept="image/*"
+                    (change)="onImageSelect($event)" name="badgeImage" #imageInput
+                    [class.is-invalid]="!newBadge.image && !editMode && formSubmitted">
+              <div class="invalid-feedback" *ngIf="!newBadge.image && !editMode && formSubmitted">
+                Badge image is required.
+              </div>
+              <small class="form-text text-muted">Supported formats: JPG, PNG (Max: 5MB)</small>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="badgeDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="badgeDescription" rows="3" placeholder="Enter badge description" 
+                     [(ngModel)]="newBadge.description" name="badgeDescription"></textarea>
+          </div>
+
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="badgeStatus" 
+                  [(ngModel)]="newBadge.isActive" name="badgeStatus">
+            <label class="form-check-label" for="badgeStatus">
+              {{newBadge.isActive ? 'Active' : 'Inactive'}}
+            </label>
+          </div>
+
+          <div *ngIf="imagePreview" class="mb-3">
+            <label class="form-label">Image Preview:</label>
+            <div class="border rounded p-2">
+              <img [src]="imagePreview" alt="Preview" class="img-thumbnail" style="max-height: 200px;">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="saveBadge(badgeForm)" 
+                [disabled]="loading">
+          <i class="bi bi-save me-1"></i> {{editMode ? 'Update' : 'Save'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

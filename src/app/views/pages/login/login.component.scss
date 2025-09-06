@@ -1,0 +1,238 @@
+// Variables
+$primary-color: hsl(22, 50%, 45%);
+$secondary-color: #a8672a;
+$accent-color: #4CAF50;
+$text-color: #333;
+$light-text: #666;
+$error-color: #f44336;
+$white: #fff;
+$box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+$transition: all 0.3s ease;
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// Main Layout
+.login-container {
+  width: 100%;
+  min-height: 100vh;
+  @include flex-center;
+  flex-direction: column;
+  background: linear-gradient(135deg, $primary-color, $secondary-color);
+  padding: 20px;
+}
+
+// Card Styling
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background-color: $white;
+  border-radius: 12px;
+  box-shadow: $box-shadow;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+// Header Section
+.login-header {
+  padding: 30px 30px 20px;
+  text-align: center;
+  background-color: rgba($primary-color, 0.05);
+}
+
+.logo-container {
+  margin-bottom: 15px;
+}
+.custom-select {
+  
+  /* Basic structure */
+  width: 100% !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  
+  
+  
+ 
+  
+  
+  
+}
+
+
+
+
+/* Options styling */
+.custom-select option {
+  color: #333 !important;
+  background-color: #fff !important;
+  padding: 10px 15px !important;
+  font-size: 16px !important;
+  line-height: 1.4 !important;
+  font-weight: 400 !important;
+}
+
+
+
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #495057;
+}
+
+.logo {
+  height: 60px;
+  max-width: 100%;
+}
+
+.app-name {
+  font-size: 24px;
+  color: $primary-color;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.login-title {
+  font-size: 20px;
+  color: $text-color;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: $light-text;
+  margin-bottom: 0;
+}
+
+// Form Section
+.login-form {
+  padding: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $light-text;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: $transition;
+  
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+    outline: none;
+  }
+  
+  &.is-invalid {
+    border-color: $error-color;
+  }
+}
+
+.toggle-password {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $light-text;
+  cursor: pointer;
+  
+  &:hover {
+    color: $primary-color;
+  }
+}
+
+.error-message {
+  font-size: 12px;
+  color: $error-color;
+  margin-top: 5px;
+  min-height: 18px;
+}
+
+// Button Styling
+.login-button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background-color: $primary-color;
+  color: $white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: $transition;
+  position: relative;
+  
+  &:hover {
+    background-color: $secondary-color;
+  }
+  
+  &:disabled {
+    background-color: #b0bec5;
+    cursor: not-allowed;
+  }
+  
+  &.button-loading {
+    color: transparent;
+  }
+}
+
+// Spinner Animation
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: $white;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+// Footer
+.login-footer {
+  text-align: center;
+  color: rgba($white, 0.8);
+  font-size: 14px;
+  
+  a {
+    color: $white;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

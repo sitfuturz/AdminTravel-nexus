@@ -1,0 +1,1478 @@
+/* ============================================ */
+/* COMPLETE CSS OVERRIDE FIX - Replace your entire sidebar.component.scss */
+/* ============================================ */
+
+// Enhanced Brown Color Palette
+$primary-brown: #8b4513;
+$dark-brown: #654321;
+$light-brown: #d2b48c;
+$medium-brown: #a0522d;
+$warm-brown: #cd853f;
+$coffee-brown: #6f4e37;
+$cream-brown: #f5deb3;
+$mahogany: #c04000;
+$sienna: #a0522d;
+
+// Main theme colors
+$primary-color: $dark-brown;
+$primary-gradient: linear-gradient(135deg, $medium-brown 0%, $dark-brown 100%);
+$secondary-color: $light-brown;
+$accent-color: $warm-brown;
+$text-primary: #ffffff;
+$text-secondary: $cream-brown;
+$bg-dark: #3e2723;
+$bg-darker: #2e1a17;
+$white: #ffffff;
+$shadow-light: rgba(101, 67, 33, 0.4);
+$shadow-medium: rgba(101, 67, 33, 0.6);
+$border-radius: 16px;
+$sidebar-width: 320px;
+$sidebar-collapsed-width: 75px;
+
+// Additional colors
+$hover-bg: rgba(210, 180, 140, 0.15);
+$active-bg: rgba(210, 180, 140, 0.22);
+$border-color: rgba(245, 222, 179, 0.2);
+$logo-bg: rgba(245, 222, 179, 0.1);
+$logo-border: rgba(210, 180, 140, 0.3);
+$submenu-bg: rgba(46, 26, 23, 0.8);
+$submenu-border: rgba(245, 222, 179, 0.1);
+
+.submenu {
+  // Remove conflicting rules and simplify
+  max-height: 0 !important;
+  overflow: hidden !important;
+  transition: max-height 0.3s ease !important;
+  
+  // Background and positioning
+  background: rgba(46, 26, 23, 0.95) !important;
+  border-radius: 0 0 8px 8px !important;
+  margin-top: 2px !important;
+  position: relative !important;
+  
+  // ACTIVE STATE - CRITICAL FIX
+  &.active {
+    max-height: 500px !important;
+  }
+}
+
+
+.nav-item-with-submenu {
+  .submenu {
+    overflow: hidden !important;
+    transition: max-height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    max-height: 0 !important;
+    background: $submenu-bg !important;
+    border-radius: 0 0 10px 10px !important;
+    margin-top: 2px !important;
+    border: 1px solid $submenu-border !important;
+    border-top: none !important;
+    backdrop-filter: blur(8px) !important;
+
+    &.active {
+      max-height: 1000px !important; // Increased for safety
+      border-top: 1px solid $submenu-border !important;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    }
+  }
+
+  .submenu-list {
+    list-style: none !important;
+    padding: 6px 0 !important;
+    margin: 0 !important;
+  }
+
+  .submenu-item {
+    margin-bottom: 2px !important;
+
+    &:last-child {
+      margin-bottom: 0 !important;
+    }
+  }
+
+  .submenu-link {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 16px 8px 32px !important;
+    color: rgba(245, 222, 179, 0.9) !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    border-radius: 6px !important;
+    margin: 0 6px !important;
+    position: relative !important;
+    border: 1px solid transparent !important;
+    min-height: 36px !important;
+
+    &::before {
+      content: '' !important;
+      position: absolute !important;
+      left: -16px !important;
+      top: 50% !important;
+      width: 10px !important;
+      height: 2px !important;
+      background: $accent-color !important;
+      transform: translateY(-50%) !important;
+      transition: all 0.3s ease !important;
+      opacity: 0 !important;
+    }
+
+    .submenu-icon {
+      width: 18px !important;
+      height: 18px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin-right: 8px !important;
+      background: rgba(245, 222, 179, 0.08) !important;
+      border-radius: 4px !important;
+      transition: all 0.3s ease !important;
+      border: 1px solid rgba(245, 222, 179, 0.1) !important;
+      flex-shrink: 0 !important;
+
+      i {
+        font-size: 11px !important;
+        color: rgba(245, 222, 179, 0.8) !important;
+        transition: all 0.3s ease !important;
+      }
+    }
+
+    .submenu-text {
+      flex: 1 !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.1px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .submenu-indicator {
+      width: 5px !important;
+      height: 5px !important;
+      border-radius: 50% !important;
+      background: transparent !important;
+      transition: all 0.3s ease !important;
+      border: 1px solid transparent !important;
+      flex-shrink: 0 !important;
+    }
+
+    &:hover {
+      color: $accent-color !important;
+      background: rgba(245, 222, 179, 0.08) !important;
+      transform: translateX(3px) !important;
+      border-color: rgba(245, 222, 179, 0.2) !important;
+
+      &::before {
+        opacity: 1 !important;
+        left: 6px !important;
+      }
+
+      .submenu-icon {
+        background: rgba(245, 222, 179, 0.15) !important;
+        border-color: rgba(245, 222, 179, 0.2) !important;
+        
+        i {
+          color: $accent-color !important;
+        }
+      }
+
+      .submenu-indicator {
+        background: $accent-color !important;
+        transform: scale(1.1) !important;
+        border-color: rgba(245, 222, 179, 0.3) !important;
+      }
+    }
+
+    &.active {
+      color: $accent-color !important;
+      background: rgba(245, 222, 179, 0.12) !important;
+      transform: translateX(3px) !important;
+      border-color: rgba(245, 222, 179, 0.25) !important;
+
+      &::before {
+        opacity: 1 !important;
+        left: 6px !important;
+        width: 12px !important;
+      }
+
+      .submenu-icon {
+        background: rgba(245, 222, 179, 0.2) !important;
+        border-color: rgba(245, 222, 179, 0.3) !important;
+        
+        i {
+          color: $accent-color !important;
+        }
+      }
+
+      .submenu-indicator {
+        background: $accent-color !important;
+        border-color: rgba(245, 222, 179, 0.2) !important;
+      }
+    }
+  }
+}
+// ============================================
+// SIDEBAR OVERLAY - CRITICAL FIX
+// ============================================
+.sidebar-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(46, 26, 23, 0.85) !important;
+  z-index: 1041 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: all 0.3s ease !important;
+  backdrop-filter: blur(8px) !important;
+  pointer-events: none !important;
+
+  &.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+}
+
+// ============================================
+// MOBILE TOGGLE BUTTON
+// ============================================
+.mobile-toggle-btn {
+  position: fixed !important;
+  top: 15px !important;
+  left: 15px !important;
+  width: 48px !important;
+  height: 48px !important;
+  background: $primary-gradient !important;
+  border: 2px solid $logo-border !important;
+  border-radius: 12px !important;
+  box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4), 0 3px 6px rgba(0, 0, 0, 0.2) !important;
+  z-index: 1050 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 4px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  cursor: pointer !important;
+
+  .hamburger-line {
+    width: 20px !important;
+    height: 2px !important;
+    background: $secondary-color !important;
+    border-radius: 2px !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  &:hover {
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 0 8px 24px rgba(139, 69, 19, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    border-color: $accent-color !important;
+    
+    .hamburger-line {
+      background: lighten($secondary-color, 10%) !important;
+      transform: scaleX(1.1) !important;
+    }
+  }
+
+  &.active {
+    transform: rotate(180deg) !important;
+    background: linear-gradient(135deg, $warm-brown 0%, $mahogany 100%) !important;
+    
+    .hamburger-line:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px) !important;
+    }
+    .hamburger-line:nth-child(2) {
+      opacity: 0 !important;
+      transform: scaleX(0) !important;
+    }
+    .hamburger-line:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px) !important;
+    }
+  }
+}
+
+// ============================================
+// MAIN SIDEBAR - AGGRESSIVE POSITIONING FIX
+// ============================================
+.sidebar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: $sidebar-width !important;
+  height: 100vh !important;
+  height: 100dvh !important; // Dynamic viewport height for mobile
+  background: linear-gradient(180deg, $bg-dark 0%, $bg-darker 100%) !important;
+  border-right: 3px solid $border-color !important;
+  box-shadow: 8px 0 32px $shadow-light, 4px 0 16px $shadow-medium !important;
+  z-index: 1042 !important;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(10px) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  &::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent 0%, $accent-color 50%, transparent 100%) !important;
+    z-index: 1 !important;
+  }
+
+  // ============================================
+  // DESKTOP BEHAVIOR - STAYS VISIBLE
+  // ============================================
+  @media (min-width: 992px) {
+    position: relative !important;
+    transform: translateX(0) !important;
+    z-index: auto !important;
+    width: $sidebar-width !important;
+  }
+
+  // ============================================
+  // MOBILE BEHAVIOR - ULTRA AGGRESSIVE FIXES
+  // ============================================
+  @media (max-width: 991.98px) {
+    // Force exact positioning
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: 0 !important;
+    width: 320px !important;
+    max-width: 85vw !important;
+    min-width: 280px !important;
+    z-index: 1042 !important;
+    
+    // Hidden by default - slide from left
+    transform: translateX(-100%) !important;
+    
+    // ACTIVE STATE - FORCE TO SCREEN LEFT EDGE
+    &.active {
+      transform: translateX(0px) !important;
+      left: 0px !important;
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+    }
+    
+    // Additional safety for mobile class
+    &.mobile {
+      transform: translateX(-100%) !important;
+      
+      &.active {
+        transform: translateX(0px) !important;
+        left: 0px !important;
+        margin-left: 0 !important;
+      }
+    }
+  }
+
+  // Smaller mobile devices
+  @media (max-width: 575.98px) {
+    width: 280px !important;
+    max-width: 90vw !important;
+    min-width: 260px !important;
+    
+    &.active,
+    &.mobile.active {
+      transform: translateX(0px) !important;
+      left: 0px !important;
+      margin-left: 0 !important;
+    }
+  }
+
+  // Very small devices
+  @media (max-width: 375px) {
+    width: 260px !important;
+    max-width: 95vw !important;
+    min-width: 240px !important;
+    
+    &.active,
+    &.mobile.active {
+      transform: translateX(0px) !important;
+      left: 0px !important;
+      margin-left: 0 !important;
+    }
+  }
+
+  // Extra small devices
+  @media (max-width: 320px) {
+    width: 240px !important;
+    max-width: 98vw !important;
+    min-width: 220px !important;
+    
+    &.active,
+    &.mobile.active {
+      transform: translateX(0px) !important;
+      left: 0px !important;
+      margin-left: 0 !important;
+    }
+  }
+}
+
+// ============================================
+// SIDEBAR CONTENT
+// ============================================
+.sidebar-content {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  position: relative !important;
+
+  &::-webkit-scrollbar {
+    width: 4px !important;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(210, 180, 140, 0.1) !important;
+    border-radius: 3px !important;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, $secondary-color 0%, $accent-color 100%) !important;
+    border-radius: 3px !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+  }
+}
+
+// ============================================
+// BRAND SECTION
+// ============================================
+.sidebar-brand {
+  padding: 0 !important;
+  margin-bottom: 20px !important;
+  border-bottom: 2px solid $border-color !important;
+  position: relative !important;
+
+  .brand-container {
+    background: linear-gradient(135deg, $primary-brown 0%, $coffee-brown 100%) !important;
+    padding: 20px 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    position: relative !important;
+    overflow: hidden !important;
+
+    &::before {
+      content: '' !important;
+      position: absolute !important;
+      top: -50% !important;
+      right: -30px !important;
+      width: 120px !important;
+      height: 200% !important;
+      background: linear-gradient(45deg, rgba(245, 222, 179, 0.2) 0%, transparent 70%) !important;
+      transform: rotate(20deg) !important;
+      animation: shimmer 3s ease-in-out infinite !important;
+    }
+
+    &::after {
+      content: '' !important;
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      height: 3px !important;
+      background: linear-gradient(90deg, transparent 0%, $accent-color 50%, transparent 100%) !important;
+    }
+
+    .logo-section {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      z-index: 1 !important;
+      flex: 1 !important;
+      min-width: 0 !important;
+    }
+
+    .company-logo {
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 10px !important;
+      object-fit: contain !important;
+      background: $logo-bg !important;
+      padding: 6px !important;
+      border: 2px solid $logo-border !important;
+      box-shadow: 
+        0 3px 12px rgba(0, 0, 0, 0.3),
+        0 1px 4px rgba(210, 180, 140, 0.2),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1) !important;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+      backdrop-filter: blur(4px) !important;
+      flex-shrink: 0 !important;
+    }
+
+    .brand-text {
+      min-width: 0 !important;
+      
+      .app-title {
+        color: $white !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+        letter-spacing: 0.4px !important;
+        background: linear-gradient(135deg, $white 0%, $cream-brown 100%) !important;
+        background-clip: text !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)) !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+    }
+
+    .close-btn {
+      background: rgba(245, 222, 179, 0.15) !important;
+      border: 2px solid $logo-border !important;
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 8px !important;
+      color: $secondary-color !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+      cursor: pointer !important;
+      backdrop-filter: blur(4px) !important;
+      flex-shrink: 0 !important;
+
+      &:hover {
+        background: rgba(245, 222, 179, 0.25) !important;
+        transform: scale(1.1) rotate(90deg) !important;
+        color: $accent-color !important;
+        box-shadow: 0 4px 12px rgba(245, 222, 179, 0.3) !important;
+        border-color: $accent-color !important;
+      }
+    }
+  }
+}
+
+// ============================================
+// NAVIGATION
+// ============================================
+.sidebar-nav {
+  flex: 1 !important;
+  padding: 0 12px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.nav-section {
+  margin-bottom: 20px !important;
+
+  &.extra-section {
+    margin-top: auto !important;
+    margin-bottom: 0 !important;
+    padding-top: 16px !important;
+    border-top: 2px solid $border-color !important;
+    position: relative !important;
+
+    &::before {
+      content: '' !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 20% !important;
+      right: 20% !important;
+      height: 2px !important;
+      background: linear-gradient(90deg, transparent 0%, $accent-color 50%, transparent 100%) !important;
+    }
+  }
+}
+
+.section-header {
+  padding: 10px 12px 6px !important;
+
+  .section-title {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    color: $text-secondary !important;
+    position: relative !important;
+    padding-left: 12px !important;
+
+    &::before {
+      content: '' !important;
+      position: absolute !important;
+      left: 0 !important;
+      top: 50% !important;
+      width: 6px !important;
+      height: 2px !important;
+      background: linear-gradient(90deg, $accent-color 0%, $warm-brown 100%) !important;
+      transform: translateY(-50%) !important;
+      border-radius: 1px !important;
+    }
+  }
+}
+
+.nav-list {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.nav-item {
+  margin-bottom: 3px !important;
+
+  &.nav-item-with-submenu {
+    margin-bottom: 3px !important;
+  }
+}
+
+// ============================================
+// NAV LINKS - ALL STYLES
+// ============================================
+.nav-link {
+  display: flex !important;
+  align-items: center !important;
+  padding: 12px 14px !important;
+  border-radius: 10px !important;
+  color: $text-primary !important;
+  text-decoration: none !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  user-select: none !important;
+  cursor: pointer !important;
+  border: 1px solid transparent !important;
+  background: none !important;
+  width: 100% !important;
+  text-align: left !important;
+  min-height: 44px !important;
+
+  &::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent 0%, $hover-bg 50%, transparent 100%) !important;
+    transition: left 0.4s ease !important;
+    z-index: 0 !important;
+  }
+
+  &::after {
+    content: '' !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 50% !important;
+    width: 0 !important;
+    height: 60% !important;
+    background: linear-gradient(180deg, $accent-color 0%, $warm-brown 100%) !important;
+    transform: translateY(-50%) !important;
+    border-radius: 0 6px 6px 0 !important;
+    transition: width 0.3s ease !important;
+    z-index: 0 !important;
+  }
+
+  .nav-icon {
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 12px !important;
+    position: relative !important;
+    z-index: 1 !important;
+    background: rgba(245, 222, 179, 0.1) !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+    border: 1px solid rgba(245, 222, 179, 0.15) !important;
+    flex-shrink: 0 !important;
+
+    i {
+      font-size: 14px !important;
+      color: $text-secondary !important;
+      transition: all 0.3s ease !important;
+    }
+  }
+
+  .nav-text {
+    flex: 1 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    position: relative !important;
+    z-index: 1 !important;
+    letter-spacing: 0.2px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .nav-indicator {
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    position: relative !important;
+    z-index: 1 !important;
+    border: 2px solid transparent !important;
+    flex-shrink: 0 !important;
+  }
+
+  // Submenu toggle specific styles
+  &.submenu-toggle {
+    .submenu-arrow {
+      margin-left: 6px !important;
+      width: 18px !important;
+      height: 18px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border-radius: 3px !important;
+      background: rgba(245, 222, 179, 0.1) !important;
+      transition: all 0.3s ease !important;
+      z-index: 1 !important;
+      position: relative !important;
+      flex-shrink: 0 !important;
+
+      i {
+        font-size: 10px !important;
+        color: $text-secondary !important;
+        transition: all 0.3s ease !important;
+      }
+    }
+  }
+
+  // Hover and active states
+  &:hover {
+    color: $accent-color !important;
+    transform: translateX(4px) !important;
+    background: $hover-bg !important;
+    border-color: rgba(245, 222, 179, 0.25) !important;
+    box-shadow: 0 4px 16px rgba(205, 133, 63, 0.15) !important;
+    
+    &::before {
+      left: 0 !important;
+    }
+
+    &::after {
+      width: 3px !important;
+    }
+
+    .nav-icon {
+      background: rgba(245, 222, 179, 0.2) !important;
+      transform: scale(1.05) !important;
+      border-color: rgba(245, 222, 179, 0.3) !important;
+      
+      i {
+        color: $accent-color !important;
+      }
+    }
+
+    .nav-indicator {
+      background: $accent-color !important;
+      transform: scale(1.2) !important;
+      box-shadow: 0 0 8px rgba(205, 133, 63, 0.5) !important;
+      border-color: rgba(245, 222, 179, 0.3) !important;
+    }
+
+    &.submenu-toggle .submenu-arrow {
+      background: rgba(245, 222, 179, 0.2) !important;
+      
+      i {
+        color: $accent-color !important;
+      }
+    }
+  }
+
+  &.active,
+  &.has-active-child {
+    color: $accent-color !important;
+    background: $active-bg !important;
+    transform: translateX(4px) !important;
+    border-color: rgba(245, 222, 179, 0.3) !important;
+    box-shadow: 0 6px 20px rgba(205, 133, 63, 0.2) !important;
+
+    &::before {
+      left: 0 !important;
+    }
+
+    &::after {
+      width: 3px !important;
+    }
+
+    .nav-icon {
+      background: rgba(245, 222, 179, 0.25) !important;
+      border-color: rgba(245, 222, 179, 0.4) !important;
+      
+      i {
+        color: $accent-color !important;
+      }
+    }
+
+    .nav-indicator {
+      background: $accent-color !important;
+      transform: scale(1.1) !important;
+      box-shadow: 0 0 8px rgba(205, 133, 63, 0.4) !important;
+      border-color: rgba(245, 222, 179, 0.25) !important;
+    }
+
+    &.submenu-toggle .submenu-arrow {
+      background: rgba(245, 222, 179, 0.25) !important;
+      
+      i {
+        color: $accent-color !important;
+      }
+    }
+  }
+
+  &.logout-link {
+    color: #ff8a65 !important;
+    border-color: rgba(255, 138, 101, 0.2) !important;
+
+    .nav-icon {
+      background: rgba(255, 138, 101, 0.1) !important;
+      border-color: rgba(255, 138, 101, 0.15) !important;
+      
+      i {
+        color: #ff8a65 !important;
+      }
+    }
+
+    &:hover {
+      color: #ff7043 !important;
+      background: rgba(255, 138, 101, 0.1) !important;
+      border-color: rgba(255, 138, 101, 0.3) !important;
+      box-shadow: 0 4px 16px rgba(255, 138, 101, 0.2) !important;
+
+      .nav-icon {
+        background: rgba(255, 138, 101, 0.15) !important;
+        border-color: rgba(255, 138, 101, 0.3) !important;
+        
+        i {
+          color: #ff7043 !important;
+        }
+      }
+
+      .nav-indicator {
+        background: #ff7043 !important;
+        box-shadow: 0 0 8px rgba(255, 112, 67, 0.4) !important;
+      }
+    }
+  }
+}
+
+// ============================================
+// SUBMENU STYLES
+// ============================================
+.nav-item-with-submenu {
+  .submenu {
+    overflow: hidden !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    max-height: 0 !important;
+    background: $submenu-bg !important;
+    border-radius: 0 0 10px 10px !important;
+    margin-top: 2px !important;
+    border: 1px solid $submenu-border !important;
+    border-top: none !important;
+    backdrop-filter: blur(8px) !important;
+
+    &.active {
+      border-top: 1px solid $submenu-border !important;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    }
+  }
+
+  .submenu-list {
+    list-style: none !important;
+    padding: 6px 0 !important;
+    margin: 0 !important;
+  }
+
+  .submenu-item {
+    margin-bottom: 2px !important;
+
+    &:last-child {
+      margin-bottom: 0 !important;
+    }
+  }
+
+  .submenu-link {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 16px 8px 32px !important;
+    color: rgba(245, 222, 179, 0.9) !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    border-radius: 6px !important;
+    margin: 0 6px !important;
+    position: relative !important;
+    border: 1px solid transparent !important;
+    min-height: 36px !important;
+
+    &::before {
+      content: '' !important;
+      position: absolute !important;
+      left: -16px !important;
+      top: 50% !important;
+      width: 10px !important;
+      height: 2px !important;
+      background: $accent-color !important;
+      transform: translateY(-50%) !important;
+      transition: all 0.3s ease !important;
+      opacity: 0 !important;
+    }
+
+    .submenu-icon {
+      width: 18px !important;
+      height: 18px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin-right: 8px !important;
+      background: rgba(245, 222, 179, 0.08) !important;
+      border-radius: 4px !important;
+      transition: all 0.3s ease !important;
+      border: 1px solid rgba(245, 222, 179, 0.1) !important;
+      flex-shrink: 0 !important;
+
+      i {
+        font-size: 11px !important;
+        color: rgba(245, 222, 179, 0.8) !important;
+        transition: all 0.3s ease !important;
+      }
+    }
+
+    .submenu-text {
+      flex: 1 !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.1px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .submenu-indicator {
+      width: 5px !important;
+      height: 5px !important;
+      border-radius: 50% !important;
+      background: transparent !important;
+      transition: all 0.3s ease !important;
+      border: 1px solid transparent !important;
+      flex-shrink: 0 !important;
+    }
+
+    &:hover {
+      color: $accent-color !important;
+      background: rgba(245, 222, 179, 0.08) !important;
+      transform: translateX(3px) !important;
+      border-color: rgba(245, 222, 179, 0.2) !important;
+
+      &::before {
+        opacity: 1 !important;
+        left: 6px !important;
+      }
+
+      .submenu-icon {
+        background: rgba(245, 222, 179, 0.15) !important;
+        border-color: rgba(245, 222, 179, 0.2) !important;
+        
+        i {
+          color: $accent-color !important;
+        }
+      }
+
+      .submenu-indicator {
+        background: $accent-color !important;
+        transform: scale(1.1) !important;
+        border-color: rgba(245, 222, 179, 0.3) !important;
+      }
+    }
+
+    &.active {
+      color: $accent-color !important;
+      background: rgba(245, 222, 179, 0.12) !important;
+      transform: translateX(3px) !important;
+      border-color: rgba(245, 222, 179, 0.25) !important;
+
+      &::before {
+        opacity: 1 !important;
+        left: 6px !important;
+        width: 12px !important;
+      }
+
+      .submenu-icon {
+        background: rgba(245, 222, 179, 0.2) !important;
+        border-color: rgba(245, 222, 179, 0.3) !important;
+        
+        i {
+          color: $accent-color !important;
+        }
+      }
+
+      .submenu-indicator {
+        background: $accent-color !important;
+        border-color: rgba(245, 222, 179, 0.2) !important;
+      }
+    }
+  }
+}
+
+// ============================================
+// ANIMATIONS
+// ============================================
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.3 !important;
+    transform: rotate(20deg) translateX(-15px) !important;
+  }
+  50% {
+    opacity: 0.7 !important;
+    transform: rotate(20deg) translateX(15px) !important;
+  }
+}
+
+// ============================================
+// MOBILE RESPONSIVE OVERRIDES
+// ============================================
+@media (max-width: 575.98px) {
+  .mobile-toggle-btn {
+    top: 10px !important;
+    left: 10px !important;
+    width: 44px !important;
+    height: 44px !important;
+    
+    .hamburger-line {
+      width: 18px !important;
+      height: 2px !important;
+    }
+  }
+
+  .sidebar {
+    width: min(90vw, 280px) !important;
+    
+    &.active {
+      transform: translateX(0) !important;
+    }
+  }
+
+  .brand-container {
+    padding: 16px 12px !important;
+    
+    .company-logo {
+      width: 36px !important;
+      height: 36px !important;
+    }
+    
+    .brand-text .app-title {
+      font-size: 16px !important;
+    }
+
+    .close-btn {
+      width: 32px !important;
+      height: 32px !important;
+      
+      i {
+        font-size: 14px !important;
+      }
+    }
+  }
+
+  .nav-link {
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+    min-height: 40px !important;
+    
+    .nav-text {
+      font-size: 13px !important;
+    }
+    
+    .nav-icon {
+      width: 22px !important;
+      height: 22px !important;
+      margin-right: 10px !important;
+      
+      i {
+        font-size: 13px !important;
+      }
+    }
+
+    .nav-indicator {
+      width: 5px !important;
+      height: 5px !important;
+    }
+
+    &.submenu-toggle .submenu-arrow {
+      width: 16px !important;
+      height: 16px !important;
+      margin-left: 4px !important;
+      
+      i {
+        font-size: 9px !important;
+      }
+    }
+  }
+
+  .submenu-link {
+    padding: 6px 12px 6px 24px !important;
+    margin: 0 4px !important;
+    border-radius: 5px !important;
+    min-height: 32px !important;
+    
+    .submenu-text {
+      font-size: 12px !important;
+    }
+    
+    .submenu-icon {
+      width: 16px !important;
+      height: 16px !important;
+      margin-right: 6px !important;
+      
+      i {
+        font-size: 10px !important;
+      }
+    }
+
+    .submenu-indicator {
+      width: 4px !important;
+      height: 4px !important;
+    }
+  }
+
+  .sidebar-nav {
+    padding: 0 8px 12px !important;
+  }
+
+  .section-header {
+    padding: 8px 10px 4px !important;
+
+    .section-title {
+      font-size: 10px !important;
+      padding-left: 10px !important;
+
+      &::before {
+        width: 5px !important;
+      }
+    }
+  }
+}
+
+@media (max-width: 375px) {
+  .sidebar {
+    width: min(95vw, 260px) !important;
+    
+    &.active {
+      transform: translateX(0) !important;
+    }
+  }
+  
+  .brand-container .brand-text .app-title {
+    font-size: 14px !important;
+  }
+  
+  .nav-link .nav-text {
+    font-size: 12px !important;
+  }
+  
+  .submenu-link .submenu-text {
+    font-size: 11px !important;
+  }
+}
+
+// ============================================
+// TOUCH DEVICE OPTIMIZATIONS
+// ============================================
+@media (hover: none) and (pointer: coarse) {
+  .nav-link,
+  .submenu-link {
+    &:hover {
+      transform: none !important;
+    }
+    
+    &:active {
+      transform: scale(0.98) !important;
+      background: $active-bg !important;
+    }
+  }
+  
+  .nav-link {
+    min-height: 48px !important;
+    padding: 12px 14px !important;
+  }
+  
+  .submenu-link {
+    min-height: 40px !important;
+    padding: 10px 16px 10px 32px !important;
+  }
+
+  .close-btn,
+  .mobile-toggle-btn {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+}
+
+// ============================================
+// HIGH CONTRAST MODE SUPPORT
+// ============================================
+@media (prefers-contrast: high) {
+  .sidebar {
+    border-right-width: 4px !important;
+    border-right-color: #000 !important;
+  }
+  
+  .nav-link,
+  .submenu-link {
+    border-width: 2px !important;
+    
+    &:hover,
+    &.active {
+      border-width: 3px !important;
+      border-color: #000 !important;
+    }
+  }
+
+  .sidebar-overlay {
+    background: rgba(0, 0, 0, 0.9) !important;
+  }
+}
+
+// ============================================
+// REDUCED MOTION SUPPORT
+// ============================================
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .nav-link,
+  .submenu-link,
+  .submenu,
+  .mobile-toggle-btn,
+  .sidebar-overlay {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .brand-container::before {
+    animation: none !important;
+  }
+
+  .nav-link:hover,
+  .submenu-link:hover {
+    transform: none !important;
+  }
+}
+
+// ============================================
+// PRINT STYLES
+// ============================================
+@media print {
+  .sidebar,
+  .mobile-toggle-btn,
+  .sidebar-overlay {
+    display: none !important;
+  }
+}
+
+// ============================================
+// DARK MODE SUPPORT (FUTURE-READY)
+// ============================================
+@media (prefers-color-scheme: dark) {
+  .sidebar {
+    background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%) !important;
+    border-right-color: rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  .brand-container {
+    background: linear-gradient(135deg, #333333 0%, #1a1a1a 100%) !important;
+  }
+  
+  .nav-link,
+  .submenu-link {
+    color: #e0e0e0 !important;
+    
+    &:hover,
+    &.active {
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+}
+
+// ============================================
+// CRITICAL MOBILE FIXES - NUCLEAR OPTION
+// ============================================
+
+// Force sidebar visibility with every possible selector combination
+nav.sidebar.active,
+nav#sidebar.active,
+.sidebar.active,
+nav.sidebar.mobile.active,
+nav#sidebar.mobile.active,
+nav.js-sidebar.active,
+nav#sidebar.js-sidebar.active,
+nav.sidebar.js-sidebar.mobile.active,
+nav#sidebar.sidebar.js-sidebar.mobile.active,
+nav[class*="sidebar"].active,
+nav[id="sidebar"].active {
+  transform: translateX(0px) !important;
+  left: 0px !important;
+  margin-left: 0px !important;
+  padding-left: 0px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+  z-index: 1042 !important;
+  position: fixed !important;
+  top: 0px !important;
+  bottom: 0px !important;
+  
+  @media (max-width: 991.98px) {
+    width: 320px !important;
+    max-width: 85vw !important;
+  }
+  
+  @media (max-width: 575.98px) {
+    width: 280px !important;
+    max-width: 90vw !important;
+  }
+  
+  @media (max-width: 375px) {
+    width: 260px !important;
+    max-width: 95vw !important;
+  }
+  
+  @media (max-width: 320px) {
+    width: 240px !important;
+    max-width: 98vw !important;
+  }
+}
+
+// Force with style attribute overrides (for Angular style binding)
+nav.sidebar[style*="translateX(0)"],
+nav#sidebar[style*="translateX(0)"],
+nav.sidebar[style*="transform: translateX(0px)"],
+nav#sidebar[style*="transform: translateX(0px)"],
+nav.sidebar[style*="transform:translateX(0px)"],
+nav#sidebar[style*="transform:translateX(0px)"],
+nav.sidebar[style*="transform: translateX(0)"],
+nav#sidebar[style*="transform: translateX(0)"] {
+  transform: translateX(0px) !important;
+  left: 0px !important;
+  margin-left: 0px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+  z-index: 1042 !important;
+  position: fixed !important;
+}
+
+// Emergency body class support - most reliable method
+body.sidebar-open {
+  @media (max-width: 991.98px) {
+    overflow: hidden !important;
+    
+    .sidebar,
+    nav.sidebar,
+    nav#sidebar,
+    #sidebar {
+      transform: translateX(0px) !important;
+      left: 0px !important;
+      margin-left: 0px !important;
+      visibility: visible !important;
+      display: block !important;
+      opacity: 1 !important;
+      z-index: 1042 !important;
+      position: fixed !important;
+      top: 0px !important;
+      bottom: 0px !important;
+      width: 320px !important;
+      max-width: 85vw !important;
+    }
+    
+    .sidebar-overlay {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+      z-index: 1041 !important;
+      display: block !important;
+    }
+  }
+  
+  @media (max-width: 575.98px) {
+    .sidebar,
+    nav.sidebar,
+    nav#sidebar,
+    #sidebar {
+      width: 280px !important;
+      max-width: 90vw !important;
+    }
+  }
+  
+  @media (max-width: 375px) {
+    .sidebar,
+    nav.sidebar,
+    nav#sidebar,
+    #sidebar {
+      width: 260px !important;
+      max-width: 95vw !important;
+    }
+  }
+  
+  @media (max-width: 320px) {
+    .sidebar,
+    nav.sidebar,
+    nav#sidebar,
+    #sidebar {
+      width: 240px !important;
+      max-width: 98vw !important;
+    }
+  }
+}
+
+// Force overlay visibility with multiple selectors
+.sidebar-overlay.active,
+.sidebar-overlay[style*="opacity: 1"],
+.sidebar-overlay[style*="visibility: visible"],
+body.sidebar-open .sidebar-overlay {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 1041 !important;
+  display: block !important;
+  position: fixed !important;
+  top: 0px !important;
+  left: 0px !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+}
+
+// ============================================
+// DEBUG UTILITY - ADD TEMPORARILY FOR TESTING
+// ============================================
+
+/*
+ADD THESE TEMPORARILY TO SEE WHAT'S HAPPENING:
+
+.sidebar {
+  border: 3px solid red !important;
+  background: rgba(255, 0, 0, 0.3) !important;
+}
+
+.sidebar.active {
+  border: 3px solid lime !important;
+  background: rgba(0, 255, 0, 0.3) !important;
+}
+
+body.sidebar-open .sidebar {
+  border: 3px solid blue !important;
+  background: rgba(0, 0, 255, 0.3) !important;
+}
+
+.sidebar-overlay.active {
+  background: rgba(255, 255, 0, 0.5) !important;
+}
+*/

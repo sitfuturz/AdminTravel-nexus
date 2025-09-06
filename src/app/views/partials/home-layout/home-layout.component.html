@@ -1,0 +1,32 @@
+
+<div class="admin-layout d-flex">
+  <!-- Sidebar Container -->
+  <div class="sidebar-container bg-primary vh-100 position-sticky d-none d-lg-block" style="top: 0;">
+    <app-side-bar></app-side-bar>
+  </div>
+  
+  <!-- Mobile Sidebar (rendered separately for better control) -->
+  <div class="d-lg-none">
+    <app-side-bar></app-side-bar>
+  </div>
+  
+  <!-- Main Content Area -->
+  <div class="main-content flex-grow-1 position-relative" style="overflow-x: hidden; min-height: 100vh;">
+    <!-- Header -->
+    <div class="header-container sticky-top">
+      <app-header></app-header>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="content-area">
+      <div class="content-wrapper p-3">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+    
+    <!-- Footer -->
+    <div class="footer-container mt-auto">
+      <app-footer></app-footer>
+    </div>
+  </div>
+</div>

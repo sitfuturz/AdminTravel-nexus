@@ -1,0 +1,135 @@
+<div class="container-fluid">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+        <h4 class="mb-0 fw-bold text-white">
+          <i class="bi bi-question-circle me-2"></i>Ask Management
+        </h4>
+        <div class="export-buttons">
+          <button class="btn btn-sm btn-light me-2" [disabled]="loading || exporting || !asks.docs || asks.docs.length === 0" (click)="exportToExcel()">
+            <i class="bi bi-file-excel me-1"></i>Export Excel
+          </button>
+          <button class="btn btn-sm btn-light" [disabled]="loading || exporting || !asks.docs || asks.docs.length === 0" (click)="exportToPDF()">
+            <i class="bi bi-file-pdf me-1"></i>Export PDF
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mb-md-0">
+            <div class="me-2" style="min-width: 200px;">
+              <label for="chapterSelect" class="form-label mb-1">Chapter</label>
+              <ng-select 
+                id="chapterSelect"
+                [items]="chapters"
+                bindLabel="name"
+                bindValue="name"
+                placeholder="--Select--"
+                [(ngModel)]="filters.chapter_name"
+                (change)="onChapterChange()">
+              </ng-select>
+            </div>
+            <div class="flex-grow-1 me-2">
+              <label for="searchInput" class="form-label mb-1">Search Product</label>
+              <input type="text" id="searchInput" class="form-control" placeholder="Search by product..." 
+                     [(ngModel)]="filters.search" (input)="onSearch()">
+            </div>
+            <div class="mt-4">
+              <button class="btn btn-outline-secondary" (click)="resetFilters()">
+                <i class="bi bi-x-circle me-1"></i>Reset
+              </button>
+            </div>
+          </div>
+          <div class="d-flex align-items-center">
+            <div class="ms-2">
+              <ng-select 
+                id="limitSelect"
+                [items]="[10, 25, 50, 100]" 
+                [(ngModel)]="filters.limit" 
+                (change)="onLimitChange()" 
+                placeholder="Items per page">
+              </ng-select>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div *ngIf="loading" class="text-center my-5 py-5">
+        <div class="spinner-grow text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+  
+      <div *ngIf="exporting" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background: rgba(0,0,0,0.3); z-index: 1050;">
+        <div class="bg-white p-4 rounded shadow-lg text-center">
+          <div class="spinner-border text-primary mb-3" role="status">
+            <span class="visually-hidden">Exporting...</span>
+          </div>
+          <p class="mb-0">Preparing export file...</p>
+        </div>
+      </div>
+  
+      <div class="table-responsive" *ngIf="!loading && asks?.docs && asks.docs.length > 0">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="ps-4 py-3">Sr No</th>
+              <th class="py-3">Creator</th>
+              <th class="py-3">Chapter</th>
+              <th class="py-3">Business Category</th>
+              <th class="py-3">Subcategory</th>
+              <th class="py-3">Product</th>
+              <th class="py-3">Description</th>
+              <th class="py-3">Status</th>
+              <th class="py-3">Created At</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ask of asks.docs | paginate: { id: 'ask-pagination', itemsPerPage: filters.limit, currentPage: filters.page, totalItems: asks.totalDocs }; let i = index" 
+                class="border-bottom">
+              <td class="ps-4 py-3">{{ (filters.page - 1) * filters.limit + i + 1 }}</td>
+              <td class="py-3">{{ask.user.name}}</td>
+              <td class="py-3">{{ask.user.chapter_name}}</td>
+              <td class="py-3">{{ask.businessCategory}}</td>
+              <td class="py-3">{{ask.businessSubCategory}}</td>
+              <td class="py-3">{{ask.product}}</td>
+              <td class="py-3">{{ask.description}}</td>
+              <td class="py-3">
+                <span class="badge rounded-pill" 
+                      [ngClass]="ask.status === 'completed' ? 'bg-success' : 'bg-warning'">
+                  {{ask.status | titlecase}}
+                </span>
+              </td>
+              <td class="py-3">{{formatDate(ask.createdAt)}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+          <div *ngIf="asks.docs && asks.docs.length > 0" class="text-muted">
+            Showing {{ (filters.page - 1) * filters.limit + 1 }} to 
+            {{ Math.min(filters.page * filters.limit, asks.totalDocs) }} 
+            of {{ asks.totalDocs }} entries
+          </div>
+          <pagination-controls 
+            id="ask-pagination"
+            [maxSize]="5"
+            [responsive]="true"
+            (pageChange)="onPageChange($event)"
+            previousLabel="Previous"
+            nextLabel="Next"
+            [directionLinks]="true">
+          </pagination-controls>
+        </div>
+      </div>
+  
+      <div *ngIf="!loading && (!asks?.docs || asks.docs.length === 0)" class="text-center my-5 py-4 px-4">
+        <div class="empty-state">
+          <i class="bi bi-question-circle fs-1 text-muted mb-3"></i>
+          <h5>No Asks Found</h5>
+          <p class="text-muted">Try adjusting your search criteria or chapter filter.</p>
+          <button class="btn btn-outline-primary rounded-pill mt-3" (click)="resetFilters()">
+            <i class="bi bi-arrow-repeat me-2"></i>Reset Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

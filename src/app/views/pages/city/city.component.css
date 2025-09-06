@@ -1,0 +1,98 @@
+/* Custom styles for cities component */
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+  }
+  
+  .empty-state {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .dropdown-item {
+    cursor: pointer;
+  }
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    transition: all 0.3s ease;
+  }
+  
+  .badge:hover {
+    transform: scale(1.05);
+  }
+
+  
+  .form-switch .form-check-input:checked {
+    background-color: #4e73df;
+    border-color: #4e73df;
+  }
+  
+  /* Add animation for loading spinner */
+  @keyframes spinner-grow {
+    0% {
+      transform: scale(0);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0);
+    }
+  }
+  
+  .spinner-grow {
+    animation: spinner-grow 0.75s linear infinite;
+  }
+  
+  /* Custom styles for dropdown select */
+  ::ng-deep .ng-select .ng-select-container {
+    border-radius: 0.375rem;
+  }
+  
+  ::ng-deep .ng-select.ng-select-focused:not(.ng-select-opened) > .ng-select-container {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+  }
+  
+  ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected,
+  ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected.ng-option-marked {
+    background-color: #e8f0fe;
+    color: #4e73df;
+  }
+  
+  ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-marked {
+    background-color: #f8f9fa;
+  }
+  
+  /* Custom styles for pagination */
+  ::ng-deep .ngx-pagination .current {
+    background-color: #4e73df !important;
+    border-radius: 0.25rem;
+  }
+  
+  ::ng-deep .ngx-pagination a:hover, 
+  ::ng-deep .ngx-pagination button:hover {
+    color: #4e73df !important;
+
+    
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    
+    .table-responsive {
+      font-size: 0.875rem;
+    }
+  }

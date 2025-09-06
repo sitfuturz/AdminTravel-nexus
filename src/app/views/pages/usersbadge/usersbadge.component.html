@@ -1,0 +1,237 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-award me-2"></i>Badge Management
+      </h4>
+    </div>
+    <div class="card-body p-0">
+      <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mb-md-0">
+          <div class="me-2" style="min-width: 200px;" *ngIf="!chaptersLoading">
+            <label for="chapterSelect" class="form-label mb-1">Chapter</label>
+            <ng-select 
+              id="chapterSelect"
+              [items]="chapters"
+              bindLabel="name"
+              bindValue="name"
+              placeholder="--Select Chapter--"
+              [(ngModel)]="filters.chapter_name"
+              (change)="onChapterChange()"
+              [disabled]="chaptersLoading"
+              [clearable]="true">
+            </ng-select>
+          </div>
+          <div class="me-2" style="min-width: 200px;">
+            <label for="searchInput" class="form-label mb-1">Search</label>
+            <input 
+              id="searchInput"
+              type="text" 
+              class="form-control" 
+              placeholder="Search by name or email" 
+              [(ngModel)]="filters.search"
+              (ngModelChange)="onFilterChange()">
+          </div>
+          <div class="mt-4">
+            <button class="btn btn-outline-secondary" (click)="resetFilters()" [disabled]="loading || chaptersLoading">
+              <i class="bi bi-x-circle me-1"></i>Reset
+            </button>
+          </div>
+        </div>
+        <div class="d-flex align-items-center">
+          <div class="ms-2">
+            <ng-select 
+              id="limitSelect"
+              [items]="[10, 25, 50, 100]"
+              [(ngModel)]="filters.limit"
+              (change)="onFilterChange()"
+              placeholder="Items per page">
+            </ng-select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && (badgeUsers?.docs ?? []).length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="py-3">Sr No</th>
+            <th class="py-3">Member Name</th>
+            <th class="py-3">Email</th>
+            <th class="py-3">Mobile</th>
+            <th class="py-3">Chapter</th>
+            <th class="py-3">Badges</th>
+            <th class="py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of badgeUsers.docs | paginate: { id: paginationConfig.id, itemsPerPage: badgeUsers.limit, currentPage: badgeUsers.page, totalItems: badgeUsers.totalDocs }; let i = index">
+            <td class="py-3">{{ (badgeUsers.page - 1) * badgeUsers.limit + i + 1 }}</td>
+            <td class="py-3">
+              <div class="d-flex align-items-center">
+                <div class="bg-gradient-primary rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm border-2 border-white"
+                  style="width: 32px; height: 32px; color: white;">
+                  {{ user.name ? user.name.charAt(0).toUpperCase() : 'U' }}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{ user.name || 'Unknown' }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3">{{ user.email }}</td>
+            <td class="py-3">{{ user.mobile_number }}</td>
+            <td class="py-3">{{ user.chapter_name }}</td>
+            <td class="py-3">
+              <div *ngIf="user.badges && user.badges.length > 0; else noBadges">
+                <span *ngFor="let badge of user.badges" class="badge bg-secondary me-1 mb-1 position-relative">
+                  <div class="badge-image-container" style="cursor: pointer;" (click)="openImagePreview(badge)">
+                    <img [src]="getBadgeImageUrl(badge)" alt="{{badge.name}}" width="16" height="16" class="me-1 rounded">
+                    
+                  </div>
+                  {{ badge.name }}
+                </span>
+              </div>
+              <ng-template #noBadges>
+                <span class="text-muted">No badges assigned</span>
+              </ng-template>
+            </td>
+            <td class="py-3">
+              <div class="d-flex align-items-center gap-2">
+                <ng-select 
+                  [items]="availableBadges"
+                  bindLabel="name"
+                  bindValue="_id"
+                  placeholder="{{ badgesLoading ? 'Loading Badges...' : '--Assign Badge--' }}"
+                  (change)="assignBadgeToUser(user, $event)"
+                  [clearable]="true"
+              
+                  style="min-width: 150px;">
+                  <ng-template ng-option-tmp let-item="item">
+                    <div class="d-flex align-items-center">
+                      <img [src]="getBadgeImageUrl(item)" alt="{{item.name}}" width="16" height="16" class="me-2 rounded">
+                      {{ item.name }}
+                    </div>
+                  </ng-template>
+                </ng-select>
+                <button class="btn btn-sm btn-primary" (click)="openBadgeModal(user)" [disabled]="assigning[user._id]">
+                  <i class="bi bi-award me-1"></i>Manage
+                  <span *ngIf="assigning[user._id]" class="spinner-border spinner-border-sm ms-2" role="status"></span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="d-flex justify-content-between align-items-center p-3 border-top">
+        <div class="text-muted">
+          Showing {{ (badgeUsers.page - 1) * badgeUsers.limit + 1 }} to
+          {{ Math.min(badgeUsers.page * badgeUsers.limit, badgeUsers.totalDocs) }}
+          of {{ badgeUsers.totalDocs }} entries
+        </div>
+        <pagination-controls 
+          [id]="paginationConfig.id"
+          [maxSize]="5"
+          [responsive]="true"
+          (pageChange)="onPageChange($event)"
+          previousLabel="Previous"
+          nextLabel="Next"
+          [directionLinks]="true">
+        </pagination-controls>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && ((badgeUsers?.docs ?? []).length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-award fs-1 text-muted mb-3"></i>
+        <h5>No Users Found</h5>
+        <p class="text-muted">Please select a chapter or adjust search to view users.</p>
+        <button class="btn btn-outline-primary rounded-pill mt-3" (click)="resetFilters()">
+          <i class="bi bi-arrow-repeat me-2"></i>Reset Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badge Assignment Modal -->
+  <div class="modal fade" id="badgeModal" tabindex="-1" aria-labelledby="badgeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="badgeModalLabel">Manage Badges for {{ selectedUser?.name }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div *ngIf="badgesLoading" class="text-center">
+            <div class="spinner-grow text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+          
+          <div class="mt-3" *ngIf="selectedUser?.badges && selectedUser.badges.length > 0">
+            <h6>Assigned Badges</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <div *ngFor="let badge of selectedUser.badges" class="badge bg-secondary p-2 position-relative">
+                <div class="badge-image-container" style="cursor: pointer;" (click)="openImagePreview(badge)">
+                  <img [src]="getBadgeImageUrl(badge)" alt="{{badge.name}}" width="24" height="24" class="me-2 rounded">
+                
+                </div>
+                {{ badge.name }}
+                <button class="btn btn-sm btn-danger ms-2" (click)="unassignBadge(badge.badgeId)" [disabled]="assigning[selectedUser._id]">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="!badgesLoading && availableBadges.length === 0" class="text-center">
+            <p class="text-muted">No available badges found.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Preview Modal -->
+  <div class="modal fade" id="imagePreviewModal" tabindex="-1" role="dialog" aria-labelledby="imagePreviewModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+      <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title" id="imagePreviewModalTitle">
+            <i class="bi bi-image me-2"></i>Badge Preview
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0" *ngIf="selectedBadgeForPreview">
+          <div class="text-center">
+            <img [src]="getBadgeImageUrl(selectedBadgeForPreview)" 
+                 [alt]="selectedBadgeForPreview.name"
+                 class="img-fluid"
+                 style="max-height: 300px; object-fit: contain; background: #f8f9fa;">
+          </div>
+          <div class="p-4 bg-light">
+            <h6 class="fw-bold text-dark mb-2">{{ selectedBadgeForPreview.name || 'Untitled' }}</h6>
+            <p class="text-muted" *ngIf="selectedBadgeForPreview.description">{{ selectedBadgeForPreview.description }}</p>
+            <p class="text-muted" *ngIf="selectedBadgeForPreview.assignedAt">
+              <!-- <strong>Assigned At:</strong> {{ formatDate(selectedBadgeForPreview.assignedAt) }} -->
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal" (click)="closeImagePreviewModal()">
+            <i class="bi bi-x-circle me-1"></i>Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,612 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+  <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+  <h4 class="mb-0 fw-bold text-white">
+  <i class="bi bi-mic-fill me-2"></i>Podcast Management
+  </h4>
+  <button class="btn btn-light rounded-pill px-4" (click)="openAddPodcastModal()">
+  <i class="bi bi-plus-circle me-2"></i>Add Podcast
+  </button>
+  </div>
+  <div class="card-body p-0">
+  <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+  <div class="d-flex w-100 align-items-center">
+  <div class="flex-grow-1 me-2">
+  <input type="text" class="form-control"
+  placeholder="Search podcasts..."
+  [(ngModel)]="searchQuery"
+  (input)="onSearch()">
+  </div>
+  <div>
+  <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit" placeholder="Items per page"></ng-select>
+  </div>
+  </div>
+  </div>
+  </div>
+  
+  <div *ngIf="loading" class="text-center my-5 py-5">
+  <div class="spinner-grow text-primary" role="status">
+  <span class="visually-hidden">Loading...</span>
+  </div>
+  </div>
+  
+  <div class="table-responsive" *ngIf="!loading && (podcasts?.podcasts?.length ?? 0) > 0">
+  <table class="table table-hover align-middle mb-0">
+  <thead class="bg-light">
+  <tr>
+  <th class="ps-4 py-3">Image</th>
+  <th class="py-3">Podcaster</th>
+  <th class="py-3">Venue</th>
+  <th class="py-3">Date Range</th>
+  <th class="py-3">Status</th>
+  <th class="py-3">Created At</th>
+  <th class="text-end pe-4 py-3">Action</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let podcast of podcasts.podcasts | paginate: {itemsPerPage: payload.limit, currentPage: payload.page, totalItems: podcasts.total}" class="border-bottom">
+  <td class="ps-4 py-3">
+  <div class="d-flex align-items-center">
+  <div class="podcast-image-container me-3 position-relative" style="cursor: pointer;" (click)="openImagePreview(podcast)">
+  <img *ngIf="podcast.podcasterImage"
+  [src]="getImageUrl(podcast.podcasterImage)"
+  alt="Podcaster Image"
+  class="podcast-thumbnail rounded shadow-sm"
+  style="width: 60px; height: 40px; object-fit: cover;">
+  <div *ngIf="!podcast.podcasterImage"
+  class="bg-gradient-primary rounded d-flex align-items-center justify-content-center shadow-sm"
+  style="width: 60px; height: 40px; color: white;">
+  <i class="bi bi-mic"></i>
+  </div>
+  <div class="position-absolute top-0 end-0 bg-dark bg-opacity-75 rounded-circle p-1"
+  style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin: 2px;">
+  <i class="bi bi-eye text-white" style="font-size: 10px;"></i>
+  </div>
+  </div>
+  </div>
+  </td>
+  <td class="py-3">
+  <div>
+  <div class="fw-bold text-dark">{{podcast.podcasterName || 'Unnamed'}}</div>
+  <small class="text-muted d-block" *ngIf="podcast.aboutPodcaster">{{podcast.aboutPodcaster}}</small>
+  </div>
+  </td>
+  <td class="py-3">
+  <span class="text-muted">{{podcast.venue || 'N/A'}}</span>
+  </td>
+  <td class="py-3">
+  <div *ngIf="podcast.startDate || podcast.endDate">
+  <small class="d-block">
+  <strong>Start:</strong> {{formatDate(podcast.startDate)}}
+  </small>
+  <small class="d-block">
+  <strong>End:</strong> {{formatDate(podcast.endDate)}}
+  </small>
+  </div>
+  <span *ngIf="!podcast.startDate && !podcast.endDate" class="text-muted">No date range</span>
+  </td>
+  <td class="py-3">
+  <span class="badge rounded-pill"
+  [ngClass]="podcast.isActive ? 'badge bg-success' : 'badge bg-danger'"
+  style="cursor: pointer;"
+  (click)="togglePodcastStatus(podcast)">
+  {{podcast.status | titlecase}}
+  </span>
+  </td>
+  <td class="py-3">
+  {{formatDate(podcast.createdAt)}}
+  </td>
+  <td class="text-end pe-4 py-3">
+  <div class="dropdown">
+  <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button"
+  data-bs-toggle="dropdown" aria-expanded="false">
+  Actions
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+  <li><a class="dropdown-item" (click)="openEditPodcastModal(podcast)" style="cursor: pointer;">
+  <i class="bi bi-pencil-fill me-2 text-primary"></i> Edit
+  </a></li>
+  <li><a class="dropdown-item" (click)="openGenerateSlotModal(podcast)" style="cursor: pointer;">
+  <i class="bi bi-calendar-plus me-2 text-info"></i> Generate Slots
+  </a></li>
+  <li><a class="dropdown-item" (click)="openViewSlotsModal(podcast)" style="cursor: pointer;">
+  <i class="bi bi-calendar-event me-2 text-success"></i> View Slots
+  </a></li>
+  <li><hr class="dropdown-divider"></li>
+  <li><a class="dropdown-item text-danger" (click)="deletePodcast(podcast._id)" style="cursor: pointer;">
+  <i class="bi bi-trash-fill me-2"></i> Delete
+  </a></li>
+  </ul>
+  </div>
+  </td>
+  </tr>
+  </tbody>
+  </table>
+  
+  <div class="d-flex justify-content-end p-3">
+  <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+  </div>
+  </div>
+  
+  <div *ngIf="!loading && (!podcasts?.podcasts || podcasts?.podcasts?.length === 0)" class="text-center my-5 py-4 px-4">
+  <div class="empty-state">
+  <i class="bi bi-mic fs-1 text-muted mb-3"></i>
+  <h5>No Podcasts Found</h5>
+  <p class="text-muted">Try adding some podcasts or adjusting your search criteria.</p>
+  <button class="btn btn-primary rounded-pill mt-3" (click)="openAddPodcastModal()">
+  <i class="bi bi-plus-circle me-2"></i>Add Podcast
+  </button>
+  </div>
+  </div>
+  </div>
+  </div>
+  
+  <!-- Image Preview Modal -->
+  <div class="modal fade" id="imagePreviewModal" tabindex="-1" role="dialog" aria-labelledby="imagePreviewModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+  <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+  <div class="modal-header bg-light">
+  <h5 class="modal-title" id="imagePreviewModalTitle">
+  <i class="bi bi-mic-fill me-2"></i>Podcast Details
+  </h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+  <div class="modal-body p-0" *ngIf="selectedPodcastForPreview">
+  <div class="row g-0">
+  <div class="col-md-8">
+  <div class="position-relative">
+  <img [src]="getImageUrl(selectedPodcastForPreview.podcasterImage)"
+  [alt]="selectedPodcastForPreview.podcasterName"
+  class="img-fluid w-100"
+  style="max-height: 500px; object-fit: contain; background: #f8f9fa;">
+  <div class="position-absolute top-0 end-0 m-2">
+  <span class="badge rounded-pill"
+  [ngClass]="selectedPodcastForPreview.isActive ? 'bg-success' : 'bg-danger'">
+  {{selectedPodcastForPreview.status | titlecase}}
+  </span>
+  </div>
+  </div>
+  </div>
+  <div class="col-md-4 bg-light">
+  <div class="p-4">
+  <h4 class="fw-bold text-dark mb-3">{{selectedPodcastForPreview.podcasterName || 'Unnamed'}}</h4>
+  <div class="mb-3" *ngIf="selectedPodcastForPreview.aboutPodcaster">
+  <h6 class="text-muted mb-2">About</h6>
+  <p class="text-dark">{{selectedPodcastForPreview.aboutPodcaster}}</p>
+  </div>
+  <div class="row mb-3" *ngIf="selectedPodcastForPreview.venue">
+  <div class="col-12">
+  <h6 class="text-muted mb-2">Venue</h6>
+  <p class="text-dark">{{selectedPodcastForPreview.venue}}</p>
+  </div>
+  </div>
+  <div class="row mb-3" *ngIf="selectedPodcastForPreview.startDate || selectedPodcastForPreview.endDate">
+  <div class="col-12">
+  <h6 class="text-muted mb-2">Date Range</h6>
+  <div *ngIf="selectedPodcastForPreview.startDate">
+  <small class="d-block text-dark">
+  <strong>Start:</strong> {{formatDate(selectedPodcastForPreview.startDate)}}
+  </small>
+  </div>
+  <div *ngIf="selectedPodcastForPreview.endDate">
+  <small class="d-block text-dark">
+  <strong>End:</strong> {{formatDate(selectedPodcastForPreview.endDate)}}
+  </small>
+  </div>
+  </div>
+  </div>
+  <div class="row mb-3">
+  <div class="col-12">
+  <h6 class="text-muted mb-2">Created</h6>
+  <p class="text-dark">{{formatDate(selectedPodcastForPreview.createdAt)}}</p>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  <div class="modal-footer bg-light">
+  <button type="button" class="btn btn-outline-primary rounded-pill me-2"
+  *ngIf="selectedPodcastForPreview"
+  (click)="openEditPodcastModal(selectedPodcastForPreview)"
+  data-bs-dismiss="modal">
+  <i class="bi bi-pencil-fill me-1"></i>Edit Podcast
+  </button>
+  <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+  <i class="bi bi-x-circle me-1"></i>Close
+  </button>
+  </div>
+  </div>
+  </div>
+  </div>
+  
+  <!-- Podcast Modal (Add/Edit) -->
+  <div class="modal fade" id="podcastModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="podcastModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+  <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+  <div class="modal-header bg-light">
+  <h5 class="modal-title" id="podcastModalTitle">
+  <i class="bi bi-mic-fill me-2"></i> {{editMode ? 'Edit Podcast' : 'Add New Podcast'}}
+  </h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="closeModal()"></button>
+  </div>
+  <div class="modal-body p-4">
+  <form #podcastForm="ngForm">
+  <div class="row">
+  <div class="col-md-6 mb-3">
+  <label for="podcasterName" class="form-label">Podcaster Name <span class="text-danger">*</span></label>
+  <input type="text" class="form-control" id="podcasterName" placeholder="Enter podcaster name"
+  [(ngModel)]="newPodcast.podcasterName" name="podcasterName" required #nameInput="ngModel"
+  [class.is-invalid]="nameInput.invalid && (nameInput.dirty || nameInput.touched)">
+  <div class="invalid-feedback" *ngIf="nameInput.invalid && (nameInput.dirty || nameInput.touched)">
+  Podcaster name is required.
+  </div>
+  </div>
+  <div class="col-md-6 mb-3">
+  <label for="podcasterImage" class="form-label">Podcaster Image <span class="text-danger">*</span></label>
+  <input type="file" class="form-control" id="podcasterImage" accept="image/*"
+  (change)="onImageSelect($event)" name="podcasterImage" #imageInput
+  [class.is-invalid]="!imagePreview && !editMode && formSubmitted">
+  <div class="invalid-feedback" *ngIf="!imagePreview && !editMode && formSubmitted">
+  Podcaster image is required.
+  </div>
+  <small class="form-text text-muted">Supported formats: JPG, PNG (Max: 5MB).</small>
+  </div>
+  </div>
+  <div class="mb-3">
+  <label for="aboutPodcaster" class="form-label">About Podcaster</label>
+  <textarea class="form-control" id="aboutPodcaster" rows="3" placeholder="Enter about podcaster"
+  [(ngModel)]="newPodcast.aboutPodcaster" name="aboutPodcaster" #aboutInput="ngModel"></textarea>
+  </div>
+  <div class="mb-3">
+  <label for="venue" class="form-label">Venue</label>
+  <input type="text" class="form-control" id="venue" placeholder="Enter venue"
+  [(ngModel)]="newPodcast.venue" name="venue" #venueInput="ngModel">
+  </div>
+  <div class="row">
+  <div class="col-md-6 mb-3">
+  <label for="startDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+  <input type="date" class="form-control" id="startDate"
+  [(ngModel)]="newPodcast.startDate" name="startDate" required #startDateInput="ngModel"
+  [class.is-invalid]="startDateInput.invalid && (startDateInput.dirty || startDateInput.touched)">
+  <div class="invalid-feedback" *ngIf="startDateInput.invalid && (startDateInput.dirty || startDateInput.touched)">
+  Start date is required.
+  </div>
+  </div>
+  <div class="col-md-6 mb-3">
+  <label for="endDate" class="form-label">End Date <span class="text-danger">*</span></label>
+  <input type="date" class="form-control" id="endDate"
+  [(ngModel)]="newPodcast.endDate" name="endDate" required #endDateInput="ngModel"
+  [class.is-invalid]="endDateInput.invalid && (endDateInput.touched || endDateInput.dirty)">
+  <div class="invalid-feedback" *ngIf="endDateInput.invalid && (endDateInput.touched || endDateInput.dirty)">
+  End date is required.
+  </div>
+  </div>
+  </div>
+  <div class="form-check form-switch mb-3">
+  <input class="form-check-input" type="checkbox" id="podcastStatus"
+  [(ngModel)]="newPodcast.isActive" name="podcastStatus" #statusInput="ngModel">
+  <label class="form-check-label" for="podcastStatus">
+  {{newPodcast.isActive ? 'Active' : 'Inactive'}}
+  </label>
+  </div>
+  <div *ngIf="imagePreview" class="mb-3">
+  <label class="form-label">Image Preview:</label>
+  <div class="border rounded p-2">
+  <img [src]="imagePreview" alt="Preview" class="img-thumbnail" style="max-height: 200px;">
+  </div>
+  </div>
+  </form>
+  </div>
+  <div class="modal-footer">
+  <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal" (click)="closeModal()">
+  <i class="bi bi-x-circle me-1"></i> Cancel
+  </button>
+  <button type="button" class="btn btn-primary rounded-pill" (click)="savePodcast(podcastForm)"
+  [disabled]="loading || podcastForm.invalid">
+  <i class="bi bi-save me-1"></i> {{editMode ? 'Update' : 'Save'}}
+  </button>
+  </div>
+  </div>
+  </div>
+  </div>
+  
+  <!-- Slot Generation Modal -->
+  <div class="modal fade" id="slotModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="slotModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+  <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+  <div class="modal-header bg-light">
+  <h5 class="modal-title" id="slotModalTitle">
+  <i class="bi bi-calendar-plus me-2"></i> Generate Slots
+  </h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="closeSlotModal()"></button>
+  </div>
+  <div class="modal-body p-4">
+  <div class="mb-3">
+  <label class="form-label">Podcast</label>
+  <input type="text" class="form-control" [value]="selectedPodcastForSlots?.podcasterName" readonly>
+  </div>
+  
+  <div class="row mb-3">
+  <div class="col-md-6">
+  <label for="slotStartDate" class="form-label">Slot Start Date <span class="text-danger">*</span></label>
+  <input type="date" class="form-control" id="slotStartDate"
+  [(ngModel)]="slotFormData.startDate"
+  name="slotStartDate"
+  [min]="minDate"
+  [max]="maxDate"
+  required>
+  </div>
+  <div class="col-md-6">
+  <label for="slotEndDate" class="form-label">Slot End Date <span class="text-danger">*</span></label>
+  <input type="date" class="form-control" id="slotEndDate"
+  [(ngModel)]="slotFormData.endDate"
+  name="slotEndDate"
+  [min]="minDate"
+  [max]="maxDate"
+  required>
+  </div>
+  </div>
+  <small class="form-text text-muted">Select slot dates between {{formatDate(minDate)}} and {{formatDate(maxDate)}}</small>
+  
+  <div class="row mb-3">
+  <div class="col-md-6">
+  <label for="startTime" class="form-label">Start Time <span class="text-danger">*</span></label>
+  <input type="time" class="form-control" id="startTime"
+  [(ngModel)]="slotFormData.startTime" required>
+  </div>
+  <div class="col-md-6">
+  <label for="endTime" class="form-label">End Time <span class="text-danger">*</span></label>
+  <input type="time" class="form-control" id="endTime"
+  [(ngModel)]="slotFormData.endTime" required>
+  </div>
+  </div>
+  
+  <div class="row mb-3">
+  <div class="col-md-6">
+  <label for="duration" class="form-label">Duration (minutes) <span class="text-danger">*</span></label>
+  <input type="number" class="form-control" id="duration"
+  [(ngModel)]="slotFormData.duration" min="1" required>
+  </div>
+  <div class="col-md-6">
+  <label for="capacity" class="form-label">Capacity <span class="text-danger">*</span></label>
+  <input type="number" class="form-control" id="capacity"
+  [(ngModel)]="slotFormData.capacity" min="1" required>
+  </div>
+  </div>
+  </div>
+  <div class="modal-footer">
+  <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal" (click)="closeSlotModal()">
+  <i class="bi bi-x-circle me-1"></i> Cancel
+  </button>
+  <button type="button" class="btn btn-primary rounded-pill" (click)="generateSlots()"
+  [disabled]="slotLoading || !slotFormData.startDate || !slotFormData.endDate">
+  <i class="bi bi-lightning-charge me-1"></i> Generate Slots
+  <span *ngIf="slotLoading" class="ms-2 spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+  </button>
+  </div>
+  </div>
+  </div>
+  </div>
+  
+  <!-- View Slots Modal -->
+  <div class="modal fade" id="viewSlotsModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="viewSlotsModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+  <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+  <div class="modal-header bg-gradient-primary text-white">
+  <h5 class="modal-title fw-bold" id="viewSlotsModalTitle">
+  <i class="bi bi-calendar-event me-2"></i> Slots for {{selectedPodcastForSlots?.podcasterName}}
+  </h5>
+  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" (click)="closeViewSlotsModal()"></button>
+   </div> 
+  <div class="modal-body p-0">
+  <!-- Slots Header Controls -->
+  <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+  <div class="d-flex align-items-center">
+  <div class="form-check me-3">
+  <input class="form-check-input" type="checkbox" id="selectAllSlots"
+  [(ngModel)]="selectAllSlots"
+  (change)="toggleSelectAllSlots()">
+  <label class="form-check-label fw-bold" for="selectAllSlots">
+  Select All
+  </label>
+  </div>
+  <span class="text-muted" *ngIf="selectedSlotIds.length > 0">
+  ({{selectedSlotIds.length}} selected)
+  </span>
+  </div>
+  <div class="d-flex gap-2">
+  <button class="btn btn-outline-danger btn-sm rounded-pill"
+  *ngIf="selectedSlotIds.length > 0"
+  (click)="bulkDeleteSlots()"
+  [disabled]="slotsLoading">
+  <i class="bi bi-trash-fill me-1"></i>Delete Selected ({{selectedSlotIds.length}})
+  </button>
+  <button class="btn btn-outline-warning btn-sm rounded-pill"
+  (click)="deleteAllSlots()"
+  [disabled]="slotsLoading || !slotsPagination?.totalDocs">
+  <i class="bi bi-exclamation-triangle-fill me-1"></i>Delete All
+  </button>
+  </div>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="slotsLoading" class="text-center py-5">
+  <div class="spinner-grow text-primary" role="status">
+  <span class="visually-hidden">Loading slots...</span>
+  </div>
+  <p class="text-muted mt-2">Loading slots...</p>
+  </div>
+  
+  <!-- Slots Grid -->
+  <div *ngIf="!slotsLoading && slots.length > 0" class="p-3">
+  <div class="row g-3">
+  <div class="col-lg-4 col-md-6 col-sm-12" *ngFor="let slot of slots; trackBy: trackBySlotId">
+  <div class="slot-card border rounded-4 overflow-hidden shadow-sm position-relative"
+  [ngClass]="{
+  'slot-available': slot.status === 'available',
+  'slot-booked': slot.status === 'booked',
+  'slot-full': slot.isFull,
+  'slot-selected': selectedSlotIds.includes(slot._id)
+  }">
+  <!-- Selection Checkbox -->
+  <div class="position-absolute top-0 start-0 p-2" style="z-index: 10;">
+  <div class="form-check">
+  <input class="form-check-input slot-checkbox" type="checkbox"
+  [id]="'slot-' + slot._id"
+  [value]="slot._id"
+  (change)="onSlotSelectionChange(slot._id, $event)"
+  [checked]="selectedSlotIds.includes(slot._id)">
+  </div>
+  </div>
+  
+  <!-- Status Badge -->
+  <div class="position-absolute top-0 end-0 p-2" style="z-index: 10;">
+  <span class="badge rounded-pill"
+  [ngClass]="{
+  'bg-success': slot.status === 'available',
+  'bg-warning text-dark': slot.bookedCount > 0 && !slot.isFull,
+  'bg-danger': slot.isFull,
+  'bg-secondary': slot.status === 'cancelled'
+  }">
+  {{getSlotStatusText(slot)}}
+  </span>
+  </div>
+  
+  <!-- Slot Content -->
+  <div class="slot-content p-3 pt-5">
+  <div class="slot-header mb-3">
+  <div class="slot-date-time">
+  <div class="slot-date">
+  <i class="bi bi-calendar3 text-primary me-1"></i>
+  <span class="fw-bold">{{formatSlotDate(slot.date)}}</span>
+  </div>
+  <div class="slot-time mt-1">
+  <i class="bi bi-clock text-info me-1"></i>
+  <span>{{slot.startTime}} - {{slot.endTime}}</span>
+  </div>
+  </div>
+  </div>
+  
+  <div class="slot-details">
+  <div class="row text-center">
+  <div class="col-6">
+  <div class="slot-stat">
+  <div class="slot-stat-value text-success fw-bold fs-4">{{slot.capacity}}</div>
+  <div class="slot-stat-label text-muted small">Capacity</div>
+  </div>
+  </div>
+  <div class="col-6">
+  <div class="slot-stat">
+  <div class="slot-stat-value fw-bold fs-4"
+  [ngClass]="{
+  'text-success': slot.bookedCount === 0,
+  'text-warning': slot.bookedCount > 0 && slot.bookedCount < slot.capacity,
+  'text-danger': slot.bookedCount >= slot.capacity
+  }">
+  {{slot.bookedCount}}
+  </div>
+  <div class="slot-stat-label text-muted small">Booked</div>
+  </div>
+  </div>
+  </div>
+  
+  <!-- Progress Bar -->
+  <div class="mt-3">
+  <div class="progress" style="height: 6px;">
+  <div class="progress-bar"
+  [style.width.%]="getBookingPercentage(slot)"
+  [ngClass]="{
+  'bg-success': slot.bookedCount === 0,
+  'bg-warning': slot.bookedCount > 0 && slot.bookedCount < slot.capacity,
+  'bg-danger': slot.bookedCount >= slot.capacity
+  }"
+  role="progressbar"></div>
+  </div>
+  <div class="d-flex justify-content-between mt-1">
+  <small class="text-muted">{{slot.capacity - slot.bookedCount}} available</small>
+  <small class="text-muted">{{getBookingPercentage(slot)}}% filled</small>
+  </div>
+  </div>
+  
+  <!-- Action Buttons -->
+  <div class="slot-actions mt-3 pt-3 border-top">
+  <div class="d-flex justify-content-between align-items-center">
+  <small class="text-muted">
+  Created: {{formatDate(slot.createdAt)}}
+  </small>
+  <button class="btn btn-outline-danger btn-sm rounded-pill"
+  (click)="deleteSlot(slot._id)"
+  [disabled]="slotsLoading">
+  <i class="bi bi-trash-fill"></i>
+  </button>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  
+  <!-- Empty State -->
+  <div *ngIf="!slotsLoading && slots.length === 0" class="text-center py-5">
+  <div class="empty-slots-state">
+  <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
+  <h5 class="text-muted">No Slots Found</h5>
+  <p class="text-muted">This podcast doesn't have any slots yet.</p>
+  <button class="btn btn-primary rounded-pill mt-3"
+  (click)="openGenerateSlotModal(selectedPodcastForSlots!)"
+  data-bs-dismiss="modal">
+  <i class="bi bi-calendar-plus me-2"></i>Generate Slots
+  </button>
+  </div>
+  </div>
+  </div>
+  
+  <!-- Pagination Footer -->
+  <div class="modal-footer bg-light" *ngIf="!slotsLoading && slots.length > 0">
+  <div class="d-flex justify-content-between align-items-center w-100">
+  <div class="slot-pagination-info">
+  <span class="text-muted">
+  Showing {{slotsPagination?.pagingCounter || 0}} - 
+  {{Math.min((slotsPagination?.page || 0) * (slotsPagination?.limit || 0), slotsPagination?.totalDocs || 0)}} 
+  of {{slotsPagination?.totalDocs || 0}} slots
+  </span>
+  </div>
+  <div class="slot-pagination-controls">
+  <nav aria-label="Slots pagination">
+  <ul class="pagination pagination-sm mb-0">
+  <li class="page-item" [class.disabled]="!slotsPagination?.hasPrevPage">
+  <button class="page-link" (click)="changeSlotPage(1)" [disabled]="!slotsPagination?.hasPrevPage">
+  <i class="bi bi-chevron-double-left"></i>
+  </button>
+  </li>
+  <li class="page-item" [class.disabled]="!slotsPagination?.hasPrevPage">
+  <button class="page-link" (click)="changeSlotPage(slotsPagination!.page - 1)" [disabled]="!slotsPagination?.hasPrevPage">
+  <i class="bi bi-chevron-left"></i>
+  </button>
+  </li>
+  <li class="page-item active">
+  <span class="page-link">{{slotsPagination?.page || 1}}</span>
+  </li>
+  <li class="page-item" [class.disabled]="!slotsPagination?.hasNextPage">
+  <button class="page-link" (click)="changeSlotPage(slotsPagination!.page + 1)" [disabled]="!slotsPagination?.hasNextPage">
+  <i class="bi bi-chevron-right"></i>
+  </button>
+  </li>
+  <li class="page-item" [class.disabled]="!slotsPagination?.hasNextPage">
+  <button class="page-link" (click)="changeSlotPage(slotsPagination!.totalPages)" [disabled]="!slotsPagination?.hasNextPage">
+  <i class="bi bi-chevron-double-right"></i>
+  </button>
+  </li>
+  </ul>
+  </nav>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>

@@ -1,0 +1,72 @@
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+  }
+  
+  .empty-state {
+    padding: 2rem;
+  }
+  
+  .rounded-4 {
+    border-radius: 0.75rem !important;
+  }
+  
+  /* Status badge styles */
+  .badge.bg-success {
+    background-color: rgba(25, 135, 84, 0.9) !important;
+  }
+  
+  .badge.bg-secondary {
+    background-color: rgba(108, 117, 125, 0.9) !important;
+  }
+  
+  /* Form control focus effect */
+  .form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+  }
+  
+  /* Improve table hover effect */
+  .table-hover > tbody > tr:hover {
+    background-color: rgba(78, 115, 223, 0.05);
+  }
+  
+  /* ng-select styling to match form controls */
+  ::ng-deep .ng-select .ng-select-container {
+    border-radius: 0.375rem;
+  }
+  
+  ::ng-deep .ng-select.ng-select-focused .ng-select-container {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+  }
+  
+  /* Media queries for responsive filters */
+  @media (max-width: 768px) {
+    .d-flex.flex-wrap.align-items-center.gap-2 > div {
+      margin-bottom: 0.5rem;
+    }
+  }
+  /* Add this to your visitors.component.css file for better styling */
+
+.badge {
+    transition: all 0.3s ease;
+  }
+  
+  .badge:hover:not(.disabled) {
+    filter: brightness(110%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+  }
+  
+  .badge.disabled {
+    opacity: 0.7;
+    cursor: not-allowed !important;
+  }
+  
+  /* Add visual cue that badge is clickable */
+  .badge[ngStyle*="cursor: pointer"]:not(.disabled)::after {
+    content: " ↺";
+    font-size: 0.8em;
+    vertical-align: middle;
+  }

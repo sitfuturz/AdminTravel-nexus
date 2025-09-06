@@ -1,0 +1,148 @@
+<div class="container-fluid">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+        <h4 class="mb-0 fw-bold text-white">
+          <i class="bi bi-globe me-2"></i>Countries Management
+        </h4>
+        <button class="btn btn-light rounded-pill px-4" (click)="openAddCountryModal()">
+          <i class="bi bi-plus-circle me-2"></i>Add Country
+        </button>
+      </div>
+      <div class="card-body p-0">
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+          <div class="d-flex w-100 align-items-center">
+            <div class="flex-grow-1 me-2">
+              <input type="text" class="form-control"
+                     placeholder="Search countries..."
+                     [(ngModel)]="searchQuery"
+                     (input)="onSearch()">
+            </div>
+            <div>
+              <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit" placeholder="Items per page"></ng-select>
+            </div>
+          </div>
+        </div>
+      </div>
+       
+      <div *ngIf="loading" class="text-center my-5 py-5">
+        <div class="spinner-grow text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+  
+      <div class="table-responsive" *ngIf="!loading && countries.docs && countries.docs.length > 0">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="ps-4 py-3">Country Name</th>
+              <th class="py-3">Status</th>
+              <th class="py-3">Created At</th>
+              <th class="text-end pe-4 py-3">Action</th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            <tr *ngFor="let country of countries.docs | paginate: {itemsPerPage: payload.limit, currentPage: payload.page, totalItems: countries.totalDocs}; let i=index" class="border-bottom">
+              <td class="ps-4 py-3">
+                <div class="d-flex align-items-center">
+                  <div class="bg-gradient-primary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm  border-2 border-white"
+                    style="width: 40px; height: 40px; color: white;">
+                    {{country.name ? country.name.charAt(0).toUpperCase() : 'C'}}
+                  </div>
+                  <div>
+                    <div class="fw-bold text-dark">{{country.name}}</div>
+                    <small class="text-muted d-block">ID: {{country._id ? country._id.substring(0, 8) : 'N/A'}}</small>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3">
+                <span class="badge rounded-pill" 
+                      [ngClass]="country.status ? 'badge bg-success' : 'badge bg-danger'"
+                      style="cursor: pointer;"
+                      (click)="toggleCountryStatus(country)">
+                  {{country.status ? 'Active' : 'Inactive'}}
+                </span>
+              </td>
+              <td class="py-3">
+                {{formatDate(country.createdAt)}}
+              </td>
+              <td class="text-end pe-4 py-3">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button" 
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                    <li><a class="dropdown-item" (click)="openEditCountryModal(country)" style="cursor: pointer;">
+                      <i class="bi bi-pencil-fill me-2 text-primary"></i> Edit
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" (click)="deleteCountry(country._id)" style="cursor: pointer;">
+                      <i class="bi bi-trash-fill me-2"></i> Delete
+                    </a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <!-- Pagination Controls -->
+        <div class="d-flex justify-content-end p-3">
+          <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+        </div>
+      </div>
+  
+      <!-- No Countries Found -->
+      <div *ngIf="!loading && (!countries.docs || countries.docs.length === 0)" class="text-center my-5 py-4 px-4">
+        <div class="empty-state">
+          <i class="bi bi-globe fs-1 text-muted mb-3"></i>
+          <h5>No Countries Found</h5>
+          <p class="text-muted">Try adding some countries or adjusting your search criteria.</p>
+          <button class="btn btn-primary rounded-pill mt-3" (click)="openAddCountryModal()">
+            <i class="bi bi-plus-circle me-2"></i>Add Country
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Country Modal (Add/Edit) -->
+  <div class="modal fade" id="countryModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+    aria-labelledby="countryModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title" id="countryModalTitle">
+            <i class="bi bi-globe me-2"></i> {{editMode ? 'Edit Country' : 'Add New Country'}}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form>
+            <div class="mb-3">
+              <label for="countryName" class="form-label">Country Name</label>
+              <input type="text" class="form-control" id="countryName" placeholder="Enter country name" 
+                    [(ngModel)]="newCountry.name" name="countryName" required>
+            </div>
+            
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" id="countryStatus" 
+                    [(ngModel)]="newCountry.status" name="countryStatus">
+              <label class="form-check-label" for="countryStatus">
+                {{newCountry.status ? 'Active' : 'Inactive'}}
+              </label>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i> Cancel
+          </button>
+          <button type="button" class="btn btn-primary rounded-pill" (click)="saveCountry()" [disabled]="!newCountry.name">
+            <i class="bi bi-save me-1"></i> {{editMode ? 'Update' : 'Save'}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

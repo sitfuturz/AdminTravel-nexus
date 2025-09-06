@@ -1,0 +1,38 @@
+/* Custom CSS for Import Users component */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+  }
+  
+  .rounded-4 {
+    border-radius: 0.75rem !important;
+  }
+  
+  .form-control {
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+  }
+  
+  .btn-primary {
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .alert {
+    border-radius: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+  }

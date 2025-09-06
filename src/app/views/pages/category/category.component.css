@@ -1,0 +1,61 @@
+
+
+/* Custom CSS for Categories component */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+  }
+  
+  .rounded-4 {
+    border-radius: 0.75rem !important;
+  }
+  
+  .empty-state {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+  }
+  
+  /* Hover effect for table rows */
+  tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+  
+  /* Custom styles for action buttons */
+  .dropdown-item {
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #f8f9fa;
+  }
+  
+  /* Animation for status toggle */
+
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    transition: all 0.3s ease;
+  }
+  
+  .badge:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Style for modal */
+  .modal-content {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  .modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+  }

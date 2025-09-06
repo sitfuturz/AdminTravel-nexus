@@ -1,0 +1,135 @@
+
+<!-- Mobile Overlay -->
+<div class="sidebar-overlay" 
+     [class.active]="isSidebarOpen && isMobile" 
+     (click)="closeSidebar()"></div>
+
+<!-- Sidebar Toggle Button for Mobile -->
+<button class="mobile-toggle-btn d-lg-none" 
+        type="button" 
+        (click)="toggleSidebar()"
+        [class.active]="isSidebarOpen"
+        aria-label="Toggle navigation">
+  <span class="hamburger-line"></span>
+  <span class="hamburger-line"></span>
+  <span class="hamburger-line"></span>
+</button>
+
+<!-- Sidebar -->
+<nav id="sidebar" 
+     class="sidebar js-sidebar" 
+     [class.active]="isSidebarOpen"
+     [class.mobile]="isMobile">
+  
+  <div class="sidebar-content js-simplebar">
+    <!-- Brand Logo -->
+    <div class="sidebar-brand">
+      <div class="brand-container">
+        <div class="logo-section">
+          <img src="assets/images/download.png" 
+               alt="Company Logo" 
+               class="company-logo"
+               onerror="this.style.display='none'">
+          <div class="brand-text">
+            <h5 class="app-title">Travel Nexus</h5>
+          </div>
+        </div>
+        
+       
+        <!-- <button class="close-btn d-lg-none" 
+                (click)="closeSidebar()"
+                aria-label="Close sidebar">
+          <i class="fas fa-times align-middle"></i>
+        </button> -->
+      </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar-nav">
+      <div class="nav-section">
+        <ul class="nav-list">
+          <ng-container *ngFor="let module of sideBarService.list">
+            <li class="nav-item" 
+                *ngFor="let item of module.menus; let i = index">
+              
+              <!-- Main Menu Item without Submenu -->
+              <ng-container *ngIf="!item.hasSubmenu">
+                <a class="nav-link" 
+                   [routerLink]="item.link" 
+                   [queryParams]="item.query || {}"
+                   routerLinkActive="active"
+                   (click)="closeSidebar()">
+                  <div class="nav-icon">
+                    <i class="align-middle" [ngClass]="getIconClass(item.icon)"></i>
+                  </div>
+                  <span class="nav-text">{{ item.title }}</span>
+                  <div class="nav-indicator"></div>
+                </a>
+              </ng-container>
+
+              <!-- Main Menu Item with Submenu -->
+              <ng-container *ngIf="item.hasSubmenu">
+                <div class="nav-item-with-submenu">
+                  <!-- Parent Menu Item -->
+                  <button class="nav-link submenu-toggle" 
+                          [class.active]="isSubMenuActive(i)"
+                          [class.has-active-child]="isParentMenuActive(item.submenu)"
+                          (click)="toggleSubMenu(i)">
+                    <div class="nav-icon">
+                      <i class="align-middle" [ngClass]="getIconClass(item.icon)"></i>
+                    </div>
+                    <span class="nav-text">{{ item.title }}</span>
+                    <div class="submenu-arrow">
+                      <i class="align-middle" 
+                         [ngClass]="isSubMenuActive(i) ? getIconClass('chevron-down') : getIconClass('chevron-right')"></i>
+                    </div>
+                  </button>
+
+                  <!-- Submenu -->
+                  <div class="submenu" 
+                       [class.active]="isSubMenuActive(i)"
+                       [style.max-height]="isSubMenuActive(i) ? (item.submenu.length * 60) + 'px' : '0'">
+                    <ul class="submenu-list">
+                      <li class="submenu-item" 
+                          *ngFor="let subItem of item.submenu">
+                        <a class="submenu-link" 
+                           [routerLink]="subItem.link" 
+                           [queryParams]="subItem.query || {}"
+                           routerLinkActive="active"
+                           (click)="navigateToRoute(subItem.link, subItem.query)">
+                          <div class="submenu-icon">
+                            <i class="align-middle" [ngClass]="getIconClass(subItem.icon)"></i>
+                          </div>
+                          <span class="submenu-text">{{ subItem.title }}</span>
+                          <div class="submenu-indicator"></div>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </ng-container>
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+
+      <!-- Extra Section -->
+      <div class="nav-section extra-section">
+        <div class="section-header">
+          <span class="section-title">Settings</span>
+        </div>
+        
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a class="nav-link logout-link" (click)="logout()">
+              <div class="nav-icon">
+                <i class="fas fa-sign-out-alt align-middle"></i>
+              </div>
+              <span class="nav-text">Logout</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>

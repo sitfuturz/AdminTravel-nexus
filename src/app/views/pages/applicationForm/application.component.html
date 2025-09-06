@@ -1,0 +1,324 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3 flex-wrap">
+      <h4 class="mb-0 fw-bold">
+        <i class="bi bi-users me-2"></i>Member Applications
+      </h4>
+      <button class="btn btn-light rounded-pill px-4" (click)="exportData()">
+        <i class="bi bi-download me-2"></i>Export Data
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom flex-wrap">
+        <div class="d-flex w-100 align-items-center flex-wrap gap-2">
+          <div class="flex-grow-1 me-2 mb-2 mb-md-0" style="min-width: 200px;">
+            <input type="text" class="form-control"
+                  placeholder="Search applications based on name, company"  
+                  [(ngModel)]="searchQuery"
+                  (input)="onSearch()">
+          </div>
+          <div class="mb-2 mb-md-0">
+            <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit" placeholder="Items per page"></ng-select>
+          </div>
+        </div>
+      </div>
+    </div>
+     
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && applications.docs && applications.docs.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4 py-3 sr-no-col">Sr. No</th>
+            <th class="py-3 applicant-info">Applicant</th>
+            <th class="py-3 company-info">Company</th>
+            <th class="py-3">Industry</th>
+            <th class="py-3">Address</th>
+            <th class="py-3 contact-info">Contact</th>
+            <th class="py-3 personal-info">Personal Info</th>
+            <th class="py-3 documents-cell">Documents</th>
+            <th class="py-3">Invited By</th>
+            <th class="py-3 references-cell">References</th>
+            <th class="py-3">Chapter</th>
+            <th class="py-3 actions-cell">Actions</th>
+          </tr>
+        </thead>
+        
+        <tbody>
+          <tr *ngFor="let app of applications.docs | paginate: {itemsPerPage: payload.limit, currentPage: payload.page, totalItems: applications.totalDocs}; let i=index" class="border-bottom">
+            <td class="ps-4 py-3 sr-no-col">
+              {{ (payload.page - 1) * payload.limit + i + 1 }}
+            </td>
+            <td class="py-3 applicant-info">
+              <div class="d-flex align-items-center">
+                <!-- <div class="user-avatar me-3">
+                  {{ (payload.page - 1) * payload.limit + i + 1 }}
+                </div> -->
+                <div>
+                  <div class="fw-bold text-dark">{{app.applicant.firstName}} {{app.applicant.lastName}}</div>
+                  <small class="text-muted d-block">ID: {{app._id ? app._id.substring(0, 8) : 'N/A'}}</small>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 company-info">
+              <div>{{app.applicant.companyName}}</div>
+              <small class="text-muted">{{app.applicant.professionalClassification}}</small>
+            </td>
+            <td class="py-3">{{app.applicant.industry}}</td>
+            <td class="py-3">
+              <div>{{app.applicant.businessAddress.addressLine1}}</div>
+              <small class="text-muted">{{app.applicant.businessAddress.city}}, {{app.applicant.businessAddress.state}} {{app.applicant.businessAddress.postalCode}}</small>
+            </td>
+            <td class="py-3 contact-info">
+              <div>{{app.applicant.email}} </div>
+              <small class="text-muted d-block">{{app.applicant.mobileNumber}}</small>
+              <small class="text-muted d-block" *ngIf="app.applicant.gstNumber">GST: {{app.applicant.gstNumber}}</small>
+            </td>
+            <td class="py-3 personal-info">
+              <small class="text-muted d-block mt-1">Date of Birth: {{ app.applicant.dateOfBirth ? (app.applicant.dateOfBirth | date: 'dd/MM/yyyy') : 'N/A' }}</small>
+              <small class="text-muted d-block mt-1">Spouse Name: {{ app.applicant.spouseName || 'N/A' }}</small>
+              <small class="text-muted d-block mt-1">Anniversary Date: {{ app.applicant.anniversaryDate ? (app.applicant.anniversaryDate | date: 'dd/MM/yyyy') : 'N/A' }}</small>
+              <small class="text-muted d-block mt-1">Blood Group: {{ app.applicant.bloodGroup || 'N/A' }}</small>
+             
+            </td>
+             
+            <td class="py-3 documents-cell">
+              <div class="document-images">
+                <img [src]="getImageUrl(app.applicant.aadhaarPhoto)" 
+                     [alt]="'Aadhaar Photo'" 
+                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid #ddd;"
+                     (click)="viewImage(app.applicant.aadhaarPhoto, 'Aadhaar Photo')"
+                     (error)="onImageError($event)">
+                <img [src]="getImageUrl(app.applicant.livePhoto)" 
+                     [alt]="'Live Photo'" 
+                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid #ddd;"
+                     (click)="viewImage(app.applicant.livePhoto, 'Live Photo')"
+                     (error)="onImageError($event)">
+              </div>
+              <small class="text-muted d-block mt-1">Aadhaar: {{app.applicant.adhaarNumber}}</small>
+            </td>
+            <td class="py-3">{{app.invitedBy}}</td>
+            <td class="py-3 references-cell">
+              <div *ngIf="app.references.reference1.firstName">
+                {{app.references.reference1.firstName}} {{app.references.reference1.lastName}}
+                <small class="text-muted d-block">{{app.references.reference1.phone}}</small>
+              </div>
+              <div *ngIf="app.references.reference2.firstName" class="mt-1">
+                {{app.references.reference2.firstName}} {{app.references.reference2.lastName}}
+                <small class="text-muted d-block">{{app.references.reference2.phone}}</small>
+              </div>
+            </td>
+            <td class="py-3">{{app.chapter}}</td>
+            <td class="py-3 actions-cell">
+              <div class="d-flex gap-2 flex-column flex-md-row">
+                <button class="btn btn-outline-primary btn-sm rounded-pill" (click)="openEditModal(app)">
+                  <i class="bi bi-pencil me-1"></i> Edit
+                </button>
+                <button class="btn btn-outline-success btn-sm rounded-pill" (click)="convertToUser(app._id)" [disabled]="convertLoading[app._id]">
+                  <span *ngIf="convertLoading[app._id]" class="spinner-border spinner-border-sm me-1"></span>
+                  <i class="bi bi-person-check me-1"></i> Convert
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div class="d-flex justify-content-end p-3">
+        <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && (!applications.docs || applications.docs.length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-users fs-1 text-muted mb-3"></i>
+        <h5>No Applications Found</h5>
+        <p class="text-muted">Try adjusting your search criteria.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="imageModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="imageModalTitle">{{selectedImageTitle}}</h5>
+        <button type="button" class="btn-close" (click)="closeImageModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <img [src]="selectedImage" 
+             [alt]="selectedImageTitle" 
+             style="max-width: 100%; max-height: 70vh; object-fit: contain;"
+             (error)="onModalImageError($event)">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" (click)="closeImageModal()">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Application Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="editModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="editModalTitle">Edit Member Application</h5>
+        <button type="button" class="btn-close" (click)="closeEditModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form #editForm="ngForm" (ngSubmit)="submitEdit()">
+          <div class="row">
+            <!-- Applicant Details -->
+            <div class="col-md-6">
+              <h6 class="fw-bold mb-3">Applicant Details</h6>
+              <div class="mb-3">
+                <label for="firstName" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="firstName" [(ngModel)]="editApplication.applicant.firstName" name="firstName" required #firstName="ngModel" [ngClass]="{'is-invalid': firstName.invalid && (firstName.dirty || firstName.touched)}">
+                <div *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)" class="invalid-feedback">
+                  First name is required.
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="lastName" [(ngModel)]="editApplication.applicant.lastName" name="lastName" required #lastName="ngModel" [ngClass]="{'is-invalid': lastName.invalid && (lastName.dirty || lastName.touched)}">
+                <div *ngIf="lastName.invalid && (lastName.dirty || lastName.touched)" class="invalid-feedback">
+                  Last name is required.
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="companyName" class="form-label">Company Name</label>
+                <input type="text" class="form-control" id="companyName" [(ngModel)]="editApplication.applicant.companyName" name="companyName">
+              </div>
+              <div class="mb-3">
+                <label for="industry" class="form-label">Industry</label>
+                <input type="text" class="form-control" id="industry" [(ngModel)]="editApplication.applicant.industry" name="industry">
+              </div>
+              <div class="mb-3">
+                <label for="professionalClassification" class="form-label">Professional Classification</label>
+                <input type="text" class="form-control" id="professionalClassification" [(ngModel)]="editApplication.applicant.professionalClassification" name="professionalClassification">
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" [(ngModel)]="editApplication.applicant.email" name="email" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" #email="ngModel" [ngClass]="{'is-invalid': email.invalid && (email.dirty || email.touched)}">
+                <div *ngIf="email.invalid && (email.dirty || email.touched)" class="invalid-feedback">
+                  <div *ngIf="email.errors?.['required']">Email is required.</div>
+                  <div *ngIf="email.errors?.['pattern']">Enter a valid email address.</div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="mobileNumber" class="form-label">Mobile Number</label>
+                <input type="text" class="form-control" id="mobileNumber" [(ngModel)]="editApplication.applicant.mobileNumber" name="mobileNumber" required pattern="[6-9][0-9]{9}" #mobileNumber="ngModel" [ngClass]="{'is-invalid': mobileNumber.invalid && (mobileNumber.dirty || mobileNumber.touched)}">
+                <div *ngIf="mobileNumber.invalid && (mobileNumber.dirty || mobileNumber.touched)" class="invalid-feedback">
+                  <div *ngIf="mobileNumber.errors?.['required']">Mobile number is required.</div>
+                  <div *ngIf="mobileNumber.errors?.['pattern']">Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.</div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="gstNumber" class="form-label">GST Number</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="gstNumber"
+                  name="gstNumber"
+                  [(ngModel)]="editApplication.applicant.gstNumber"
+                  pattern="^\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]{1}$"
+                  #gstNumber="ngModel"
+                  [ngClass]="{'is-invalid': gstNumber.invalid && (gstNumber.dirty || gstNumber.touched)}"
+                />
+                <div *ngIf="gstNumber.invalid && (gstNumber.dirty || gstNumber.touched)" class="invalid-feedback">
+                  <div *ngIf="gstNumber.errors?.['pattern']">
+                    Enter a valid GST number (e.g., 22ABCDE1234F1Z5).
+                  </div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="adhaarNumber" class="form-label">Aadhaar Number</label>
+                <input type="text" class="form-control" id="adhaarNumber" [(ngModel)]="editApplication.applicant.adhaarNumber" name="adhaarNumber" required pattern="[0-9]{4}\s?[0-9]{4}\s?[0-9]{4}" #adhaarNumber="ngModel" [ngClass]="{'is-invalid': adhaarNumber.invalid && (adhaarNumber.dirty || adhaarNumber.touched)}">
+                <div *ngIf="adhaarNumber.invalid && (adhaarNumber.dirty || adhaarNumber.touched)" class="invalid-feedback">
+                  <div *ngIf="adhaarNumber.errors?.['required']">Aadhaar number is required.</div>
+                  <div *ngIf="adhaarNumber.errors?.['pattern']">Enter a valid 12-digit Aadhaar number (with or without spaces).</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Address and File Uploads -->
+            <div class="col-md-6">
+              <h6 class="fw-bold mb-3">Business Address</h6>
+              <div class="mb-3">
+                <label for="addressLine1" class="form-label">Address Line 1</label>
+                <input type="text" class="form-control" id="addressLine1" [(ngModel)]="editApplication.applicant.businessAddress.addressLine1" name="addressLine1">
+              </div>
+              <div class="mb-3">
+                <label for="city" class="form-label">City</label>
+                <ng-select [items]="cities" bindLabel="name" bindValue="name" [(ngModel)]="editApplication.applicant.businessAddress.city" name="city" required #city="ngModel" [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched)}">
+                </ng-select>
+                <div *ngIf="city.invalid && (city.dirty || city.touched)" class="invalid-feedback">
+                  City is required.
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="state" class="form-label">State</label>
+                <ng-select [items]="states" bindLabel="name" bindValue="name" [(ngModel)]="editApplication.applicant.businessAddress.state" name="state" required #state="ngModel" [ngClass]="{'is-invalid': state.invalid && (state.dirty || state.touched)}">
+                </ng-select>
+                <div *ngIf="state.invalid && (state.dirty || state.touched)" class="invalid-feedback">
+                  State is required.
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="postalCode" class="form-label">Postal Code</label>
+                <input type="text" class="form-control" id="postalCode" [(ngModel)]="editApplication.applicant.businessAddress.postalCode" name="postalCode" pattern="[0-9]{6}" #postalCode="ngModel" [ngClass]="{'is-invalid': postalCode.invalid && (postalCode.dirty || postalCode.touched)}">
+                <div *ngIf="postalCode.invalid && (postalCode.dirty || postalCode.touched)" class="invalid-feedback">
+                  <div *ngIf="postalCode.errors?.['pattern']">Enter a valid 6-digit postal code.</div>
+                </div>
+              </div>
+
+              <h6 class="fw-bold mb-3 mt-4">Documents</h6>
+              <div class="mb-3">
+                <label for="aadhaarPhoto" class="form-label">Aadhaar Photo</label>
+                <input type="file" class="form-control" id="aadhaarPhoto" (change)="onFileChange($event, 'aadhaarPhoto')" accept="image/*">
+                <small *ngIf="editApplication.applicant.aadhaarPhoto" class="text-muted">Current: <a [href]="getImageUrl(editApplication.applicant.aadhaarPhoto)" target="_blank">View Aadhaar Photo</a></small>
+              </div>
+              <div class="mb-3">
+                <label for="livePhoto" class="form-label">Live Photo</label>
+                <input type="file" class="form-control" id="livePhoto" (change)="onFileChange($event, 'livePhoto')" accept="image/*">
+                <small *ngIf="editApplication.applicant.livePhoto" class="text-muted">Current: <a [href]="getImageUrl(editApplication.applicant.livePhoto)" target="_blank">View Live Photo</a></small>
+              </div>
+
+              <h6 class="fw-bold mb-3 mt-4">Chapter</h6>
+              <div class="mb-3">
+                <label for="chapter" class="form-label">Chapter</label>
+                <ng-select [items]="chapters" bindLabel="name" bindValue="name" [(ngModel)]="editApplication.chapter" name="chapter" required #chapter="ngModel" [ngClass]="{'is-invalid': chapter.invalid && (chapter.dirty || chapter.touched)}">
+                </ng-select>
+                <div *ngIf="chapter.invalid && (chapter.dirty || chapter.touched)" class="invalid-feedback">
+                  Chapter is required.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button type="submit" class="btn btn-primary rounded-pill px-4" [disabled]="editForm.invalid || editLoading">
+              <span *ngIf="editLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Save Changes
+            </button>
+            <button type="button" class="btn btn-outline-secondary rounded-pill ms-2" (click)="closeEditModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,36 @@
+.empty-state {
+    padding: 2rem;
+    text-align: center;
+}
+
+.table {
+    width: 100%;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+}
+
+.spinner-grow {
+    color: #4e73df;
+}
+
+.form-control:focus, .ng-select.ng-select-focused .ng-select-container {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.btn-outline-primary {
+    border-color: #4e73df;
+    color: #4e73df;
+}
+
+.btn-outline-primary:hover {
+    background-color: #4e73df;
+    color: white;
+}

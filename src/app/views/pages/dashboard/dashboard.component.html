@@ -1,0 +1,308 @@
+<div class="container-fluid">
+  <!-- Dashboard Overview with Integrated Filter -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <!-- Header Section - Mobile Optimized -->
+        <div class="card-header bg-gradient-primary d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center py-3 gap-3 gap-md-0">
+          <h4 class="mb-0 fw-bold text-white d-flex align-items-center">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard Overview
+          </h4>
+          <!-- Action Buttons - Mobile Stack -->
+          <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
+            <!-- Advanced Filter Toggle Button -->
+            <button 
+              class="btn btn-light rounded-pill px-3 px-md-4 flex-fill flex-sm-grow-0" 
+              (click)="toggleAdvancedFilters()"
+              [class.active]="showAdvancedFilters"
+            >
+              <i class="bi bi-funnel me-1 me-md-2"></i>
+              <span class="d-none d-sm-inline">Advanced </span>Filters
+              <i class="bi ms-1" [ngClass]="showAdvancedFilters ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+            </button>
+            <!-- Refresh Button -->
+            <button class="btn btn-light rounded-pill px-3 px-md-4 flex-fill flex-sm-grow-0" (click)="loadDashboardCounts()">
+              <i class="bi bi-arrow-clockwise me-1 me-md-2"></i>
+              <span class="d-none d-sm-inline">Refresh</span>
+              <span class="d-sm-none">Reload</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Collapsible Advanced Filter Section - Mobile Enhanced -->
+        <div class="advanced-filters-container" [class.show]="showAdvancedFilters">
+          <div class="card-body border-bottom bg-light">
+            <div class="row align-items-center">
+              <div class="col-12">
+                <!-- Active Filters Chips - Mobile Responsive -->
+                <div class="filter-chips-container mb-3" *ngIf="hasActiveFilters()">
+                  <div class="d-flex align-items-center flex-wrap gap-2 w-100">
+                    <span class="text-muted me-2 small d-none d-sm-inline">Active Filters:</span>
+                    <span class="text-muted me-2 small d-sm-none fw-bold">Filters:</span>
+                    
+                    <span class="filter-chip" *ngIf="selectedChapter">
+                      <i class="bi bi-building me-1"></i>
+                      <span class="filter-text">{{ selectedChapter }}</span>
+                      <button class="btn-close-chip" (click)="clearChapterFilter()" aria-label="Clear chapter filter">×</button>
+                    </span>
+                    
+                    <span class="filter-chip" *ngIf="fromDate">
+                      <i class="bi bi-calendar me-1"></i>
+                      <span class="filter-text">From: {{ fromDate }}</span>
+                      <button class="btn-close-chip" (click)="clearFromDate()" aria-label="Clear from date">×</button>
+                    </span>
+                    
+                    <span class="filter-chip" *ngIf="toDate">
+                      <i class="bi bi-calendar me-1"></i>
+                      <span class="filter-text">To: {{ toDate }}</span>
+                      <button class="btn-close-chip" (click)="clearToDate()" aria-label="Clear to date">×</button>
+                    </span>
+                    
+                    <button class="btn btn-sm btn-outline-danger d-flex align-items-center" (click)="resetFilters()">
+                      <i class="bi bi-x-circle me-1"></i>
+                      <span class="d-none d-sm-inline">Clear All</span>
+                      <span class="d-sm-none">Clear</span>
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Filter Form - Mobile Responsive -->
+                <form>
+                  <div class="row g-3 align-items-end">
+                    <!-- Chapter Dropdown - Full width on mobile -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                      <label for="chapter" class="form-label fw-semibold">
+                        <i class="bi bi-building me-1"></i>Chapter
+                      </label>
+                      <select
+                        id="chapter"
+                        class="form-select modern-select"
+                        [(ngModel)]="selectedChapter"
+                        name="chapter"
+                      >
+                        <option value="">All Chapters</option>
+                        <option *ngFor="let chapter of chapters" [value]="chapter.name">{{ chapter.name }}</option>
+                      </select>
+                    </div>
+
+                    <!-- Date Range Container - Responsive -->
+                    <div class="col-12 col-md-8 col-lg-6">
+                      <label class="form-label fw-semibold">
+                        <i class="bi bi-calendar-range me-1"></i>Date Range
+                      </label>
+                      <div class="row g-2">
+                        <div class="col-6">
+                          <input
+                            type="date"
+                            class="form-control modern-input"
+                            [(ngModel)]="fromDate"
+                            name="fromDate"
+                            placeholder="From Date"
+                            aria-label="From Date"
+                          />
+                        </div>
+                        <div class="col-6">
+                          <input
+                            type="date"
+                            class="form-control modern-input"
+                            [(ngModel)]="toDate"
+                            name="toDate"
+                            placeholder="To Date"
+                            aria-label="To Date"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Action Buttons - Mobile Full Width -->
+                    <div class="col-12 col-md-12 col-lg-3">
+                      <div class="d-flex gap-2">
+                        <button
+                          type="button"
+                          class="btn btn-primary rounded-pill flex-fill"
+                          (click)="applyFilters()"
+                        >
+                          <i class="bi bi-check2 me-1"></i>Apply Filters
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Cards - Mobile Enhanced Grid -->
+        <div class="card-body">
+          <!-- Loading State -->
+          <div *ngIf="loading" class="text-center my-5 py-5">
+            <div class="spinner-grow text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-3">Loading dashboard data...</p>
+          </div>
+
+          <!-- Dashboard Metrics Grid - Mobile Responsive -->
+          <div *ngIf="!loading" class="row g-3 g-md-4">
+            <!-- Users Card -->
+            <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100 metric-card">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2 mb-md-3">
+                    <div class="metric-icon bg-primary">
+                      <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h6 class="mb-0 ms-2 ms-md-3 metric-title">Users</h6>
+                  </div>
+                  <h3 class="mb-0 fw-bold text-center metric-number">{{ counts.users }}</h3>
+                  <p class="text-muted small text-center mt-1 mt-md-2 metric-desc">Total registered users</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Admins Card -->
+            <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100 metric-card">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2 mb-md-3">
+                    <div class="metric-icon bg-danger">
+                      <i class="bi bi-shield-fill"></i>
+                    </div>
+                    <h6 class="mb-0 ms-2 ms-md-3 metric-title">Admins</h6>
+                  </div>
+                  <h3 class="mb-0 fw-bold text-center metric-number">{{ counts.admins }}</h3>
+                  <p class="text-muted small text-center mt-1 mt-md-2 metric-desc">System administrators</p>
+                </div>
+              </div>
+            </div>
+
+            Referrals Card -->
+          <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100 metric-card">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2 mb-md-3">
+                    <div class="metric-icon bg-info">
+                      <i class="bi bi-share-fill"></i>
+                    </div>
+                    <h6 class="mb-0 ms-2 ms-md-3 metric-title">Referrals</h6>
+                  </div>
+                  <h3 class="mb-0 fw-bold text-center metric-number">{{ counts.referrals.total }}</h3>
+                  <div class="referral-breakdown">
+                    <span class="badge bg-light text-dark me-1">Given: {{ counts.referrals.given }}</span>
+                    <span class="badge bg-light text-dark">Received: {{ counts.referrals.received }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TYFCBs Card -->
+            <!-- <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100 metric-card">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2 mb-md-3">
+                    <div class="metric-icon bg-warning">
+                      <i class="bi bi-chat-square-text-fill"></i>
+                    </div>
+                    <h6 class="mb-0 ms-2 ms-md-3 metric-title">TYFCBs</h6>
+                  </div>
+                  <h3 class="mb-0 fw-bold text-center metric-number">{{ counts.tyfcbs.total }}</h3>
+                  <div class="referral-breakdown">
+                    <span class="badge bg-light text-dark me-1">Given: {{ counts.tyfcbs.given }}</span>
+                    <span class="badge bg-light text-dark">Received: {{ counts.tyfcbs.received }}</span>
+                  </div>
+                </div>
+              </div>
+            </div> -->
+
+            <!-- One-to-Ones Card -->
+            <!-- <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100 metric-card">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2 mb-md-3">
+                    <div class="metric-icon bg-primary">
+                      <i class="bi bi-person-lines-fill"></i>
+                    </div>
+                    <h6 class="mb-0 ms-2 ms-md-3 metric-title">One-to-Ones</h6>
+                  </div>
+                  <h3 class="mb-0 fw-bold text-center metric-number">{{ counts.oneToOnes.total }}</h3>
+                  <div class="referral-breakdown">
+                    <span class="badge bg-light text-dark me-1">Initiated: {{ counts.oneToOnes.initiated }}</span>
+                    <span class="badge bg-light text-dark">Participated: {{ counts.oneToOnes.participated }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Testimonials Card -->
+            <!-- <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100 metric-card">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2 mb-md-3">
+                    <div class="metric-icon bg-success">
+                      <i class="bi bi-star-fill"></i>
+                    </div>
+                    <h6 class="mb-0 ms-2 ms-md-3 metric-title">Testimonials</h6>
+                  </div>
+                  <h3 class="mb-0 fw-bold text-center metric-number">{{ counts.testimonials.total }}</h3>
+                  <div class="referral-breakdown">
+                    <span class="badge bg-light text-dark me-1">Given: {{ counts.testimonials.given }}</span>
+                    <span class="badge bg-light text-dark">Received: {{ counts.testimonials.received }}</span>
+                  </div>
+                </div>
+              </div>
+            </div> -->
+
+            <!-- Testimonial Requests Card -->
+            <!-- <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100 metric-card">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2 mb-md-3">
+                    <div class="metric-icon bg-danger">
+                      <i class="bi bi-file-earmark-text-fill"></i>
+                    </div>
+                    <h6 class="mb-0 ms-2 ms-md-3 metric-title">Testimonial Requests</h6>
+                  </div>
+                  <h3 class="mb-0 fw-bold text-center metric-number">{{ counts.testimonialReqs }}</h3>
+                  <p class="text-muted small text-center mt-1 mt-md-2 metric-desc">Pending requests</p>
+                </div>
+              </div>
+            </div> -->
+
+            <!-- Banners Card -->
+            <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100 metric-card">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2 mb-md-3">
+                    <div class="metric-icon bg-info">
+                      <i class="bi bi-images"></i>
+                    </div>
+                    <h6 class="mb-0 ms-2 ms-md-3 metric-title">Banners</h6>
+                  </div>
+                  <h3 class="mb-0 fw-bold text-center metric-number">{{ counts.banners }}</h3>
+                  <p class="text-muted small text-center mt-1 mt-md-2 metric-desc">Active banners</p>
+                </div>
+              </div>
+            </div> -->
+
+            <!-- Events Card -->  
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+              <div class="card border-0 shadow-sm rounded-4 h-100 metric-card">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2 mb-md-3">
+                    <div class="metric-icon bg-warning">
+                      <i class="bi bi-calendar-event-fill"></i>
+                    </div>
+                    <h6 class="mb-0 ms-2 ms-md-3 metric-title">Events</h6>
+                  </div>
+                  <h3 class="mb-0 fw-bold text-center metric-number">{{ counts.events }}</h3>
+                  <p class="text-muted small text-center mt-1 mt-md-2 metric-desc">Scheduled events</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

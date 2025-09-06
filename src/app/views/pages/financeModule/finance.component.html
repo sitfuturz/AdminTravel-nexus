@@ -1,0 +1,111 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-wallet2 me-2"></i>Finance Management
+      </h4>
+      <div>
+        <button class="btn btn-light rounded-pill px-4 me-2" (click)="openAddCollectionModal()">
+          <i class="bi bi-plus-circle me-2"></i>Add Collection
+        </button>
+        <button class="btn btn-danger rounded-pill px-4" (click)="removeLastCollection()" [disabled]="loading || !collections.data.collectionHistory.length">
+          <i class="bi bi-trash me-2"></i>Remove Last
+        </button>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <div class="d-flex w-100 align-items-center">
+          <div class="flex-grow-1 me-2">
+            <ng-select [items]="chapters" bindLabel="name" bindValue="name" [(ngModel)]="selectedChapter" (change)="onChapterChange()" placeholder="Select Chapter"></ng-select>
+          </div>
+          <div>
+            <ng-select [items]="[10, 25, 50, 100]" [(ngModel)]="payload.limit" (change)="onPageChange(1)" placeholder="Items per page"></ng-select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+   <div class="table-responsive" *ngIf="!loading && collections.data.collectionHistory.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4 py-3">Amount</th>
+            <th class="py-3">Description</th>
+            <th class="py-3">Collected By</th>
+            <th class="py-3">Collected At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let collection of collections.data.collectionHistory | paginate: { itemsPerPage: payload.limit, currentPage: payload.page, totalItems: collections.data.pagination.totalEntries }" class="border-bottom">
+            <td class="ps-4 py-3">{{formatCurrency(collection.amount)}}</td>
+            <td class="py-3">{{collection.description || 'N/A'}}</td>
+            <td class="py-3">{{collection.collectedBy.name}} ({{collection.collectedBy.email}})</td>
+            <td class="py-3">{{formatDate(collection.collectedAt)}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="d-flex justify-content-between align-items-center p-3">
+        <div>Total Collections: {{formatCurrency(collections.data.totalCollections)}}</div>
+        <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && (!collections?.data?.collectionHistory || collections.data.collectionHistory.length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-wallet2 fs-1 text-muted mb-3"></i>
+        <h5>No Collections Found</h5>
+        <p class="text-muted">Try adding some collections or selecting a different chapter.</p>
+        <button class="btn btn-primary rounded-pill mt-3" (click)="openAddCollectionModal()">
+          <i class="bi bi-plus-circle me-2"></i>Add Collection
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="collectionModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="collectionModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        
+        <h5 class="modal-title" id="collectionModalTitle">
+          <i class="bi bi-wallet2 me-2"></i>Add New Collection
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form #collectionForm="ngForm">
+          <div class="mb-3">
+            <label for="collectionAmount" class="form-label">Amount <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="collectionAmount" placeholder="Enter amount" [(ngModel)]="newCollection.amount" name="amount" required #amountInput="ngModel" min="1" [class.is-invalid]="amountInput.invalid && (amountInput.dirty || amountInput.touched || formSubmitted)">
+            <div class="invalid-feedback" *ngIf="amountInput.invalid && (amountInput.dirty || amountInput.touched || formSubmitted)">
+              Please enter a valid amount.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="collectionDescription" class="form-label">Description <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="collectionDescription" rows="3" placeholder="Enter collection description" [(ngModel)]="newCollection.description" name="description" required #descriptionInput="ngModel" [class.is-invalid]="descriptionInput.invalid && (descriptionInput.dirty || descriptionInput.touched || formSubmitted)"></textarea>
+            <div class="invalid-feedback" *ngIf="descriptionInput.invalid && (descriptionInput.dirty || descriptionInput.touched || formSubmitted)">
+              Description is required.
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="addCollection(collectionForm)" [disabled]="loading">
+          <i class="bi bi-save me-1"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
