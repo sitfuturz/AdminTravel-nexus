@@ -169,6 +169,18 @@ public BULK_DELETE_SLOTS=`${this.PATH}/bulkDeleteSlots`
     public DELETE_EXPENSE= `${this.PATH}/delete-expense`
     public GET_EXPENSE_BY_ID= `${this.PATH}/getExpenseById`
     public GET_CHAPTER_FINANCE_SUMMARY= `${this.PATH}/getChapterFinanceSummary`
+
+
+    //complaints and feedbacks
+    public GET_ALL_COMPLAINTS= `${this.PATH}/getComplaints`
+    public GET_ALL_FEEDBACKS= `${this.PATH}/getFeedbacks`
+    public UPDATE_COMPLAINT_STATUS= `${this.PATH}/updateComplaintStatus`
+    public UPDATE_FEEDBACK_STATUS= `${this.PATH}/updateFeedbackStatus`
+    public DELETE_COMPLAINT= `${this.PATH}/deleteComplaint`
+    public DELETE_FEEDBACK= `${this.PATH}/deleteFeedback`
+
+    public CREATE_COMPLAINT= `${this.PATH}/createComplaint`
+    public CREATE_FEEDBACK= `${this.PATH}/createFeedback`
   };
   
 

@@ -215,11 +215,23 @@ export class SideBarService {
           ]
         },
 
-        // {
-        //   title: 'Finance',
-        //   link: 'finance',
-        //   icon: 'dollar-sign',
-        // },
+        {
+          title: 'Complaints & Feedbacks',
+          icon: 'file-earmark-text',
+          hasSubmenu: true,
+          submenu: [
+            {
+              title: 'Complaints',
+              link: 'complaint',
+              icon: 'question-circle',
+            },
+            {
+              title: 'Feedbacks',
+              link: 'feedback',
+              icon: 'message-square',
+            },
+          ]
+        },
         // {
         //   title: 'Expense',
         //   link: 'expense',
@@ -245,6 +257,8 @@ export class SideBarService {
               link: 'attendanceRecord',
               icon: 'clipboard-list',
             },
+
+            
 
 
           ]

@@ -279,6 +279,7 @@ export interface AskResponse {
 export class AuthService {
   private headers: any = [];
   profileData: any;
+  ComplaintService: any;
   
   constructor(private apiManager: ApiManager, private storage: AppStorage) {}
   
@@ -4816,3 +4817,368 @@ export class FinanceService {
         }
       }
     }
+
+
+
+
+
+export interface Complaint {
+  _id: string;
+  userId: {
+    _id: string;
+    name: string;
+    email: string;
+    profilePic: string;
+  };
+  title: string;
+  description: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+    profilePic: string;
+  };
+}
+
+export interface ComplaintResponse {
+  docs: Complaint[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ComplaintService {
+  private headers: any = [];
+
+  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+
+  private getHeaders = () => {
+    this.headers = [];
+    let token = this.storage.get(common.TOKEN);
+
+    if (token != null) {
+      this.headers.push({ Authorization: `Bearer ${token}` });
+    }
+  };
+
+  async getComplaints(data: { page: number; limit: number; status?: string; search?: string }): Promise<ComplaintResponse> {
+    try {
+      this.getHeaders();
+      console.log('Complaint request data:', data);
+
+      // Create query parameters
+      let queryParams = `?page=${data.page}&limit=${data.limit}`;
+      if (data.search) {
+        queryParams += `&search=${encodeURIComponent(data.search)}`;
+      }
+      if (data.status && data.status !== 'all') {
+        queryParams += `&status=${encodeURIComponent(data.status)}`;
+      }
+
+      console.log('Sending Request with params:', queryParams);
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.GET_ALL_COMPLAINTS + queryParams,
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+
+      console.log('API Response for complaint service:', response);
+      if (!response.data) {
+        throw new Error('Response data is undefined');
+      }
+      return response.data as ComplaintResponse;
+    } catch (error: any) {
+      console.error('Error fetching complaints:', error.message || error);
+      swalHelper.showToast(error.message || 'Failed to fetch complaints', 'error');
+      throw error;
+    }
+  }
+
+  // async createComplaint(data: { userId: string; title: string; description: string }): Promise<any> {
+  //   try {
+  //     this.getHeaders();
+  //     console.log('Creating complaint with data:', data);
+
+  //     const response = await this.apiManager.request(
+  //       {
+  //         url: apiEndpoints.CREATE_COMPLAINT,
+  //         method: 'POST',
+  //       },
+  //       data,
+  //       this.headers
+  //     );
+
+  //     console.log('Create Complaint Response:', response);
+  //     if (response.status === 200) {
+  //       return response;
+  //     } else {
+  //       swalHelper.showToast(response.message || 'Failed to create complaint', 'warning');
+  //       return null;
+  //     }
+  //   } catch (error: any) {
+  //     console.error('Create Complaint Error:', error.message || error);
+  //     swalHelper.showToast(error.message || 'Failed to create complaint', 'error');
+  //     throw error;
+  //   }
+  // }
+
+  async updateComplaintStatus(complaintId: string, status: string): Promise<any> {
+    try {
+      this.getHeaders();
+      const data = {
+        complaintId,
+        status
+      };
+
+      console.log('Updating complaint status with data:', data);
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.UPDATE_COMPLAINT_STATUS,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+
+      console.log('Update Complaint Status Response:', response);
+      if (response.status === 200) {
+        return response;
+      } else {
+        swalHelper.showToast(response.message || 'Failed to update complaint status', 'warning');
+        return null;
+      }
+    } catch (error: any) {
+      console.error('Update Complaint Status Error:', error.message || error);
+      swalHelper.showToast(error.message || 'Failed to update complaint status', 'error');
+      throw error;
+    }
+  }
+
+  async deleteComplaint(complaintId: string): Promise<any> {
+    try {
+      this.getHeaders();
+      const data = {
+        complaintId
+      };
+
+      console.log('Deleting complaint with data:', data);
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.DELETE_COMPLAINT,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+
+      console.log('Delete Complaint Response:', response);
+      if (response.status === 200) {
+        return response;
+      } else {
+        swalHelper.showToast(response.message || 'Failed to delete complaint', 'warning');
+        return null;
+      }
+    } catch (error: any) {
+      console.error('Delete Complaint Error:', error.message || error);
+      swalHelper.showToast(error.message || 'Failed to delete complaint', 'error');
+      throw error;
+    }
+  }
+}
+
+
+export interface Feedback {
+  _id: string;
+  userId: {
+    _id: string;
+    name: string;
+    email: string;
+    profilePic: string;
+  };
+  title: string;
+  description: string;
+  status: 'pending' | 'reviewed' | 'actioned' | 'archived';
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+    profilePic: string;
+  };
+}
+
+export interface FeedbackResponse {
+  docs: Feedback[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class FeedbackService {
+  private headers: any = [];
+
+  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+
+  private getHeaders = () => {
+    this.headers = [];
+    let token = this.storage.get(common.TOKEN);
+
+    if (token != null) {
+      this.headers.push({ Authorization: `Bearer ${token}` });
+    }
+  };
+
+  async getFeedbacks(data: { page: number; limit: number; status?: string; search?: string }): Promise<FeedbackResponse> {
+    try {
+      this.getHeaders();
+      console.log('Feedback request data:', data);
+
+      // Create query parameters
+      let queryParams = `?page=${data.page}&limit=${data.limit}`;
+      if (data.search) {
+        queryParams += `&search=${encodeURIComponent(data.search)}`;
+      }
+      if (data.status && data.status !== 'all') {
+        queryParams += `&status=${encodeURIComponent(data.status)}`;
+      }
+
+      console.log('Sending Request with params:', queryParams);
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.GET_ALL_FEEDBACKS + queryParams,
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+
+      console.log('API Response for feedback service:', response);
+      if (!response.data) {
+        throw new Error('Response data is undefined');
+      }
+      return response.data as FeedbackResponse;
+    } catch (error: any) {
+      console.error('Error fetching feedbacks:', error.message || error);
+      swalHelper.showToast(error.message || 'Failed to fetch feedbacks', 'error');
+      throw error;
+    }
+  }
+
+  async createFeedback(data: { userId: string; title: string; description: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      console.log('Creating feedback with data:', data);
+
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.CREATE_FEEDBACK,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+
+      console.log('Create Feedback Response:', response);
+      if (response.status === 200) {
+        return response;
+      } else {
+        swalHelper.showToast(response.message || 'Failed to create feedback', 'warning');
+        return null;
+      }
+    } catch (error: any) {
+      console.error('Create Feedback Error:', error.message || error);
+      swalHelper.showToast(error.message || 'Failed to create feedback', 'error');
+      throw error;
+    }
+  }
+
+  async updateFeedbackStatus(feedbackId: string, status: string): Promise<any> {
+    try {
+      this.getHeaders();
+      const data = {
+        feedbackId,
+        status
+      };
+
+      console.log('Updating feedback status with data:', data);
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.UPDATE_FEEDBACK_STATUS,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+
+      console.log('Update Feedback Status Response:', response);
+      if (response.status === 200) {
+        return response;
+      } else {
+        swalHelper.showToast(response.message || 'Failed to update feedback status', 'warning');
+        return null;
+      }
+    } catch (error: any) {
+      console.error('Update Feedback Status Error:', error.message || error);
+      swalHelper.showToast(error.message || 'Failed to update feedback status', 'error');
+      throw error;
+    }
+  }
+
+  async deleteFeedback(feedbackId: string): Promise<any> {
+    try {
+      this.getHeaders();
+      const data = {
+        feedbackId
+      };
+
+      console.log('Deleting feedback with data:', data);
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.DELETE_FEEDBACK,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+
+      console.log('Delete Feedback Response:', response);
+      if (response.status === 200) {
+        return response;
+      } else {
+        swalHelper.showToast(response.message || 'Failed to delete feedback', 'warning');
+        return null;
+      }
+    } catch (error: any) {
+      console.error('Delete Feedback Error:', error.message || error);
+      swalHelper.showToast(error.message || 'Failed to delete feedback', 'error');
+      throw error;
+    }
+  }
+}

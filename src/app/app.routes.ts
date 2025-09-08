@@ -50,6 +50,8 @@ import { AnalyticsComponent } from './views/pages/analytics/analytics.component'
 
 
 import { LTPointsComponent } from './views/pages/LT Points/ltPoints.component';
+import { AdminComplaintComponent } from './views/pages/admin-complaint/admin-complaint.component';
+import { AdminFeedbackComponent } from './views/pages/admin-feedback/admin-feedback.component';
 
 
 export const routes: Routes = [
@@ -104,6 +106,10 @@ export const routes: Routes = [
 
 
       { path: 'finance', component: FinanceComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
+
+
+      {path:'complaint', component: AdminComplaintComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
+      {path:'feedback', component: AdminFeedbackComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
 
 
 {path:'analytics', component: AnalyticsComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
