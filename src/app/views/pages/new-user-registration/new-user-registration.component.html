@@ -52,10 +52,10 @@
           <tr *ngFor="let registration of registrations.docs | paginate: { id: paginationConfig.id, itemsPerPage: payload.limit, currentPage: payload.page, totalItems: registrations?.totalDocs }; let i=index" class="border-bottom">
             <td class="ps-4 py-3">
               <div class="d-flex align-items-center">
-                <div class="rounded-circle me-3 shadow-sm border-2 border-white bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                <!-- <div class="rounded-circle me-3 shadow-sm border-2 border-white bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
                      style="width: 48px; height: 48px;">
                   <i class="bi bi-person-fill text-primary fs-5"></i>
-                </div>
+                </div> -->
                 <div>
                   <div class="fw-bold text-dark">{{registration.name || 'Unknown User'}}</div>
                   <small class="text-muted d-block">ID: {{registration._id ? registration._id.substring(0, 8) : 'N/A'}}</small>
