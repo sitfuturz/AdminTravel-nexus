@@ -570,6 +570,40 @@ async updateUser(userId: string, data: { name: string; mobile_number: string; em
       throw error;
     }
   }
+
+  async updateNewUser(userId: string, data: { 
+  name: string; 
+  mobile_number: string; 
+  email: string; 
+  city: string; 
+  state: string; 
+  country: string; 
+  business_name: string 
+}): Promise<any> {
+  try {
+    this.getHeaders();
+    
+    // Include userId in the request body
+    const requestBody = {
+      id: userId,
+      ...data
+    };
+    
+    const response = await this.apiManager.request(
+      {
+        url: `${apiEndpoints.NEW_USER_REGISTRATION}`,
+        method: 'POST',
+      },
+      requestBody,
+      this.headers
+    );
+    return response;
+  } catch (error) {
+    console.error('Update User Error:', error);
+    swalHelper.showToast('Failed to update user', 'error');
+    throw error;
+  }
+}
 }
 
 @Injectable({
@@ -3692,6 +3726,74 @@ export class ParticipationService {
           throw error;
         }
       }
+
+      async newRegisterUser(formData: FormData): Promise<any> {
+        try {
+          this.getHeaders();
+          
+          const response = await this.apiManager.request(
+            {
+              url: `${apiEndpoints.NEW_USER_REGISTRATION}`,
+             
+              method: 'POST'
+            },
+            formData,
+            this.headers
+          );
+          
+          return response;
+        } catch (error) {
+          console.error('Register User Error:', error);
+          swalHelper.showToast('Failed to register user', 'error');
+          throw error;
+        }
+      }
+
+      async getAllMembers(payload: any): Promise<any> {
+  try {
+    this.getHeaders();
+    
+    const response = await this.apiManager.request(
+      {
+        // Build query string manually
+        url: `${apiEndpoints.GET_ALL_NEW_USER_REGISTRATION}?page=${payload.page}&limit=${payload.limit}&search=${encodeURIComponent(payload.search || '')}`,
+        method: 'GET'
+      },
+      null,
+      this.headers
+    );
+    
+    return response;
+  } catch (error) {
+    console.error('Get All Members Error:', error);
+    swalHelper.showToast('Failed to fetch registrations', 'error');
+    throw error;
+  }
+}
+
+async addToMember(payload: { id: string }): Promise<any> {
+  try {
+    this.getHeaders();
+    
+    const response = await this.apiManager.request(
+      {
+        url: `${apiEndpoints.ADD_USER_TO_MEMBER}`,
+        method: 'POST'
+      },
+      payload,
+      this.headers
+    );
+    
+    return response;
+  } catch (error) {
+    console.error('Add To Member Error:', error);
+    swalHelper.showToast('Failed to accept user', 'error');
+    throw error;
+  }
+}
+      
+
+      
     }
     export interface Badge {
       _id: string;

@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../../services/auth.service';
+import { AuthService, City, CityService, Country, CountryService, State, StateService, User } from '../../../services/auth.service';
 import { ReferralService1 } from '../../../services/auth.service';
 import { ExportService } from '../../../services/export.service';
 import { ChapterService } from '../../../services/auth.service';
@@ -22,7 +22,7 @@ declare var bootstrap: any;
   selector: 'app-users',
   standalone: true,
   imports: [CommonModule, FormsModule, NgxPaginationModule, NgSelectModule],
-  providers: [ExportService],
+  providers: [ExportService,StateService,CountryService,CityService],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.css']
 })
@@ -64,19 +64,25 @@ export class UsersComponent implements OnInit, AfterViewInit {
   };
   editUserModal: any;
   editForm = {
-    name: '',
-    mobile_number: '',
-    email: '',
-    
-    meeting_role: ''
-  };
-  editError = {
-    name: '',
-    mobile_number: '',
-    email: '',
-   
-    meeting_role: ''
-  };
+  name: '',
+  mobile_number: '',
+  email: '',
+  city: '',
+  state: '',
+  country: '',
+  business_name: ''
+};
+
+// Update the editError object
+editError = {
+  name: '',
+  mobile_number: '',
+  email: '',
+  city: '',
+  state: '',
+  country: '',
+  business_name: ''
+};
   editLoading: boolean = false;
 
   referralPaginationConfig = {
@@ -97,6 +103,21 @@ export class UsersComponent implements OnInit, AfterViewInit {
     receivedPage: 1,
     limit: 5
   };
+  countries: Country[] = [];
+  states: State[] = [];
+  cities: City[] = [];
+  // users: User[] = [];
+  
+  countriesLoading: boolean = false;
+  statesLoading: boolean = false;
+  citiesLoading: boolean = false;
+  usersLoading: boolean = false;
+  
+  countriesLoaded: boolean = false;
+  statesLoaded: boolean = false;
+  citiesLoaded: boolean = false;
+  usersLoaded: boolean = false;
+
 
   private searchSubject = new Subject<string>();
 
@@ -104,8 +125,12 @@ export class UsersComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private referralService: ReferralService1,
     private chapterService: ChapterService,
+    private countryService: CountryService,
+    private stateService: StateService,
+    private cityService: CityService,
     private exportService: ExportService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    
   ) {
     this.searchSubject.pipe(debounceTime(500)).subscribe(() => {
       this.fetchUsers();
@@ -115,6 +140,10 @@ export class UsersComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.fetchChapters();
     this.fetchUsers();
+    this.fetchCountries();
+    this.fetchStates();
+    this.fetchCities();
+   
   }
 
   ngAfterViewInit(): void {
@@ -384,35 +413,46 @@ export class UsersComponent implements OnInit, AfterViewInit {
   }
 
   editUser(user: any): void {
-    this.selectedUser = user;
-    // Initialize edit form with user data
-    this.editForm = {
-      name: user.name || '',
-      mobile_number: user.mobile_number || '',
-      email: user.email || '',
-      //date_of_birth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
-      meeting_role: user.meeting_role || ''
-    };
-    this.editError = { name: '', mobile_number: '', email: '',  meeting_role: '' };
+  this.selectedUser = user;
+  // Initialize edit form with user data matching your backend structure
+  this.editForm = {
+    name: user.name || '',
+    mobile_number: user.mobile_number || '',
+    email: user.email || '',
+    city: user.city || '',
+    state: user.state || '',
+    country: user.country || '',
+    business_name: user.business_name || ''
+  };
+  this.editError = { 
+    name: '', 
+    mobile_number: '', 
+    email: '', 
+    city: '', 
+    state: '', 
+    country: '', 
+    business_name: '' 
+  };
 
-    if (this.editUserModal) {
-      this.editUserModal.show();
-    } else {
-      try {
-        const modalElement = document.getElementById('editUserModal');
-        if (modalElement) {
-          const modalInstance = new bootstrap.Modal(modalElement);
-          this.editUserModal = modalInstance;
-          modalInstance.show();
-        } else {
-          $('#editUserModal').modal('show');
-        }
-      } catch (error) {
-        console.error('Error showing edit modal:', error);
+  if (this.editUserModal) {
+    this.editUserModal.show();
+  } else {
+    try {
+      const modalElement = document.getElementById('editUserModal');
+      if (modalElement) {
+        const modalInstance = new bootstrap.Modal(modalElement);
+        this.editUserModal = modalInstance;
+        modalInstance.show();
+      } else {
         $('#editUserModal').modal('show');
       }
+    } catch (error) {
+      console.error('Error showing edit modal:', error);
+      $('#editUserModal').modal('show');
     }
   }
+}
+
 
   closeEditModal(): void {
     if (this.editUserModal) {
@@ -423,38 +463,115 @@ export class UsersComponent implements OnInit, AfterViewInit {
   }
 
   validateEditForm(): boolean {
-    let isValid = true;
-    this.editError = { name: '', mobile_number: '', email: '', meeting_role: '' };
+  let isValid = true;
+  this.editError = { 
+    name: '', 
+    mobile_number: '', 
+    email: '', 
+    city: '', 
+    state: '', 
+    country: '', 
+    business_name: '' 
+  };
 
-    if (!this.editForm.name.trim()) {
-      this.editError.name = 'Name is required';
-      isValid = false;
-    }
-    if (!this.editForm.mobile_number.trim()) {
-      this.editError.mobile_number = 'Mobile number is required';
-      isValid = false;
-    } else if (!/^\d{10}$/.test(this.editForm.mobile_number)) {
-      this.editError.mobile_number = 'Mobile number must be 10 digits';
-      isValid = false;
-    }
-    if (!this.editForm.email.trim()) {
-      this.editError.email = 'Email is required';
-      isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.editForm.email)) {
-      this.editError.email = 'Invalid email format';
-      isValid = false;
-    }
-    // if (!this.editForm.date_of_birth) {
-    //   this.editError.date_of_birth = 'Date of birth is required';
-    //   isValid = false;
-    // }
-    if (!this.editForm.meeting_role) {
-      this.editError.meeting_role = 'Meeting role is required';
-      isValid = false;
-    }
-
-    return isValid;
+  if (!this.editForm.name.trim()) {
+    this.editError.name = 'Name is required';
+    isValid = false;
   }
+  if (!this.editForm.mobile_number.trim()) {
+    this.editError.mobile_number = 'Mobile number is required';
+    isValid = false;
+  } else if (!/^\d{10}$/.test(this.editForm.mobile_number)) {
+    this.editError.mobile_number = 'Mobile number must be 10 digits';
+    isValid = false;
+  }
+  if (!this.editForm.email.trim()) {
+    this.editError.email = 'Email is required';
+    isValid = false;
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.editForm.email)) {
+    this.editError.email = 'Invalid email format';
+    isValid = false;
+  }
+  if (!this.editForm.city.trim()) {
+    this.editError.city = 'City is required';
+    isValid = false;
+  }
+  if (!this.editForm.state.trim()) {
+    this.editError.state = 'State is required';
+    isValid = false;
+  }
+  if (!this.editForm.country.trim()) {
+    this.editError.country = 'Country is required';
+    isValid = false;
+  }
+  if (!this.editForm.business_name.trim()) {
+    this.editError.business_name = 'Business name is required';
+    isValid = false;
+  }
+
+  return isValid;
+}
+
+async fetchCountries(): Promise<void> {
+    this.countriesLoading = true;
+    this.countriesLoaded = false;
+    try {
+      const response = await this.countryService.getAllCountries({
+        page: 1,
+        limit: 1000,
+        search: ''
+      });
+      this.countries = response.docs;
+      this.countriesLoaded = true;
+    } catch (error) {
+      console.error('Error fetching countries:', error);
+      swalHelper.showToast('Failed to fetch countries', 'error');
+    } finally {
+      this.countriesLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async fetchStates(): Promise<void> {
+    this.statesLoading = true;
+    this.statesLoaded = false;
+    try {
+      const response = await this.stateService.getAllStates({
+        page: 1,
+        limit: 1000,
+        search: ''
+      });
+      this.states = response.docs;
+      this.statesLoaded = true;
+    } catch (error) {
+      console.error('Error fetching states:', error);
+      swalHelper.showToast('Failed to fetch states', 'error');
+    } finally {
+      this.statesLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async fetchCities(): Promise<void> {
+    this.citiesLoading = true;
+    this.citiesLoaded = false;
+    try {
+      const response = await this.cityService.getAllCities({
+        page: 1,
+        limit: 1000,
+        search: ''
+      });
+      this.cities = response.docs;
+      this.citiesLoaded = true;
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      swalHelper.showToast('Failed to fetch cities', 'error');
+    } finally {
+      this.citiesLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
 
   async updateUser(): Promise<void> {
     if (!this.validateEditForm()) {
@@ -463,7 +580,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     this.editLoading = true;
     try {
-      const response = await this.authService.updateUser(this.selectedUser._id, this.editForm);
+      const response = await this.authService.updateNewUser(this.selectedUser._id, this.editForm);
       if (response.success) {
         swalHelper.showToast('User updated successfully', 'success');
         this.closeEditModal();
@@ -684,7 +801,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
           const userData: UserData = {
             name: user.name || 'Unknown User',
-            business: user.business && user.business.length > 0 ? user.business[0].business_name : 'N/A',
+            business: user.business_name || 'N/A',
             mobile: user.mobile_number || 'N/A',
             email: user.email || 'N/A',
             role: user.meeting_role || 'N/A'
@@ -769,7 +886,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
       try {
         const userData = allUsers.map(user => ({
           Name: user.name || 'Unknown User',
-          Business: user.business && user.business.length > 0 ? user.business[0].business_name : 'N/A',
+          Business: user.business_name || 'N/A',
           Mobile: user.mobile_number || 'N/A',
           Email: user.email || 'N/A',
           Role: user.meeting_role || 'N/A'

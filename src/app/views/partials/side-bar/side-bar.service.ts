@@ -35,7 +35,7 @@ export class SideBarService {
           submenu: [
             {
               title: 'Registration',
-              link: 'registerComponent',
+              link: 'newUsersRegistration',
               icon: 'user-plus',
             },
             // {

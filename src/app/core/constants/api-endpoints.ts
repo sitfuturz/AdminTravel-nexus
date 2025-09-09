@@ -6,7 +6,7 @@ class ApiEndpoints {
   private PATH1: string = `${environment.baseURL}`;
   
   // User Management
-  public GET_USERS: string = `${this.PATH}/users`;
+  public GET_USERS: string = `${this.PATH}/get-all-members`;
   public UPDATE_USER_STATUS: string = `${this.PATH}/isActiveStatus`;
   public UPDATE_USER: string = `${this.PATH}/updateUser`;
   public DELETE_USER: string = `${this.PATH}/users/delete`;
@@ -181,6 +181,12 @@ public BULK_DELETE_SLOTS=`${this.PATH}/bulkDeleteSlots`
 
     public CREATE_COMPLAINT= `${this.PATH}/createComplaint`
     public CREATE_FEEDBACK= `${this.PATH}/createFeedback`
+
+    //newUserRegistation
+
+    public NEW_USER_REGISTRATION= `${this.PATH}/update-register-user`
+    public GET_ALL_NEW_USER_REGISTRATION= `${this.PATH}/users`
+    public ADD_USER_TO_MEMBER= `${this.PATH}/add-to-member`
   };
   
 
