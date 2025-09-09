@@ -187,6 +187,13 @@ public BULK_DELETE_SLOTS=`${this.PATH}/bulkDeleteSlots`
     public NEW_USER_REGISTRATION= `${this.PATH}/update-register-user`
     public GET_ALL_NEW_USER_REGISTRATION= `${this.PATH}/users`
     public ADD_USER_TO_MEMBER= `${this.PATH}/add-to-member`
+
+    //events 
+    public NEW_GET_EVENTS = `${this.PATH}/event/list`;
+    public NEW_GET_EVENT_BY_ID = `${this.PATH}/event/get`;
+    public NEW_CREATE_EVENT = `${this.PATH}/event/create`;
+    public NEW_UPDATE_EVENT = `${this.PATH}/event/update`;
+    public NEW_DELETE_EVENT = `${this.PATH}/event/delete`;
   };
   
 

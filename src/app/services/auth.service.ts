@@ -1040,6 +1040,128 @@ export class EventService {
             throw error;
         }
     }
+
+
+
+    // Event Service CRUD Methods - Add these to your EventService class
+
+async newGetEvents(requestData: any): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: `${apiEndpoints.NEW_GET_EVENTS}?t=${new Date().getTime()}`,
+                method: 'POST',
+            },
+            requestData,
+            this.headers
+        );
+        console.log('getEvents Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Get Events Error:', error);
+        swalHelper.showToast('Failed to fetch events', 'error');
+        throw error;
+    }
+}
+
+
+async newGetEventById(eventId: string): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: `${apiEndpoints.NEW_GET_EVENT_BY_ID}?t=${new Date().getTime()}`,
+                method: 'POST',
+            },
+            { id: eventId },
+            this.headers
+        );
+        console.log('getEventById Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Get Event By ID Error:', error);
+        swalHelper.showToast('Failed to fetch event details', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Create a new event
+ * @param formData - FormData containing event information and files
+ * @returns Promise with created event data
+ */
+async newCreateEvent(formData: FormData): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.NEW_CREATE_EVENT,
+                method: 'POST',
+                isFormData: true,
+            },
+            formData,
+            this.headers
+        );
+        console.log('createEvent Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Create Event Error:', error);
+        swalHelper.showToast('Failed to create event', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Update an existing event
+ * @param formData - FormData containing updated event information (should include 'id' field)
+ * @returns Promise with updated event data
+ */
+async newUpdateEvent(formData: FormData): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.NEW_UPDATE_EVENT,
+                method: 'POST',
+                isFormData: true,
+            },
+            formData,
+            this.headers
+        );
+        console.log('updateEvent Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Update Event Error:', error);
+        swalHelper.showToast('Failed to update event', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Delete an event (soft delete)
+ * @param requestData - Contains the event ID to delete
+ * @returns Promise with deletion confirmation
+ */
+async newDeleteEvent(requestData: { id: string }): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.NEW_DELETE_EVENT,
+                method: 'POST',
+            },
+            requestData,
+            this.headers
+        );
+        console.log('deleteEvent Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Delete Event Error:', error);
+        swalHelper.showToast('Failed to delete event', 'error');
+        throw error;
+    }
+}
 }
 
   export interface AttendanceData {

@@ -57,7 +57,7 @@ export class SideBarService {
         },
         {
           title: 'Add Events',
-          link: 'events',
+          link: 'newEvents',
           icon: 'calendar',
         },
         // {

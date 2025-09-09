@@ -1,0 +1,639 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-calendar-event me-2"></i>Event Management
+      </h4>
+      <button class="btn btn-light rounded-pill px-4" (click)="openEventModal()">
+        <i class="bi bi-plus-circle me-2"></i>Create New Event
+      </button>
+    </div>
+    
+    <!-- Search and Filter Section -->
+    <div class="card-body p-0">
+      <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
+        <div class="flex-grow-1 me-2">
+          <input type="text" class="form-control" placeholder="Search events..." [(ngModel)]="searchQuery" (input)="onSearch()">
+        </div>
+        <div class="me-2">
+          <ng-select
+            id="statusSelect"
+            [items]="statusOptions"
+            bindLabel="label"
+            bindValue="value"
+            [(ngModel)]="selectedStatus"
+            (change)="onStatusChange()"
+            placeholder="Filter by status"
+            [clearable]="false">
+          </ng-select>
+        </div>
+        <div class="ms-2">
+          <ng-select
+            id="limitSelect"
+            [items]="[10, 25, 50, 100]"
+            [(ngModel)]="payload.limit"
+            (change)="onChange()"
+            placeholder="Items per page">
+          </ng-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="eventsLoading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Events Table -->
+    <div class="table-responsive" *ngIf="!eventsLoading && !!events?.events && events.events.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4 py-3">Event</th>
+            <th class="py-3">Date & Time</th>
+            <th class="py-3">Location</th>
+            <!-- <th class="py-3">Type</th>
+            <th class="py-3">Capacity</th> -->
+            <th class="py-3">Status</th>
+            <th class="text-end pe-4 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let event of events.events | paginate: { id: paginationConfig.id, itemsPerPage: payload.limit, currentPage: payload.page, totalItems: events?.total }; let i=index" class="border-bottom">
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <!-- <img 
+                    [src]="event.bannerImage ? (imageurl + event.bannerImage) : '/assets/images/event-placeholder.png'"
+                    class="rounded shadow-sm border-2 border-white"
+                    width="60" height="40" 
+                    style="object-fit: cover;"
+                    alt="Event Banner"
+                    onerror="this.src='/assets/images/event-placeholder.png'"> -->
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{event.title || 'Untitled Event'}}</div>
+                  <small class="text-muted d-block">
+                    {{event.description ? (event.description | slice:0:50) + (event.description.length > 50 ? '...' : '') : 'No description'}}
+                  </small>
+                </div>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="small">
+                <div class="fw-semibold">{{formatDateTime(event.startDate, event.startTime)}}</div>
+                <div class="text-muted">to {{formatDateTime(event.endDate, event.endTime)}}</div>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="small">
+                <div class="fw-semibold">{{event.location || 'N/A'}}</div>
+                <div class="text-muted" *ngIf="event.venue">{{event.venue}}</div>
+              </div>
+            </td>
+            <!-- <td class="py-3">
+              <span class="badge rounded-pill px-3 py-2 bg-info bg-opacity-10 text-info">
+                {{event.eventType | titlecase}}
+              </span>
+            </td>
+            <td class="py-3">
+              <span class="d-flex align-items-center">
+                <i class="bi bi-people-fill text-muted me-2"></i>
+                {{event.capacity || 'Unlimited'}}
+              </span>
+            </td> -->
+            <td class="py-3">
+              <span class="badge rounded-pill px-3 py-2"
+                    [ngClass]="event.isActive ? 'bg-success' : 'bg-secondary'">
+                {{event.isActive ? 'Active' : 'Inactive'}}
+              </span>
+            </td>
+            <td class="text-end pe-4 py-3">
+              <div class="dropdown">
+                <button
+                  class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                  <li>
+                    <a class="dropdown-item" (click)="viewEvent(event)" style="cursor: pointer;">
+                      <i class="bi bi-eye-fill me-2 text-primary"></i> View Details
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" (click)="editEvent(event)" style="cursor: pointer;">
+                      <i class="bi bi-pencil-fill me-2 text-warning"></i> Edit
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item text-danger" (click)="deleteEvent(event._id)" style="cursor: pointer;">
+                      <i class="bi bi-trash-fill me-2"></i> Delete
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="d-flex justify-content-between align-items-center p-3 border-top">
+        <div *ngIf="events.events.length > 0" class="text-muted">
+          Showing {{ (payload.page - 1) * payload.limit + 1 }} to
+          {{ Math.min(payload.page * payload.limit, events.total) }}
+          of {{ events.total }} entries
+        </div>
+        <pagination-controls
+          [id]="paginationConfig.id"
+          (pageChange)="onPageChange($event)"
+          previousLabel="Previous"
+          nextLabel="Next"
+          [directionLinks]="true">
+        </pagination-controls>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!eventsLoading && (!events?.events || events?.events?.length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
+        <h5>No Events Found</h5>
+        <p class="text-muted">There are no events available at the moment.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Event Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="eventModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="eventModalTitle">
+          <i class="bi bi-calendar-plus me-2"></i>Create New Event
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form>
+          <!-- Basic Information Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Basic Information</h6>
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label for="title" class="form-label">Event Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="title" placeholder="Enter event title"
+                  [(ngModel)]="eventForm.title" name="title" required (blur)="onFieldBlur('title')"
+                  [class.is-invalid]="validationErrors.title">
+                <div class="invalid-feedback" *ngIf="validationErrors.title">
+                  {{ validationErrors.title }}
+                </div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="eventType" class="form-label">Event Type <span class="text-danger">*</span></label>
+                <ng-select id="eventType" [items]="eventTypes" bindLabel="label" bindValue="value"
+                  placeholder="Select event type" [(ngModel)]="eventForm.eventType" name="eventType" required
+                  (blur)="onFieldBlur('eventType')" [class.is-invalid]="validationErrors.eventType">
+                </ng-select>
+                <div class="invalid-feedback" *ngIf="validationErrors.eventType">
+                  {{ validationErrors.eventType }}
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="description" rows="4" placeholder="Enter event description"
+                  [(ngModel)]="eventForm.description" name="description" required (blur)="onFieldBlur('description')"
+                  [class.is-invalid]="validationErrors.description"></textarea>
+                <div class="invalid-feedback" *ngIf="validationErrors.description">
+                  {{ validationErrors.description }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Date and Time Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Date & Time</h6>
+            <div class="row">
+              <div class="col-md-3 mb-3">
+                <label for="startDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="startDate"
+                  [(ngModel)]="eventForm.startDate" name="startDate" required (blur)="onFieldBlur('startDate')"
+                  [class.is-invalid]="validationErrors.startDate">
+                <div class="invalid-feedback" *ngIf="validationErrors.startDate">
+                  {{ validationErrors.startDate }}
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="startTime" class="form-label">Start Time</label>
+                <input type="time" class="form-control" id="startTime"
+                  [(ngModel)]="eventForm.startTime" name="startTime" (blur)="onFieldBlur('startTime')">
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="endDate" class="form-label">End Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="endDate"
+                  [(ngModel)]="eventForm.endDate" name="endDate" required (blur)="onFieldBlur('endDate')"
+                  [class.is-invalid]="validationErrors.endDate">
+                <div class="invalid-feedback" *ngIf="validationErrors.endDate">
+                  {{ validationErrors.endDate }}
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="endTime" class="form-label">End Time</label>
+                <input type="time" class="form-control" id="endTime"
+                  [(ngModel)]="eventForm.endTime" name="endTime" (blur)="onFieldBlur('endTime')">
+              </div>
+            </div>
+          </div>
+
+          <!-- Location Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Location Details</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="location" class="form-label">Location <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="location" placeholder="Enter location"
+                  [(ngModel)]="eventForm.location" name="location" required (blur)="onFieldBlur('location')"
+                  [class.is-invalid]="validationErrors.location">
+                <div class="invalid-feedback" *ngIf="validationErrors.location">
+                  {{ validationErrors.location }}
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="venue" class="form-label">Venue</label>
+                <input type="text" class="form-control" id="venue" placeholder="Enter venue name"
+                  [(ngModel)]="eventForm.venue" name="venue" (blur)="onFieldBlur('venue')">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="mapUrl" class="form-label">Map URL</label>
+                <input type="url" class="form-control" id="mapUrl" placeholder="Enter map URL"
+                  [(ngModel)]="eventForm.mapUrl" name="mapUrl" (blur)="onFieldBlur('mapUrl')">
+                <small class="text-muted">Optional: Google Maps or other map service URL</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Details Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Event Details</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="capacity" class="form-label">Capacity</label>
+                <input type="number" class="form-control" id="capacity" placeholder="Enter maximum capacity"
+                  [(ngModel)]="eventForm.capacity" name="capacity" min="1" (blur)="onFieldBlur('capacity')"
+                  [class.is-invalid]="validationErrors.capacity">
+                <div class="invalid-feedback" *ngIf="validationErrors.capacity">
+                  {{ validationErrors.capacity }}
+                </div>
+                <small class="text-muted">Leave empty for unlimited capacity</small>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="ticketPrice" class="form-label">Ticket Price</label>
+                <input type="number" class="form-control" id="ticketPrice" placeholder="Enter ticket price"
+                  [(ngModel)]="eventForm.ticketPrice" name="ticketPrice" min="0" step="0.01" (blur)="onFieldBlur('ticketPrice')">
+                <small class="text-muted">Enter 0 for free events</small>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="bannerImage" class="form-label">Banner Image</label>
+                <input type="file" class="form-control" id="bannerImage" (change)="onFileChange($event)"
+                  accept="image/*" name="bannerImage">
+                <small class="text-muted">Optional: Upload a banner image for the event</small>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="createEvent()"
+          [disabled]="loading || !validateForm()">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          <i *ngIf="!loading" class="bi bi-save me-1"></i>
+          {{ loading ? 'Creating...' : 'Create Event' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Event Modal -->
+<div class="modal fade" id="editEventModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="editEventModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="editEventModalTitle">
+          <i class="bi bi-pencil-square me-2"></i>Edit Event
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form>
+          <!-- Basic Information Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Basic Information</h6>
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label for="editTitle" class="form-label">Event Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="editTitle" placeholder="Enter event title"
+                  [(ngModel)]="editEventForm.title" name="editTitle" required (blur)="onFieldBlur('title', true)"
+                  [class.is-invalid]="editValidationErrors.title">
+                <div class="invalid-feedback" *ngIf="editValidationErrors.title">
+                  {{ editValidationErrors.title }}
+                </div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="editEventType" class="form-label">Event Type <span class="text-danger">*</span></label>
+                <ng-select id="editEventType" [items]="eventTypes" bindLabel="label" bindValue="value"
+                  placeholder="Select event type" [(ngModel)]="editEventForm.eventType" name="editEventType" required
+                  (blur)="onFieldBlur('eventType', true)" [class.is-invalid]="editValidationErrors.eventType">
+                </ng-select>
+                <div class="invalid-feedback" *ngIf="editValidationErrors.eventType">
+                  {{ editValidationErrors.eventType }}
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="editDescription" class="form-label">Description <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="editDescription" rows="4" placeholder="Enter event description"
+                  [(ngModel)]="editEventForm.description" name="editDescription" required (blur)="onFieldBlur('description', true)"
+                  [class.is-invalid]="editValidationErrors.description"></textarea>
+                <div class="invalid-feedback" *ngIf="editValidationErrors.description">
+                  {{ editValidationErrors.description }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Date and Time Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Date & Time</h6>
+            <div class="row">
+              <div class="col-md-3 mb-3">
+                <label for="editStartDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="editStartDate"
+                  [(ngModel)]="editEventForm.startDate" name="editStartDate" required (blur)="onFieldBlur('startDate', true)"
+                  [class.is-invalid]="editValidationErrors.startDate">
+                <div class="invalid-feedback" *ngIf="editValidationErrors.startDate">
+                  {{ editValidationErrors.startDate }}
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="editStartTime" class="form-label">Start Time</label>
+                <input type="time" class="form-control" id="editStartTime"
+                  [(ngModel)]="editEventForm.startTime" name="editStartTime" (blur)="onFieldBlur('startTime', true)">
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="editEndDate" class="form-label">End Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="editEndDate"
+                  [(ngModel)]="editEventForm.endDate" name="editEndDate" required (blur)="onFieldBlur('endDate', true)"
+                  [class.is-invalid]="editValidationErrors.endDate">
+                <div class="invalid-feedback" *ngIf="editValidationErrors.endDate">
+                  {{ editValidationErrors.endDate }}
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="editEndTime" class="form-label">End Time</label>
+                <input type="time" class="form-control" id="editEndTime"
+                  [(ngModel)]="editEventForm.endTime" name="editEndTime" (blur)="onFieldBlur('endTime', true)">
+              </div>
+            </div>
+          </div>
+
+          <!-- Location Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Location Details</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="editLocation" class="form-label">Location <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="editLocation" placeholder="Enter location"
+                  [(ngModel)]="editEventForm.location" name="editLocation" required (blur)="onFieldBlur('location', true)"
+                  [class.is-invalid]="editValidationErrors.location">
+                <div class="invalid-feedback" *ngIf="editValidationErrors.location">
+                  {{ editValidationErrors.location }}
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="editVenue" class="form-label">Venue</label>
+                <input type="text" class="form-control" id="editVenue" placeholder="Enter venue name"
+                  [(ngModel)]="editEventForm.venue" name="editVenue" (blur)="onFieldBlur('venue', true)">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="editMapUrl" class="form-label">Map URL</label>
+                <input type="url" class="form-control" id="editMapUrl" placeholder="Enter map URL"
+                  [(ngModel)]="editEventForm.mapUrl" name="editMapUrl" (blur)="onFieldBlur('mapUrl', true)">
+                <small class="text-muted">Optional: Google Maps or other map service URL</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Details Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Event Details</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="editCapacity" class="form-label">Capacity</label>
+                <input type="number" class="form-control" id="editCapacity" placeholder="Enter maximum capacity"
+                  [(ngModel)]="editEventForm.capacity" name="editCapacity" min="1" (blur)="onFieldBlur('capacity', true)"
+                  [class.is-invalid]="editValidationErrors.capacity">
+                <div class="invalid-feedback" *ngIf="editValidationErrors.capacity">
+                  {{ editValidationErrors.capacity }}
+                </div>
+                <small class="text-muted">Leave empty for unlimited capacity</small>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="editTicketPrice" class="form-label">Ticket Price</label>
+                <input type="number" class="form-control" id="editTicketPrice" placeholder="Enter ticket price"
+                  [(ngModel)]="editEventForm.ticketPrice" name="editTicketPrice" min="0" step="0.01" (blur)="onFieldBlur('ticketPrice', true)">
+                <small class="text-muted">Enter 0 for free events</small>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="editBannerImage" class="form-label">Banner Image</label>
+                <input type="file" class="form-control" id="editBannerImage" (change)="onEditFileChange($event)"
+                  accept="image/*" name="editBannerImage">
+                <small class="text-muted">Optional: Upload a new banner image for the event</small>
+                <div *ngIf="selectedEvent?.bannerImage" class="mt-2">
+                  <small class="text-muted">Current image: {{selectedEvent?.bannerImage?.split('/')?.pop()}}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" (click)="closeEditModal()">
+          <i class="bi bi-x-circle me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="updateEvent()"
+          [disabled]="editLoading">
+          <span *ngIf="editLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          <i *ngIf="!editLoading" class="bi bi-save me-1"></i>
+          {{ editLoading ? 'Updating...' : 'Update Event' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Event Modal -->
+<div class="modal fade" id="viewEventModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="viewEventModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-gradient-primary text-white">
+        <h5 class="modal-title" id="viewEventModalTitle">
+          <i class="bi bi-calendar-event me-2"></i>Event Details
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body p-0" *ngIf="selectedEvent">
+        <!-- Event Banner -->
+        <div *ngIf="selectedEvent.bannerImage" class="position-relative">
+          <img [src]="imageurl + selectedEvent.bannerImage" 
+               class="w-100" 
+               style="height: 200px; object-fit: cover;"
+               alt="Event Banner">
+          <div class="position-absolute top-0 start-0 w-100 h-100" 
+               style="background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);"></div>
+        </div>
+        
+        <div class="p-4">
+          <!-- Event Header -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h4 class="fw-bold text-primary mb-2">{{selectedEvent.title}}</h4>
+              <p class="text-muted mb-3">{{selectedEvent.description}}</p>
+              <div class="d-flex align-items-center gap-3">
+                <!-- <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
+                  {{selectedEvent.eventType | titlecase}}
+                </span> -->
+                <span class="badge px-3 py-2"
+                      [ngClass]="selectedEvent.isActive ? 'bg-success' : 'bg-secondary'">
+                  {{selectedEvent.isActive ? 'Active' : 'Inactive'}}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Details -->
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3">
+                    <i class="bi bi-calendar-event text-primary me-2"></i>Date & Time
+                  </h6>
+                  <div class="mb-2">
+                    <strong>Start:</strong> {{formatDateTime(selectedEvent.startDate, selectedEvent.startTime)}}
+                  </div>
+                  <div>
+                    <strong>End:</strong> {{formatDateTime(selectedEvent.endDate, selectedEvent.endTime)}}
+                  </div>
+                </div>
+              </div>
+
+              <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3">
+                    <i class="bi bi-geo-alt text-primary me-2"></i>Location
+                  </h6>
+                  <div class="mb-2">
+                    <strong>Location:</strong> {{selectedEvent.location || 'N/A'}}
+                  </div>
+                  <div class="mb-2" *ngIf="selectedEvent.venue">
+                    <strong>Venue:</strong> {{selectedEvent.venue}}
+                  </div>
+                  <div *ngIf="selectedEvent.mapUrl">
+                    <a [href]="selectedEvent.mapUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-map me-1"></i>View Map
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <!-- <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3">
+                    <i class="bi bi-info-circle text-primary me-2"></i>Event Details
+                  </h6>
+                  <div class="mb-2">
+                    <strong>Capacity:</strong> 
+                    <span class="ms-1">
+                      <i class="bi bi-people-fill text-muted me-1"></i>
+                      {{selectedEvent.capacity || 'Unlimited'}}
+                    </span>
+                  </div>
+                  <div class="mb-2">
+                    <strong>Ticket Price:</strong> 
+                    <span class="ms-1">
+                      <i class="bi bi-currency-dollar text-muted me-1"></i>
+                      {{selectedEvent.ticketPrice === 0 ? 'Free' : ' + selectedEvent.ticketPrice}}
+                    </span>
+                  </div>
+                  <div>
+                    <strong>Registration Link:</strong>
+                    <div class="mt-1">
+                      <code class="small">{{selectedEvent.registrationLink}}</code>
+                    </div>
+                  </div>
+                </div>
+              </div> -->
+
+              <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3">
+                    <i class="bi bi-clock text-primary me-2"></i>Event Info
+                  </h6>
+                  <div class="mb-2">
+                    <strong>Description:</strong> {{(selectedEvent.description) }}
+                  </div>
+                  <!-- <div *ngIf="selectedEvent.updatedAt">
+                    <strong>Last Updated:</strong> {{formatDate(selectedEvent.updatedAt)}}
+                  </div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary rounded-pill" (click)="closeViewModal()">
+          <i class="bi bi-x-circle me-1"></i>Close
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="editEvent(selectedEvent!); closeViewModal()">
+          <i class="bi bi-pencil me-1"></i>Edit Event
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
