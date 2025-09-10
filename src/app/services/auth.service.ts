@@ -952,7 +952,7 @@ export class EventService {
               formData,
               this.headers
           );
-          console.log('updateEvent Response:', JSON.stringify(response, null, 2));
+          // console.log('updateEvent Response:', JSON.stringify(response, null, 2));
           return response;
       } catch (error) {
           console.error('Update Event Error:', error);
@@ -1056,7 +1056,7 @@ async newGetEvents(requestData: any): Promise<any> {
             requestData,
             this.headers
         );
-        console.log('getEvents Response:', JSON.stringify(response, null, 2));
+        // console.log('getEvents Response:', JSON.stringify(response, null, 2));
         return response;
     } catch (error) {
         console.error('Get Events Error:', error);
@@ -1129,7 +1129,7 @@ async newUpdateEvent(formData: FormData): Promise<any> {
             formData,
             this.headers
         );
-        console.log('updateEvent Response:', JSON.stringify(response, null, 2));
+        // console.log('updateEvent Response:', JSON.stringify(response, null, 2));
         return response;
     } catch (error) {
         console.error('Update Event Error:', error);
@@ -1159,6 +1159,155 @@ async newDeleteEvent(requestData: { id: string }): Promise<any> {
     } catch (error) {
         console.error('Delete Event Error:', error);
         swalHelper.showToast('Failed to delete event', 'error');
+        throw error;
+    }
+}
+
+
+/**
+ * Get event gallery items
+ * @param eventId - Event ID to fetch gallery for
+ * @returns Promise with gallery data
+ */
+async newGetEventGallery(eventId: string): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: `${apiEndpoints.GET_EVENT_GALLERY}?t=${new Date().getTime()}`,
+                method: 'POST',
+            },
+            { eventId: eventId },
+            this.headers
+        );
+        console.log('getEventGallery Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Get Event Gallery Error:', error);
+        swalHelper.showToast('Failed to fetch event gallery', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Update event gallery (add/update images and videos)
+ * @param formData - FormData containing gallery files and metadata
+ * @returns Promise with updated gallery data
+ */
+async newUpdateEventGallery(formData: FormData): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.UPDATE_EVENT_GALLERY,
+                method: 'POST',
+                isFormData: true,
+            },
+            formData,
+            this.headers
+        );
+        console.log('updateEventGallery Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Update Event Gallery Error:', error);
+        swalHelper.showToast('Failed to update event gallery', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Delete gallery item from event
+ * @param data - Object containing eventId and itemId
+ * @returns Promise with deletion confirmation
+ */
+async newDeleteGalleryItem(data: { eventId: string; itemId: string }): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.DELETE_GALLERY_ITEM,
+                method: 'POST',
+            },
+            data,
+            this.headers
+        );
+        console.log('deleteGalleryItem Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Delete Gallery Item Error:', error);
+        swalHelper.showToast('Failed to delete gallery item', 'error');
+        throw error;
+    }
+}
+
+
+async getUpiPaymentDetails(eventId: string): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: `${apiEndpoints.GET_PAYMENT_DETAILS}${new Date().getTime()}`,
+                method: 'POST',
+            },
+            { eventId: eventId },
+            this.headers
+        );
+        console.log('getPaymentDetails Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Get Payment Details Error:', error);
+        swalHelper.showToast('Failed to fetch payment details', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Create or update payment details for an event
+ * @param formData - FormData containing payment information and QR code file
+ * @returns Promise with payment details data
+ */
+async createOrUpdateUpiPayment(formData: FormData): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.CREATE_OR_UPDATE_PAYMENT,
+                method: 'POST',
+                isFormData: true,
+            },
+            formData,
+            this.headers
+        );
+        console.log('createOrUpdatePaymentDetails Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Create/Update Payment Details Error:', error);
+        swalHelper.showToast('Failed to save payment details', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Delete payment details for an event
+ * @param eventId - Event ID to delete payment details for
+ * @returns Promise with deletion confirmation
+ */
+async deletePaymentDetails(eventId: string): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.DELETE_PAYMENT_DETAILS,
+                method: 'POST',
+            },
+            { eventId: eventId },
+            this.headers
+        );
+        console.log('deletePaymentDetails Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Delete Payment Details Error:', error);
+        swalHelper.showToast('Failed to delete payment details', 'error');
         throw error;
     }
 }

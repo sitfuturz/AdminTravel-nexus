@@ -194,6 +194,14 @@ public BULK_DELETE_SLOTS=`${this.PATH}/bulkDeleteSlots`
     public NEW_CREATE_EVENT = `${this.PATH}/event/create`;
     public NEW_UPDATE_EVENT = `${this.PATH}/event/update`;
     public NEW_DELETE_EVENT = `${this.PATH}/event/delete`;
+
+
+    public GET_PAYMENT_DETAILS = `${this.PATH}/event/payment-details/event/:eventId`
+    public CREATE_OR_UPDATE_PAYMENT= `${this.PATH}/event/payment-details`
+    public DELETE_PAYMENT_DETAILS= `${this.PATH}/deletePaymentDetails`
+
+    public UPDATE_EVENT_GALLERY= `${this.PATH}/updateEventGallery`
+    public DELETE_GALLERY_ITEM= `${this.PATH}/deleteGalleryItem`
   };
   
 
