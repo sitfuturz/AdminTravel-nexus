@@ -2,10 +2,10 @@
   <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
     <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
       <h4 class="mb-0 fw-bold text-white">
-        <i class="bi bi-person-plus me-2"></i>User Registration Management
+        <i class="bi bi-person-plus me-2"></i>DMC  Registration Management
       </h4>
       <button class="btn btn-light rounded-pill px-4" (click)="openRegisterModal()">
-        <i class="bi bi-plus-circle me-2"></i>Register New User
+        <i class="bi bi-plus-circle me-2"></i>Register New DMC
       </button>
     </div>
     
@@ -40,7 +40,7 @@
         <thead class="bg-light">
           <tr>
             <th class="ps-4 py-3">Name</th>
-            <th class="py-3">Business</th>
+            <th class="py-3">DMC Name</th>
             <th class="py-3">Mobile</th>
             <th class="py-3">Email</th>
             <th class="py-3">Location</th>
@@ -178,8 +178,8 @@
                 <small class="text-muted">Numbers only, exactly 10 digits</small>
               </div>
               <div class="col-md-6 mb-3">
-                <label for="business_name" class="form-label">Business Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="business_name" placeholder="Enter business name"
+                <label for="business_name" class="form-label">DMC Name<span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="business_name" placeholder="Enter DMC name"
                   [(ngModel)]="registerForm.business_name" name="business_name" required
                   (blur)="onFieldBlur('business_name')" [class.is-invalid]="validationErrors.business_name">
                 <div class="invalid-feedback" *ngIf="validationErrors.business_name">
