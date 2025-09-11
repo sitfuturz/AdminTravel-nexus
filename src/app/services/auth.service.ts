@@ -570,6 +570,40 @@ async updateUser(userId: string, data: { name: string; mobile_number: string; em
       throw error;
     }
   }
+
+  async updateNewUser(userId: string, data: { 
+  name: string; 
+  mobile_number: string; 
+  email: string; 
+  city: string; 
+  state: string; 
+  country: string; 
+  business_name: string 
+}): Promise<any> {
+  try {
+    this.getHeaders();
+    
+    // Include userId in the request body
+    const requestBody = {
+      id: userId,
+      ...data
+    };
+    
+    const response = await this.apiManager.request(
+      {
+        url: `${apiEndpoints.NEW_USER_REGISTRATION}`,
+        method: 'POST',
+      },
+      requestBody,
+      this.headers
+    );
+    return response;
+  } catch (error) {
+    console.error('Update User Error:', error);
+    swalHelper.showToast('Failed to update user', 'error');
+    throw error;
+  }
+}
 }
 
 @Injectable({
@@ -918,7 +952,7 @@ export class EventService {
               formData,
               this.headers
           );
-          console.log('updateEvent Response:', JSON.stringify(response, null, 2));
+          // console.log('updateEvent Response:', JSON.stringify(response, null, 2));
           return response;
       } catch (error) {
           console.error('Update Event Error:', error);
@@ -1006,6 +1040,301 @@ export class EventService {
             throw error;
         }
     }
+
+
+
+async newGetEvents(requestData: any): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: `${apiEndpoints.NEW_GET_EVENTS}?t=${new Date().getTime()}`,
+                method: 'POST',
+            },
+            requestData,
+            this.headers
+        );
+        // console.log('getEvents Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Get Events Error:', error);
+        swalHelper.showToast('Failed to fetch events', 'error');
+        throw error;
+    }
+}
+
+
+async newGetEventById(eventId: string): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: `${apiEndpoints.NEW_GET_EVENT_BY_ID}?t=${new Date().getTime()}`,
+                method: 'POST',
+            },
+            { id: eventId },
+            this.headers
+        );
+        console.log('getEventById Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Get Event By ID Error:', error);
+        swalHelper.showToast('Failed to fetch event details', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Create a new event
+ * @param formData - FormData containing event information and files
+ * @returns Promise with created event data
+ */
+async newCreateEvent(formData: FormData): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.NEW_CREATE_EVENT,
+                method: 'POST',
+                isFormData: true,
+            },
+            formData,
+            this.headers
+        );
+        console.log('createEvent Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Create Event Error:', error);
+        swalHelper.showToast('Failed to create event', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Update an existing event
+ * @param formData - FormData containing updated event information (should include 'id' field)
+ * @returns Promise with updated event data
+ */
+async newUpdateEvent(formData: FormData): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.NEW_UPDATE_EVENT,
+                method: 'POST',
+                isFormData: true,
+            },
+            formData,
+            this.headers
+        );
+        // console.log('updateEvent Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Update Event Error:', error);
+        swalHelper.showToast('Failed to update event', 'error');
+        throw error;
+    }
+}
+
+async newDeleteEvent(requestData: { id: string }): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.NEW_DELETE_EVENT,
+                method: 'POST',
+            },
+            requestData,
+            this.headers
+        );
+        console.log('deleteEvent Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Delete Event Error:', error);
+        swalHelper.showToast('Failed to delete event', 'error');
+        throw error;
+    }
+}
+
+
+
+
+
+async newUpdateEventGallery(formData: FormData): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.UPDATE_EVENT_GALLERY,
+                method: 'POST',
+                isFormData: true,
+            },
+            formData,
+            this.headers
+        );
+        console.log('updateEventGallery Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Update Event Gallery Error:', error);
+        swalHelper.showToast('Failed to update event gallery', 'error');
+        throw error;
+    }
+}
+
+async newGetEventGallery(data: { id: string }): Promise<any> {
+  try {
+    this.getHeaders();
+    const response = await this.apiManager.request(
+      {
+        url: apiEndpoints.NEW_GET_EVENT_GALLERY, // e.g., '/admin/events/get-gallery'
+        method: 'POST', // Changed from GET to POST
+      },
+      data, // Send { eventId } in the request body
+      this.headers
+    );
+    console.log('newGetEventGallery Response:', JSON.stringify(response, null, 2));
+    return response;
+  } catch (error) {
+    console.error('Get Event Gallery Error:', error);
+    swalHelper.showToast('Failed to fetch event gallery', 'error');
+    throw error;
+  }
+}
+
+  async uploadGalleryItem(formData: FormData): Promise<any> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.UPLOAD_GALLERY_ITEM, // Assuming endpoint like '/events/upload-gallery'
+          method: 'POST',
+          isFormData: true,
+        },
+        formData,
+        this.headers
+      );
+      console.log('uploadGalleryItem Response:', JSON.stringify(response, null, 2));
+      return response;
+    } catch (error) {
+      console.error('Upload Gallery Item Error:', error);
+      swalHelper.showToast('Failed to upload gallery items', 'error');
+      throw error;
+    }
+  }
+
+  async deleteGalleryItem(data: { eventId: string; itemId: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.DELETE_GALLERY_ITEM, // Assuming endpoint like '/events/delete-gallery-item'
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      console.log('deleteGalleryItem Response:', JSON.stringify(response, null, 2));
+      return response;
+    } catch (error) {
+      console.error('Delete Gallery Item Error:', error);
+      swalHelper.showToast('Failed to delete gallery item', 'error');
+      throw error;
+    }
+  }
+
+  async updateGalleryItem(data: { eventId: string; itemId: string; caption: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.UPDATE_GALLERY_ITEM, // Assuming endpoint like '/events/update-gallery-item'
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      console.log('updateGalleryItem Response:', JSON.stringify(response, null, 2));
+      return response;
+    } catch (error) {
+      console.error('Update Gallery Item Error:', error);
+      swalHelper.showToast('Failed to update gallery item caption', 'error');
+      throw error;
+    }
+  }
+
+
+
+
+async getUpiPaymentDetails(eventId: string): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: `${apiEndpoints.GET_PAYMENT_DETAILS}${new Date().getTime()}`,
+                method: 'POST',
+            },
+            { eventId: eventId },
+            this.headers
+        );
+        console.log('getPaymentDetails Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Get Payment Details Error:', error);
+        swalHelper.showToast('Failed to fetch payment details', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Create or update payment details for an event
+ * @param formData - FormData containing payment information and QR code file
+ * @returns Promise with payment details data
+ */
+async createOrUpdateUpiPayment(formData: FormData): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.CREATE_OR_UPDATE_PAYMENT,
+                method: 'POST',
+                isFormData: true,
+            },
+            formData,
+            this.headers
+        );
+        console.log('createOrUpdatePaymentDetails Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Create/Update Payment Details Error:', error);
+        swalHelper.showToast('Failed to save payment details', 'error');
+        throw error;
+    }
+}
+
+/**
+ * Delete payment details for an event
+ * @param eventId - Event ID to delete payment details for
+ * @returns Promise with deletion confirmation
+ */
+async deletePaymentDetails(eventId: string): Promise<any> {
+    try {
+        this.getHeaders();
+        const response = await this.apiManager.request(
+            {
+                url: apiEndpoints.DELETE_PAYMENT_DETAILS,
+                method: 'POST',
+            },
+            { eventId: eventId },
+            this.headers
+        );
+        console.log('deletePaymentDetails Response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Delete Payment Details Error:', error);
+        swalHelper.showToast('Failed to delete payment details', 'error');
+        throw error;
+    }
+}
 }
 
   export interface AttendanceData {
@@ -3867,6 +4196,74 @@ export class ParticipationService {
           throw error;
         }
       }
+
+      async newRegisterUser(formData: FormData): Promise<any> {
+        try {
+          this.getHeaders();
+          
+          const response = await this.apiManager.request(
+            {
+              url: `${apiEndpoints.NEW_USER_REGISTRATION}`,
+             
+              method: 'POST'
+            },
+            formData,
+            this.headers
+          );
+          
+          return response;
+        } catch (error) {
+          console.error('Register User Error:', error);
+          swalHelper.showToast('Failed to register user', 'error');
+          throw error;
+        }
+      }
+
+      async getAllMembers(payload: any): Promise<any> {
+  try {
+    this.getHeaders();
+    
+    const response = await this.apiManager.request(
+      {
+        // Build query string manually
+        url: `${apiEndpoints.GET_ALL_NEW_USER_REGISTRATION}?page=${payload.page}&limit=${payload.limit}&search=${encodeURIComponent(payload.search || '')}`,
+        method: 'GET'
+      },
+      null,
+      this.headers
+    );
+    
+    return response;
+  } catch (error) {
+    console.error('Get All Members Error:', error);
+    swalHelper.showToast('Failed to fetch registrations', 'error');
+    throw error;
+  }
+}
+
+async addToMember(payload: { id: string }): Promise<any> {
+  try {
+    this.getHeaders();
+    
+    const response = await this.apiManager.request(
+      {
+        url: `${apiEndpoints.ADD_USER_TO_MEMBER}`,
+        method: 'POST'
+      },
+      payload,
+      this.headers
+    );
+    
+    return response;
+  } catch (error) {
+    console.error('Add To Member Error:', error);
+    swalHelper.showToast('Failed to accept user', 'error');
+    throw error;
+  }
+}
+      
+
+      
     }
     export interface Badge {
       _id: string;

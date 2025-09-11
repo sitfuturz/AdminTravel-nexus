@@ -53,6 +53,8 @@ import { RegionsComponent } from './views/pages/regions/regions.component';
 import { LTPointsComponent } from './views/pages/LT Points/ltPoints.component';
 import { AdminComplaintComponent } from './views/pages/admin-complaint/admin-complaint.component';
 import { AdminFeedbackComponent } from './views/pages/admin-feedback/admin-feedback.component';
+import { NewUserRegistrationComponent } from './views/pages/new-user-registration/new-user-registration.component';
+import { NewEventsComponent } from './views/pages/new-events/new-events.component';
 
 
 export const routes: Routes = [
@@ -112,6 +114,8 @@ export const routes: Routes = [
 
       {path:'complaint', component: AdminComplaintComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
       {path:'feedback', component: AdminFeedbackComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
+      {path:'newUsersRegistration', component: NewUserRegistrationComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
+      {path:'newEvents', component: NewEventsComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
 
 
 {path:'analytics', component: AnalyticsComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },

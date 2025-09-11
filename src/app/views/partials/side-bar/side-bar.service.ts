@@ -35,7 +35,7 @@ export class SideBarService {
           submenu: [
             {
               title: 'Registration',
-              link: 'registerComponent',
+              link: 'newUsersRegistration',
               icon: 'user-plus',
             },
             // {
@@ -57,7 +57,7 @@ export class SideBarService {
         },
         {
           title: 'Add Events',
-          link: 'events',
+          link: 'newEvents',
           icon: 'calendar',
         },
         // {

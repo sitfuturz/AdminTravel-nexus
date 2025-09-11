@@ -1,0 +1,3815 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div
+      class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3"
+    >
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-calendar-event me-2"></i>Event Management
+      </h4>
+      <button
+        class="btn btn-light rounded-pill px-4"
+        (click)="openEventModal()"
+      >
+        <i class="bi bi-plus-circle me-2"></i>Create New Event
+      </button>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="card-body p-0">
+      <div
+        class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom"
+      >
+        <div class="flex-grow-1 me-2">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search events..."
+            [(ngModel)]="searchQuery"
+            (input)="onSearch()"
+          />
+        </div>
+        <div class="me-2">
+          <ng-select
+            id="statusSelect"
+            [items]="statusOptions"
+            bindLabel="label"
+            bindValue="value"
+            [(ngModel)]="selectedStatus"
+            (change)="onStatusChange()"
+            placeholder="Filter by status"
+            [clearable]="false"
+          >
+          </ng-select>
+        </div>
+        <div class="ms-2">
+          <ng-select
+            id="limitSelect"
+            [items]="[10, 25, 50, 100]"
+            [(ngModel)]="payload.limit"
+            (change)="onChange()"
+            placeholder="Items per page"
+          >
+          </ng-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="eventsLoading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Events Card Grid -->
+    <div
+      class="p-4"
+      *ngIf="!eventsLoading && !!events?.events && events.events.length > 0"
+    >
+      <div class="row">
+        <div
+          class="col-xl-4 col-lg-6 col-md-6 mb-4"
+          *ngFor="
+            let event of events.events
+              | paginate
+                : {
+                    id: paginationConfig.id,
+                    itemsPerPage: payload.limit,
+                    currentPage: payload.page,
+                    totalItems: events?.total
+                  };
+            let i = index
+          "
+        >
+          <div class="card border-0 shadow-sm rounded-4 h-100 event-card">
+            <!-- Event Banner -->
+            <div class="position-relative">
+              <img
+                *ngIf="event.bannerImage"
+                [src]="imageurl + event.bannerImage"
+                class="card-img-top rounded-top-4"
+                style="height: 200px; object-fit: cover"
+                alt="Event Banner"
+              />
+              <div
+                *ngIf="!event.bannerImage"
+                class="bg-light d-flex align-items-center justify-content-center rounded-top-4"
+                style="height: 200px"
+              >
+                <i class="bi bi-calendar-event fs-1 text-muted"></i>
+              </div>
+              <!-- Status Badge -->
+              <div class="position-absolute top-0 end-0 m-3">
+                <span
+                  class="badge rounded-pill px-3 py-2"
+                  [ngClass]="event.isActive ? 'bg-success' : 'bg-secondary'"
+                >
+                  {{ event.isActive ? "Active" : "Inactive" }}
+                </span>
+              </div>
+            </div>
+
+            <div class="card-body d-flex flex-column">
+              <!-- Event Title -->
+              <h5 class="card-title fw-bold text-primary mb-2">
+                {{ event.title || "Untitled Event" }}
+              </h5>
+
+              <!-- Event Description -->
+              <p class="card-text text-muted mb-3" style="font-size: 0.9rem">
+                <span
+                  *ngIf="event.description && event.description.length <= 80"
+                  >{{ event.description }}</span
+                >
+                <span *ngIf="event.description && event.description.length > 80"
+                  >{{ event.description | slice : 0 : 80 }}...</span
+                >
+                <span *ngIf="!event.description">No description available</span>
+              </p>
+
+              <!-- Event Details -->
+              <div class="mb-3">
+                <!-- Date & Time -->
+                <div class="d-flex align-items-center mb-2">
+                  <i class="bi bi-calendar-event text-primary me-2"></i>
+                  <small class="text-muted">
+                    <strong>Start:</strong>
+                    {{ formatDateTime(event.startDate, event.startTime) }}
+                  </small>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                  <i class="bi bi-calendar-x text-danger me-2"></i>
+                  <small class="text-muted">
+                    <strong>End:</strong>
+                    {{ formatDateTime(event.endDate, event.endTime) }}
+                  </small>
+                </div>
+
+                <!-- Location -->
+                <div class="d-flex align-items-center mb-2">
+                  <i class="bi bi-geo-alt text-warning me-2"></i>
+                  <small class="text-muted">
+                    <strong>Location:</strong> {{ event.location || "N/A" }}
+                    <span *ngIf="event.venue"> - {{ event.venue }}</span>
+                  </small>
+                </div>
+
+                <!-- Event Type -->
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-tag text-info me-2"></i>
+                  <span class="badge bg-info bg-opacity-10 text-info px-2 py-1">
+                    {{ event.eventType | titlecase }}
+                  </span>
+                </div>
+
+                <!-- Registration Link -->
+                <div
+                  class="d-flex align-items-center mb-2 mt-1"
+                  *ngIf="event.registrationLink"
+                >
+                  <i class="bi bi-link-45deg text-success me-2"></i>
+                  <a
+                    [href]="getFullRegistrationLink(event)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-decoration-none text-success fw-semibold"
+                  >
+                    Register Link
+                  </a>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="mt-auto">
+                <div class="d-flex gap-2">
+                  <button
+                    class="btn btn-outline-primary btn-sm flex-fill"
+                    (click)="viewEvent(event)"
+                  >
+                    <i class="bi bi-eye me-1"></i>View Details
+                  </button>
+                  <button
+                    class="btn btn-outline-warning btn-sm flex-fill"
+                    (click)="editEvent(event)"
+                  >
+                    <i class="bi bi-pencil me-1"></i>Edit
+                  </button>
+                  <button
+                    class="btn btn-outline-info btn-sm flex-fill"
+                    (click)="openGalleryModal(event)"
+                  >
+                    <i class="bi bi-images me-1"></i>Gallery
+                  </button>
+                  <button
+                    class="btn btn-outline-success btn-sm flex-fill"
+                    (click)="openPaymentModal(event)"
+                    [disabled]="!isPaymentButtonEnabled(event)"
+                    [title]="
+                      !isPaymentButtonEnabled(event)
+                        ? 'Only available for paid events'
+                        : 'Manage payment details'
+                    "
+                  >
+                    <i class="bi bi-credit-card me-1"></i>Payment
+                  </button>
+                  <button
+                    class="btn btn-outline-danger btn-sm"
+                    (click)="deleteEvent(event._id)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div
+        class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top"
+      >
+        <div *ngIf="events.events.length > 0" class="text-muted">
+          Showing {{ (payload.page - 1) * payload.limit + 1 }} to
+          {{ Math.min(payload.page * payload.limit, events.total) }}
+          of {{ events.total }} entries
+        </div>
+        <pagination-controls
+          [id]="paginationConfig.id"
+          (pageChange)="onPageChange($event)"
+          previousLabel="Previous"
+          nextLabel="Next"
+          [directionLinks]="true"
+        >
+        </pagination-controls>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      *ngIf="
+        !eventsLoading && (!events?.events || events?.events?.length === 0)
+      "
+      class="text-center my-5 py-4 px-4"
+    >
+      <div class="empty-state">
+        <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
+        <h5>No Events Found</h5>
+        <p class="text-muted">There are no events available at the moment.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Event Modal -->
+<div
+  class="modal fade"
+  id="eventModal"
+  tabindex="-1"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
+  role="dialog"
+  aria-labelledby="eventModalTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="eventModalTitle">
+          <i class="bi bi-calendar-plus me-2"></i>Create New Event
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body p-0">
+        <!-- Tab Navigation -->
+        <ul
+          class="nav nav-tabs nav-fill border-0 bg-light"
+          id="eventTabs"
+          role="tablist"
+        >
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link active fw-semibold"
+              id="basic-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#basic"
+              type="button"
+              role="tab"
+              aria-controls="basic"
+              aria-selected="true"
+            >
+              <i class="bi bi-info-circle me-2"></i>Basic Information
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link fw-semibold"
+              id="location-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#location"
+              type="button"
+              role="tab"
+              aria-controls="location"
+              aria-selected="false"
+            >
+              <i class="bi bi-geo-alt me-2"></i>Location Details
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link fw-semibold"
+              id="details-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#details"
+              type="button"
+              role="tab"
+              aria-controls="details"
+              aria-selected="false"
+            >
+              <i class="bi bi-gear me-2"></i>Event Details
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link fw-semibold"
+              id="sponsors-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#sponsors"
+              type="button"
+              role="tab"
+              aria-controls="sponsors"
+              aria-selected="false"
+            >
+              <i class="bi bi-people me-2"></i>Sponsors & Speakers
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link fw-semibold"
+              id="schedules-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#schedules"
+              type="button"
+              role="tab"
+              aria-controls="schedules"
+              aria-selected="false"
+            >
+              <i class="bi bi-calendar-week me-2"></i>Event Schedule
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content p-4" id="eventTabContent">
+          <!-- Basic Information Tab -->
+          <div
+            class="tab-pane fade show active"
+            id="basic"
+            role="tabpanel"
+            aria-labelledby="basic-tab"
+          >
+            <form>
+              <div class="row">
+                <div class="col-md-8 mb-3">
+                  <label for="title" class="form-label"
+                    >Event Title <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="title"
+                    placeholder="Enter event title"
+                    [(ngModel)]="eventForm.title"
+                    name="title"
+                    required
+                    (blur)="onFieldBlur('title')"
+                    [class.is-invalid]="validationErrors.title"
+                  />
+                  <div class="invalid-feedback" *ngIf="validationErrors.title">
+                    {{ validationErrors.title }}
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="eventType" class="form-label"
+                    >Event Type <span class="text-danger">*</span></label
+                  >
+                  <ng-select
+                    id="eventType"
+                    [items]="eventTypes"
+                    bindLabel="label"
+                    bindValue="value"
+                    placeholder="Select event type"
+                    [(ngModel)]="eventForm.eventType"
+                    name="eventType"
+                    required
+                    (blur)="onFieldBlur('eventType')"
+                    [class.is-invalid]="validationErrors.eventType"
+                  >
+                  </ng-select>
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="validationErrors.eventType"
+                  >
+                    {{ validationErrors.eventType }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="description" class="form-label"
+                    >Description <span class="text-danger">*</span></label
+                  >
+                  <textarea
+                    class="form-control"
+                    id="description"
+                    rows="4"
+                    placeholder="Enter event description"
+                    [(ngModel)]="eventForm.description"
+                    name="description"
+                    required
+                    (blur)="onFieldBlur('description')"
+                    [class.is-invalid]="validationErrors.description"
+                  ></textarea>
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="validationErrors.description"
+                  >
+                    {{ validationErrors.description }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-3 mb-3">
+                  <label for="startDate" class="form-label"
+                    >Start Date <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="startDate"
+                    [(ngModel)]="eventForm.startDate"
+                    name="startDate"
+                    required
+                    (blur)="onFieldBlur('startDate')"
+                    [class.is-invalid]="validationErrors.startDate"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="validationErrors.startDate"
+                  >
+                    {{ validationErrors.startDate }}
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="startTime" class="form-label"
+                    >Start Time <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="time"
+                    class="form-control"
+                    id="startTime"
+                    [(ngModel)]="eventForm.startTime"
+                    name="startTime"
+                    required
+                    (blur)="onFieldBlur('startTime')"
+                    [class.is-invalid]="validationErrors.startTime"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="validationErrors.startTime"
+                  >
+                    {{ validationErrors.startTime }}
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="endDate" class="form-label"
+                    >End Date <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="endDate"
+                    [(ngModel)]="eventForm.endDate"
+                    name="endDate"
+                    required
+                    (blur)="onFieldBlur('endDate')"
+                    [class.is-invalid]="validationErrors.endDate"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="validationErrors.endDate"
+                  >
+                    {{ validationErrors.endDate }}
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="endTime" class="form-label"
+                    >End Time <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="time"
+                    class="form-control"
+                    id="endTime"
+                    [(ngModel)]="eventForm.endTime"
+                    name="endTime"
+                    required
+                    (blur)="onFieldBlur('endTime')"
+                    [class.is-invalid]="validationErrors.endTime"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="validationErrors.endTime"
+                  >
+                    {{ validationErrors.endTime }}
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Location Details Tab -->
+          <div
+            class="tab-pane fade"
+            id="location"
+            role="tabpanel"
+            aria-labelledby="location-tab"
+          >
+            <form>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="location" class="form-label"
+                    >Location <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="location"
+                    placeholder="Enter location"
+                    [(ngModel)]="eventForm.location"
+                    name="location"
+                    required
+                    (blur)="onFieldBlur('location')"
+                    [class.is-invalid]="validationErrors.location"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="validationErrors.location"
+                  >
+                    {{ validationErrors.location }}
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="venue" class="form-label">Venue</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="venue"
+                    placeholder="Enter venue name"
+                    [(ngModel)]="eventForm.venue"
+                    name="venue"
+                    (blur)="onFieldBlur('venue')"
+                  />
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="mapUrl" class="form-label">Map URL</label>
+                  <div class="input-group">
+                    <input
+                      type="url"
+                      class="form-control"
+                      id="mapUrl"
+                      placeholder="Enter map URL or search location"
+                      [(ngModel)]="eventForm.mapUrl"
+                      name="mapUrl"
+                      (blur)="onFieldBlur('mapUrl')"
+                    />
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary"
+                      (click)="openGoogleMapsSearch()"
+                    >
+                      <i class="bi bi-search me-1"></i>Search on Maps
+                    </button>
+                  </div>
+                  <small class="text-muted"
+                    >You can paste a Google Maps URL or use the search button to
+                    find a location</small
+                  >
+                </div>
+              </div>
+
+              <!-- Map Preview (if URL is provided) -->
+              <div class="row" *ngIf="eventForm.mapUrl">
+                <div class="col-12">
+                  <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                      <h6 class="card-title">Map Preview</h6>
+                      <div class="ratio ratio-16x9">
+                        <!-- <iframe
+                          [src]="getEmbedMapUrl(eventForm.mapUrl)"
+                          style="border: 0"
+                          allowfullscreen=""
+                          loading="lazy"
+                          referrerpolicy="no-referrer-when-downgrade"
+                        >
+                        </iframe> -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Event Details Tab -->
+          <div
+            class="tab-pane fade"
+            id="details"
+            role="tabpanel"
+            aria-labelledby="details-tab"
+          >
+            <form>
+              <!-- Pricing Section -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3">Pricing Information</h6>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Event Type</label>
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="radio"
+                        name="paidType"
+                        id="freeEvent"
+                        [value]="false"
+                        [(ngModel)]="eventForm.isPaid"
+                        (change)="onPaidTypeChange()"
+                      />
+                      <label class="form-check-label" for="freeEvent">
+                        <i class="bi bi-gift me-2 text-success"></i>Free Event
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="radio"
+                        name="paidType"
+                        id="paidEvent"
+                        [value]="true"
+                        [(ngModel)]="eventForm.isPaid"
+                        (change)="onPaidTypeChange()"
+                      />
+                      <label class="form-check-label" for="paidEvent">
+                        <i class="bi bi-currency-dollar me-2 text-warning"></i
+                        >Paid Event
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3" *ngIf="eventForm.isPaid">
+                    <label for="ticketPrice" class="form-label"
+                      >Ticket Price <span class="text-danger">*</span></label
+                    >
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="ticketPrice"
+                        placeholder="0.00"
+                        [(ngModel)]="eventForm.ticketPrice"
+                        name="ticketPrice"
+                        min="0.01"
+                        step="0.01"
+                        required
+                        (blur)="onFieldBlur('ticketPrice')"
+                        [class.is-invalid]="validationErrors.ticketPrice"
+                      />
+                    </div>
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="validationErrors.ticketPrice"
+                    >
+                      {{ validationErrors.ticketPrice }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stay Option Section -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3">Accommodation</h6>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="stayOption"
+                        [(ngModel)]="eventForm.stayOption"
+                        name="stayOption"
+                        (change)="onStayOptionChange()"
+                      />
+                      <label class="form-check-label" for="stayOption">
+                        <i class="bi bi-house me-2 text-info"></i>Accommodation
+                        Available
+                      </label>
+                    </div>
+                    <small class="text-muted"
+                      >Check if you provide accommodation for attendees</small
+                    >
+                  </div>
+                  <div class="col-md-6 mb-3" *ngIf="eventForm.stayOption">
+                    <label for="stayFee" class="form-label"
+                      >Stay Fee <span class="text-danger">*</span></label
+                    >
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="stayFee"
+                        placeholder="0.00"
+                        [(ngModel)]="eventForm.stayFee"
+                        name="stayFee"
+                        min="0"
+                        step="0.01"
+                        required
+                        (blur)="onFieldBlur('stayFee')"
+                        [class.is-invalid]="validationErrors.stayFee"
+                      />
+                    </div>
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="validationErrors.stayFee"
+                    >
+                      {{ validationErrors.stayFee }}
+                    </div>
+                    <small class="text-muted"
+                      >Enter 0 for free accommodation</small
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- Capacity and Banner -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3">Additional Details</h6>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="capacity" class="form-label">Capacity</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="capacity"
+                      placeholder="Enter maximum capacity"
+                      [(ngModel)]="eventForm.capacity"
+                      name="capacity"
+                      min="1"
+                      (blur)="onFieldBlur('capacity')"
+                      [class.is-invalid]="validationErrors.capacity"
+                    />
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="validationErrors.capacity"
+                    >
+                      {{ validationErrors.capacity }}
+                    </div>
+                    <small class="text-muted"
+                      >Leave empty for unlimited capacity</small
+                    >
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="bannerImage" class="form-label"
+                      >Banner Image</label
+                    >
+                    <input
+                      type="file"
+                      class="form-control"
+                      id="bannerImage"
+                      (change)="onFileChange($event)"
+                      accept="image/*"
+                      name="bannerImage"
+                    />
+                    <small class="text-muted"
+                      >Upload a banner image for the event</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Sponsors & Speakers Tab -->
+          <div
+            class="tab-pane fade"
+            id="sponsors"
+            role="tabpanel"
+            aria-labelledby="sponsors-tab"
+          >
+            <!-- Sponsors Section -->
+            <div class="mb-4">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h6 class="text-primary mb-0">Sponsors</h6>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="addSponsor()"
+                >
+                  <i class="bi bi-plus-circle me-1"></i>Add Sponsor
+                </button>
+              </div>
+              <div
+                class="invalid-feedback d-block"
+                *ngIf="validationErrors.sponsors"
+              >
+                {{ validationErrors.sponsors }}
+              </div>
+
+              <div
+                *ngIf="eventForm.sponsors.length === 0"
+                class="text-center py-4 text-muted"
+              >
+                <i class="bi bi-building fs-1 mb-2"></i>
+                <p>
+                  No sponsors added yet. Click "Add Sponsor" to get started.
+                </p>
+              </div>
+
+              <div
+                *ngFor="let sponsor of eventForm.sponsors; let i = index"
+                class="card border-0 shadow-sm mb-3"
+              >
+                <div
+                  class="card-header bg-light d-flex justify-content-between align-items-center"
+                >
+                  <h6 class="mb-0">Sponsor {{ i + 1 }}</h6>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeSponsor(i)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Sponsor Name <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Enter sponsor name"
+                        [(ngModel)]="sponsor.name"
+                        [name]="'sponsorName' + i"
+                        required
+                        (blur)="onFieldBlur('sponsor_name_' + i, false, i)"
+                        [class.is-invalid]="
+                          validationErrors['sponsor_' + i + '_name']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['sponsor_' + i + '_name']"
+                      >
+                        {{ validationErrors["sponsor_" + i + "_name"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Tier <span class="text-danger">*</span></label
+                      >
+                      <ng-select
+                        [items]="sponsorTiers"
+                        bindLabel="label"
+                        bindValue="value"
+                        [(ngModel)]="sponsor.tier"
+                        [name]="'sponsorTier' + i"
+                        placeholder="Select tier"
+                        required
+                        (blur)="onFieldBlur('sponsor_tier_' + i, false, i)"
+                        [class.is-invalid]="
+                          validationErrors['sponsor_' + i + '_tier']
+                        "
+                      >
+                      </ng-select>
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['sponsor_' + i + '_tier']"
+                      >
+                        {{ validationErrors["sponsor_" + i + "_tier"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Website <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="url"
+                        class="form-control"
+                        placeholder="https://example.com"
+                        [(ngModel)]="sponsor.website"
+                        [name]="'sponsorWebsite' + i"
+                        required
+                        (blur)="onFieldBlur('sponsor_website_' + i, false, i)"
+                        [class.is-invalid]="
+                          validationErrors['sponsor_' + i + '_website']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['sponsor_' + i + '_website']"
+                      >
+                        {{ validationErrors["sponsor_" + i + "_website"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Contact Email <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="email"
+                        class="form-control"
+                        placeholder="sponsor@example.com"
+                        [(ngModel)]="sponsor.contactEmail"
+                        [name]="'sponsorEmail' + i"
+                        required
+                        (blur)="
+                          onFieldBlur('sponsor_contactEmail_' + i, false, i)
+                        "
+                        [class.is-invalid]="
+                          validationErrors['sponsor_' + i + '_contactEmail']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          validationErrors['sponsor_' + i + '_contactEmail']
+                        "
+                      >
+                        {{ validationErrors["sponsor_" + i + "_contactEmail"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Logo <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="file"
+                        class="form-control"
+                        accept="image/*"
+                        (change)="onSponsorLogoChange($event, i)"
+                        [name]="'sponsorLogo' + i"
+                        required
+                        [class.is-invalid]="
+                          validationErrors['sponsor_' + i + '_logo']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['sponsor_' + i + '_logo']"
+                      >
+                        {{ validationErrors["sponsor_" + i + "_logo"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Description <span class="text-danger">*</span></label
+                      >
+                      <textarea
+                        class="form-control"
+                        rows="2"
+                        placeholder="Brief description about the sponsor"
+                        [(ngModel)]="sponsor.description"
+                        [name]="'sponsorDesc' + i"
+                        required
+                        (blur)="
+                          onFieldBlur('sponsor_description_' + i, false, i)
+                        "
+                        [class.is-invalid]="
+                          validationErrors['sponsor_' + i + '_description']
+                        "
+                      ></textarea>
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          validationErrors['sponsor_' + i + '_description']
+                        "
+                      >
+                        {{ validationErrors["sponsor_" + i + "_description"] }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Speakers Section -->
+            <div class="mb-4">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h6 class="text-primary mb-0">Speakers</h6>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="addSpeaker()"
+                >
+                  <i class="bi bi-plus-circle me-1"></i>Add Speaker
+                </button>
+              </div>
+              <div
+                class="invalid-feedback d-block"
+                *ngIf="validationErrors.speakers"
+              >
+                {{ validationErrors.speakers }}
+              </div>
+
+              <div
+                *ngIf="eventForm.speakers.length === 0"
+                class="text-center py-4 text-muted"
+              >
+                <i class="bi bi-person-video3 fs-1 mb-2"></i>
+                <p>
+                  No speakers added yet. Click "Add Speaker" to get started.
+                </p>
+              </div>
+
+              <div
+                *ngFor="let speaker of eventForm.speakers; let i = index"
+                class="card border-0 shadow-sm mb-3"
+              >
+                <div
+                  class="card-header bg-light d-flex justify-content-between align-items-center"
+                >
+                  <h6 class="mb-0">Speaker {{ i + 1 }}</h6>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeSpeaker(i)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Speaker Name <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Enter speaker name"
+                        [(ngModel)]="speaker.name"
+                        [name]="'speakerName' + i"
+                        required
+                        (blur)="onFieldBlur('speaker_name_' + i, false, i)"
+                        [class.is-invalid]="
+                          validationErrors['speaker_' + i + '_name']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['speaker_' + i + '_name']"
+                      >
+                        {{ validationErrors["speaker_" + i + "_name"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Email <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="email"
+                        class="form-control"
+                        placeholder="speaker@example.com"
+                        [(ngModel)]="speaker.email"
+                        [name]="'speakerEmail' + i"
+                        required
+                        (blur)="onFieldBlur('speaker_email_' + i, false, i)"
+                        [class.is-invalid]="
+                          validationErrors['speaker_' + i + '_email']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['speaker_' + i + '_email']"
+                      >
+                        {{ validationErrors["speaker_" + i + "_email"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Photo <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="file"
+                        class="form-control"
+                        accept="image/*"
+                        (change)="onSpeakerPhotoChange($event, i)"
+                        [name]="'speakerPhoto' + i"
+                        required
+                        [class.is-invalid]="
+                          validationErrors['speaker_' + i + '_photo']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['speaker_' + i + '_photo']"
+                      >
+                        {{ validationErrors["speaker_" + i + "_photo"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Date <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        [(ngModel)]="speaker.date"
+                        [name]="'speakerDate' + i"
+                        required
+                        (blur)="onFieldBlur('speaker_date_' + i, false, i)"
+                        [class.is-invalid]="
+                          validationErrors['speaker_' + i + '_date']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['speaker_' + i + '_date']"
+                      >
+                        {{ validationErrors["speaker_" + i + "_date"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-12 mb-3">
+                      <label class="form-label"
+                        >Bio <span class="text-danger">*</span></label
+                      >
+                      <textarea
+                        class="form-control"
+                        rows="3"
+                        placeholder="Speaker's biography"
+                        [(ngModel)]="speaker.bio"
+                        [name]="'speakerBio' + i"
+                        required
+                        (blur)="onFieldBlur('speaker_bio_' + i, false, i)"
+                        [class.is-invalid]="
+                          validationErrors['speaker_' + i + '_bio']
+                        "
+                      ></textarea>
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['speaker_' + i + '_bio']"
+                      >
+                        {{ validationErrors["speaker_" + i + "_bio"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-12 mb-3">
+                      <label class="form-label"
+                        >Social Links
+                        <span class="text-danger"
+                          >* (at least one required)</span
+                        ></label
+                      >
+                      <div
+                        class="invalid-feedback d-block"
+                        *ngIf="
+                          validationErrors['speaker_' + i + '_socialLinks']
+                        "
+                      >
+                        {{ validationErrors["speaker_" + i + "_socialLinks"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">LinkedIn</label>
+                      <input
+                        type="url"
+                        class="form-control"
+                        placeholder="https://linkedin.com/in/username"
+                        [(ngModel)]="speaker.socialLinks.linkedin"
+                        [name]="'speakerLinkedIn' + i"
+                        (blur)="
+                          onFieldBlur('speaker_socialLinks_' + i, false, i)
+                        "
+                        [class.is-invalid]="
+                          validationErrors['speaker_' + i + '_linkedin']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['speaker_' + i + '_linkedin']"
+                      >
+                        {{ validationErrors["speaker_" + i + "_linkedin"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Twitter</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="@username"
+                        [(ngModel)]="speaker.socialLinks.twitter"
+                        [name]="'speakerTwitter' + i"
+                        (blur)="
+                          onFieldBlur('speaker_socialLinks_' + i, false, i)
+                        "
+                        [class.is-invalid]="
+                          validationErrors['speaker_' + i + '_twitter']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['speaker_' + i + '_twitter']"
+                      >
+                        {{ validationErrors["speaker_" + i + "_twitter"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Website</label>
+                      <input
+                        type="url"
+                        class="form-control"
+                        placeholder="https://website.com"
+                        [(ngModel)]="speaker.socialLinks.website"
+                        [name]="'speakerWebsite' + i"
+                        (blur)="
+                          onFieldBlur('speaker_socialLinks_' + i, false, i)
+                        "
+                        [class.is-invalid]="
+                          validationErrors['speaker_' + i + '_website']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['speaker_' + i + '_website']"
+                      >
+                        {{ validationErrors["speaker_" + i + "_website"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Instagram</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="@username"
+                        [(ngModel)]="speaker.socialLinks.instagram"
+                        [name]="'speakerInstagram' + i"
+                        (blur)="
+                          onFieldBlur('speaker_socialLinks_' + i, false, i)
+                        "
+                        [class.is-invalid]="
+                          validationErrors['speaker_' + i + '_instagram']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['speaker_' + i + '_instagram']"
+                      >
+                        {{ validationErrors["speaker_" + i + "_instagram"] }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Schedule Tab Content -->
+          <div
+            class="tab-pane fade"
+            id="schedules"
+            role="tabpanel"
+            aria-labelledby="schedules-tab"
+          >
+            <div class="mb-4">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h6 class="text-primary mb-0">Event Schedule</h6>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="addSchedule()"
+                >
+                  <i class="bi bi-plus-circle me-1"></i>Add Schedule
+                </button>
+              </div>
+
+              <div
+                *ngIf="eventForm.schedules.length === 0"
+                class="text-center py-5 text-muted"
+              >
+                <i class="bi bi-calendar-week fs-1 mb-3"></i>
+                <h6>No schedule items added</h6>
+                <p>Add schedule items to organize your event timeline</p>
+              </div>
+
+              <div
+                *ngFor="let schedule of eventForm.schedules; let i = index"
+                class="card border-0 shadow-sm mb-3"
+              >
+                <div
+                  class="card-header bg-light d-flex justify-content-between align-items-center"
+                >
+                  <h6 class="mb-0">
+                    <i class="bi bi-clock me-2"></i>Schedule {{ i + 1 }}
+                  </h6>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeSchedule(i)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-8 mb-3">
+                      <label class="form-label"
+                        >Schedule Title
+                        <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Enter schedule title"
+                        [(ngModel)]="schedule.title"
+                        [name]="'scheduleTitle' + i"
+                        required
+                        (blur)="onFieldBlur('schedule_title_' + i, false, i)"
+                        [class.is-invalid]="
+                          validationErrors['schedule_' + i + '_title']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['schedule_' + i + '_title']"
+                      >
+                        {{ validationErrors["schedule_" + i + "_title"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                      <label class="form-label">Location</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Enter location"
+                        [(ngModel)]="schedule.location"
+                        [name]="'scheduleLocation' + i"
+                      />
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-12 mb-3">
+                      <label class="form-label">Description</label>
+                      <textarea
+                        class="form-control"
+                        rows="2"
+                        placeholder="Enter schedule description"
+                        [(ngModel)]="schedule.description"
+                        [name]="'scheduleDesc' + i"
+                      ></textarea>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-3 mb-3">
+                      <label class="form-label"
+                        >Start Date <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        [(ngModel)]="schedule.startDate"
+                        [name]="'scheduleStartDate' + i"
+                        required
+                        (blur)="
+                          onFieldBlur('schedule_startDate_' + i, false, i)
+                        "
+                        [class.is-invalid]="
+                          validationErrors['schedule_' + i + '_startDate']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['schedule_' + i + '_startDate']"
+                      >
+                        {{ validationErrors["schedule_" + i + "_startDate"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <label class="form-label"
+                        >Start Time <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="time"
+                        class="form-control"
+                        [(ngModel)]="schedule.startTime"
+                        [name]="'scheduleStartTime' + i"
+                        required
+                        (blur)="
+                          onFieldBlur('schedule_startTime_' + i, false, i)
+                        "
+                        [class.is-invalid]="
+                          validationErrors['schedule_' + i + '_startTime']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['schedule_' + i + '_startTime']"
+                      >
+                        {{ validationErrors["schedule_" + i + "_startTime"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <label class="form-label"
+                        >End Date <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        [(ngModel)]="schedule.endDate"
+                        [name]="'scheduleEndDate' + i"
+                        required
+                        (blur)="onFieldBlur('schedule_endDate_' + i, false, i)"
+                        [class.is-invalid]="
+                          validationErrors['schedule_' + i + '_endDate']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['schedule_' + i + '_endDate']"
+                      >
+                        {{ validationErrors["schedule_" + i + "_endDate"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <label class="form-label"
+                        >End Time <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="time"
+                        class="form-control"
+                        [(ngModel)]="schedule.endTime"
+                        [name]="'scheduleEndTime' + i"
+                        required
+                        (blur)="onFieldBlur('schedule_endTime_' + i, false, i)"
+                        [class.is-invalid]="
+                          validationErrors['schedule_' + i + '_endTime']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="validationErrors['schedule_' + i + '_endTime']"
+                      >
+                        {{ validationErrors["schedule_" + i + "_endTime"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Assign Speaker</label>
+                      <ng-select
+                        [items]="getAvailableSpeakers()"
+                        bindLabel="name"
+                        bindValue="name"
+                        [(ngModel)]="schedule.speakerId"
+                        [name]="'scheduleSpeaker' + i"
+                        placeholder="Select a speaker (optional)"
+                        [clearable]="true"
+                      >
+                      </ng-select>
+                      <small class="text-muted"
+                        >Assign a speaker to this schedule item</small
+                      >
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Duration</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        [value]="calculateScheduleDuration(schedule)"
+                        readonly
+                        placeholder="Duration will be calculated"
+                      />
+                      <small class="text-muted"
+                        >Automatically calculated from start and end
+                        times</small
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary rounded-pill"
+          data-bs-dismiss="modal"
+        >
+          <i class="bi bi-x-circle me-1"></i>Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary rounded-pill"
+          (click)="createEvent()"
+          [disabled]="loading || !validateForm()"
+        >
+          <span
+            *ngIf="loading"
+            class="spinner-border spinner-border-sm me-2"
+            role="status"
+          ></span>
+          <i *ngIf="!loading" class="bi bi-save me-1"></i>
+          {{ loading ? "Creating..." : "Create Event" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Event Modal -->
+<div
+  class="modal fade"
+  id="editEventModal"
+  tabindex="-1"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
+  role="dialog"
+  aria-labelledby="editEventModalTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="editEventModalTitle">
+          <i class="bi bi-pencil-square me-2"></i>Edit Event
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body p-0">
+        <!-- Tab Navigation -->
+        <ul
+          class="nav nav-tabs nav-fill border-0 bg-light"
+          id="editEventTabs"
+          role="tablist"
+        >
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link active fw-semibold"
+              id="edit-basic-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#edit-basic"
+              type="button"
+              role="tab"
+              aria-controls="edit-basic"
+              aria-selected="true"
+            >
+              <i class="bi bi-info-circle me-2"></i>Basic Information
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link fw-semibold"
+              id="edit-location-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#edit-location"
+              type="button"
+              role="tab"
+              aria-controls="edit-location"
+              aria-selected="false"
+            >
+              <i class="bi bi-geo-alt me-2"></i>Location Details
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link fw-semibold"
+              id="edit-details-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#edit-details"
+              type="button"
+              role="tab"
+              aria-controls="edit-details"
+              aria-selected="false"
+            >
+              <i class="bi bi-gear me-2"></i>Event Details
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link fw-semibold"
+              id="edit-sponsors-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#edit-sponsors"
+              type="button"
+              role="tab"
+              aria-controls="edit-sponsors"
+              aria-selected="false"
+            >
+              <i class="bi bi-people me-2"></i>Sponsors & Speakers
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link fw-semibold"
+              id="edit-schedules-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#edit-schedules"
+              type="button"
+              role="tab"
+              aria-controls="edit-schedules"
+              aria-selected="false"
+            >
+              <i class="bi bi-calendar-week me-2"></i>Event Schedule
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content p-4" id="editEventTabContent">
+          <!-- Basic Information Tab -->
+          <div
+            class="tab-pane fade show active"
+            id="edit-basic"
+            role="tabpanel"
+            aria-labelledby="edit-basic-tab"
+          >
+            <form>
+              <div class="row">
+                <div class="col-md-8 mb-3">
+                  <label for="editTitle" class="form-label"
+                    >Event Title <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="editTitle"
+                    placeholder="Enter event title"
+                    [(ngModel)]="editEventForm.title"
+                    name="editTitle"
+                    required
+                    (blur)="onFieldBlur('title', true)"
+                    [class.is-invalid]="editValidationErrors.title"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="editValidationErrors.title"
+                  >
+                    {{ editValidationErrors.title }}
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="editEventType" class="form-label"
+                    >Event Type <span class="text-danger">*</span></label
+                  >
+                  <ng-select
+                    id="editEventType"
+                    [items]="eventTypes"
+                    bindLabel="label"
+                    bindValue="value"
+                    placeholder="Select event type"
+                    [(ngModel)]="editEventForm.eventType"
+                    name="editEventType"
+                    required
+                    (blur)="onFieldBlur('eventType', true)"
+                    [class.is-invalid]="editValidationErrors.eventType"
+                  >
+                  </ng-select>
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="editValidationErrors.eventType"
+                  >
+                    {{ editValidationErrors.eventType }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="editDescription" class="form-label"
+                    >Description <span class="text-danger">*</span></label
+                  >
+                  <textarea
+                    class="form-control"
+                    id="editDescription"
+                    rows="4"
+                    placeholder="Enter event description"
+                    [(ngModel)]="editEventForm.description"
+                    name="editDescription"
+                    required
+                    (blur)="onFieldBlur('description', true)"
+                    [class.is-invalid]="editValidationErrors.description"
+                  ></textarea>
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="editValidationErrors.description"
+                  >
+                    {{ editValidationErrors.description }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-3 mb-3">
+                  <label for="editStartDate" class="form-label"
+                    >Start Date <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="editStartDate"
+                    [(ngModel)]="editEventForm.startDate"
+                    name="editStartDate"
+                    required
+                    (blur)="onFieldBlur('startDate', true)"
+                    [class.is-invalid]="editValidationErrors.startDate"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="editValidationErrors.startDate"
+                  >
+                    {{ editValidationErrors.startDate }}
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="editStartTime" class="form-label"
+                    >Start Time <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="time"
+                    class="form-control"
+                    id="editStartTime"
+                    [(ngModel)]="editEventForm.startTime"
+                    name="editStartTime"
+                    required
+                    (blur)="onFieldBlur('startTime', true)"
+                    [class.is-invalid]="editValidationErrors.startTime"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="editValidationErrors.startTime"
+                  >
+                    {{ editValidationErrors.startTime }}
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="editEndDate" class="form-label"
+                    >End Date <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="editEndDate"
+                    [(ngModel)]="editEventForm.endDate"
+                    name="editEndDate"
+                    required
+                    (blur)="onFieldBlur('endDate', true)"
+                    [class.is-invalid]="editValidationErrors.endDate"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="editValidationErrors.endDate"
+                  >
+                    {{ editValidationErrors.endDate }}
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="editEndTime" class="form-label"
+                    >End Time <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="time"
+                    class="form-control"
+                    id="editEndTime"
+                    [(ngModel)]="editEventForm.endTime"
+                    name="editEndTime"
+                    required
+                    (blur)="onFieldBlur('endTime', true)"
+                    [class.is-invalid]="editValidationErrors.endTime"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="editValidationErrors.endTime"
+                  >
+                    {{ editValidationErrors.endTime }}
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Location Details Tab -->
+          <div
+            class="tab-pane fade"
+            id="edit-location"
+            role="tabpanel"
+            aria-labelledby="edit-location-tab"
+          >
+            <form>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="editLocation" class="form-label"
+                    >Location <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="editLocation"
+                    placeholder="Enter location"
+                    [(ngModel)]="editEventForm.location"
+                    name="editLocation"
+                    required
+                    (blur)="onFieldBlur('location', true)"
+                    [class.is-invalid]="editValidationErrors.location"
+                  />
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="editValidationErrors.location"
+                  >
+                    {{ editValidationErrors.location }}
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="editVenue" class="form-label">Venue</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="editVenue"
+                    placeholder="Enter venue name"
+                    [(ngModel)]="editEventForm.venue"
+                    name="editVenue"
+                    (blur)="onFieldBlur('venue', true)"
+                  />
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="editMapUrl" class="form-label">Map URL</label>
+                  <div class="input-group">
+                    <input
+                      type="url"
+                      class="form-control"
+                      id="editMapUrl"
+                      placeholder="Enter map URL or search location"
+                      [(ngModel)]="editEventForm.mapUrl"
+                      name="editMapUrl"
+                      (blur)="onFieldBlur('mapUrl', true)"
+                    />
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary"
+                      (click)="openGoogleMapsSearch()"
+                    >
+                      <i class="bi bi-search me-1"></i>Search on Maps
+                    </button>
+                  </div>
+                  <small class="text-muted"
+                    >You can paste a Google Maps URL or use the search button to
+                    find a location</small
+                  >
+                </div>
+              </div>
+
+              <!-- Map Preview -->
+              <div class="row" *ngIf="editEventForm.mapUrl">
+                <div class="col-12">
+                  <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                      <h6 class="card-title">Map Preview</h6>
+                      <div class="ratio ratio-16x9">
+                        <!-- <iframe
+                          [src]="getEmbedMapUrl(editEventForm.mapUrl)"
+                          style="border: 0"
+                          allowfullscreen=""
+                          loading="lazy"
+                          referrerpolicy="no-referrer-when-downgrade"
+                        >
+                        </iframe> -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Event Details Tab -->
+          <div
+            class="tab-pane fade"
+            id="edit-details"
+            role="tabpanel"
+            aria-labelledby="edit-details-tab"
+          >
+            <form>
+              <!-- Pricing Section -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3">Pricing Information</h6>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Event Type</label>
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="radio"
+                        name="editPaidType"
+                        id="editFreeEvent"
+                        [value]="false"
+                        [(ngModel)]="editEventForm.isPaid"
+                        (change)="onEditPaidTypeChange()"
+                      />
+                      <label class="form-check-label" for="editFreeEvent">
+                        <i class="bi bi-gift me-2 text-success"></i>Free Event
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="radio"
+                        name="editPaidType"
+                        id="editPaidEvent"
+                        [value]="true"
+                        [(ngModel)]="editEventForm.isPaid"
+                        (change)="onEditPaidTypeChange()"
+                      />
+                      <label class="form-check-label" for="editPaidEvent">
+                        <i class="bi bi-currency-dollar me-2 text-warning"></i
+                        >Paid Event
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3" *ngIf="editEventForm.isPaid">
+                    <label for="editTicketPrice" class="form-label"
+                      >Ticket Price <span class="text-danger">*</span></label
+                    >
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="editTicketPrice"
+                        placeholder="0.00"
+                        [(ngModel)]="editEventForm.ticketPrice"
+                        name="editTicketPrice"
+                        min="0.01"
+                        step="0.01"
+                        required
+                        (blur)="onFieldBlur('ticketPrice', true)"
+                        [class.is-invalid]="editValidationErrors.ticketPrice"
+                      />
+                    </div>
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="editValidationErrors.ticketPrice"
+                    >
+                      {{ editValidationErrors.ticketPrice }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stay Option Section -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3">Accommodation</h6>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="editStayOption"
+                        [(ngModel)]="editEventForm.stayOption"
+                        name="editStayOption"
+                        (change)="onEditStayOptionChange()"
+                      />
+                      <label class="form-check-label" for="editStayOption">
+                        <i class="bi bi-house me-2 text-info"></i>Accommodation
+                        Available
+                      </label>
+                    </div>
+                    <small class="text-muted"
+                      >Check if you provide accommodation for attendees</small
+                    >
+                  </div>
+                  <div class="col-md-6 mb-3" *ngIf="editEventForm.stayOption">
+                    <label for="editStayFee" class="form-label"
+                      >Stay Fee <span class="text-danger">*</span></label
+                    >
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="editStayFee"
+                        placeholder="0.00"
+                        [(ngModel)]="editEventForm.stayFee"
+                        name="editStayFee"
+                        min="0"
+                        step="0.01"
+                        required
+                        (blur)="onFieldBlur('stayFee', true)"
+                        [class.is-invalid]="editValidationErrors.stayFee"
+                      />
+                    </div>
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="editValidationErrors.stayFee"
+                    >
+                      {{ editValidationErrors.stayFee }}
+                    </div>
+                    <small class="text-muted"
+                      >Enter 0 for free accommodation</small
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- Capacity and Banner -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3">Additional Details</h6>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="editCapacity" class="form-label"
+                      >Capacity</label
+                    >
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="editCapacity"
+                      placeholder="Enter maximum capacity"
+                      [(ngModel)]="editEventForm.capacity"
+                      name="editCapacity"
+                      min="1"
+                      (blur)="onFieldBlur('capacity', true)"
+                      [class.is-invalid]="editValidationErrors.capacity"
+                    />
+                    <div
+                      class="invalid-feedback"
+                      *ngIf="editValidationErrors.capacity"
+                    >
+                      {{ editValidationErrors.capacity }}
+                    </div>
+                    <small class="text-muted"
+                      >Leave empty for unlimited capacity</small
+                    >
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="editBannerImage" class="form-label"
+                      >Banner Image</label
+                    >
+                    <input
+                      type="file"
+                      class="form-control"
+                      id="editBannerImage"
+                      (change)="onEditFileChange($event)"
+                      accept="image/*"
+                      name="editBannerImage"
+                    />
+                    <small class="text-muted"
+                      >Upload a new banner image for the event</small
+                    >
+                    <div
+                      *ngIf="selectedEvent && selectedEvent.bannerImage"
+                      class="mt-2"
+                    >
+                      <small class="text-muted"
+                        >Current image:
+                        {{ getFileName(selectedEvent.bannerImage) }}</small
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Edit Sponsors & Speakers Tab -->
+          <div
+            class="tab-pane fade"
+            id="edit-sponsors"
+            role="tabpanel"
+            aria-labelledby="edit-sponsors-tab"
+          >
+            <!-- Sponsors Section -->
+            <div class="mb-4">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h6 class="text-primary mb-0">Sponsors</h6>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="addEditSponsor()"
+                >
+                  <i class="bi bi-plus-circle me-1"></i>Add Sponsor
+                </button>
+              </div>
+              <div
+                class="invalid-feedback d-block"
+                *ngIf="editValidationErrors.sponsors"
+              >
+                {{ editValidationErrors.sponsors }}
+              </div>
+
+              <div
+                *ngIf="
+                  editEventForm?.sponsors && editEventForm.sponsors.length === 0
+                "
+                class="text-center py-4 text-muted"
+              >
+                <i class="bi bi-building fs-1 mb-2"></i>
+                <p>
+                  No sponsors added yet. Click "Add Sponsor" to get started.
+                </p>
+              </div>
+
+              <div
+                *ngFor="let sponsor of editEventForm.sponsors; let i = index"
+                class="card border-0 shadow-sm mb-3"
+              >
+                <div
+                  class="card-header bg-light d-flex justify-content-between align-items-center"
+                >
+                  <h6 class="mb-0">Sponsor {{ i + 1 }}</h6>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeEditSponsor(i)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Sponsor Name <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Enter sponsor name"
+                        [(ngModel)]="sponsor.name"
+                        [name]="'editSponsorName' + i"
+                        required
+                        (blur)="onFieldBlur('sponsor_name_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['sponsor_' + i + '_name']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="editValidationErrors['sponsor_' + i + '_name']"
+                      >
+                        {{ editValidationErrors["sponsor_" + i + "_name"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Tier <span class="text-danger">*</span></label
+                      >
+                      <ng-select
+                        [items]="sponsorTiers"
+                        bindLabel="label"
+                        bindValue="value"
+                        [(ngModel)]="sponsor.tier"
+                        [name]="'editSponsorTier' + i"
+                        placeholder="Select tier"
+                        required
+                        (blur)="onFieldBlur('sponsor_tier_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['sponsor_' + i + '_tier']
+                        "
+                      >
+                      </ng-select>
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="editValidationErrors['sponsor_' + i + '_tier']"
+                      >
+                        {{ editValidationErrors["sponsor_" + i + "_tier"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Website <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="url"
+                        class="form-control"
+                        placeholder="https://example.com"
+                        [(ngModel)]="sponsor.website"
+                        [name]="'editSponsorWebsite' + i"
+                        required
+                        (blur)="onFieldBlur('sponsor_website_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['sponsor_' + i + '_website']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['sponsor_' + i + '_website']
+                        "
+                      >
+                        {{ editValidationErrors["sponsor_" + i + "_website"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Contact Email <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="email"
+                        class="form-control"
+                        placeholder="sponsor@example.com"
+                        [(ngModel)]="sponsor.contactEmail"
+                        [name]="'editSponsorEmail' + i"
+                        required
+                        (blur)="
+                          onFieldBlur('sponsor_contactEmail_' + i, true, i)
+                        "
+                        [class.is-invalid]="
+                          editValidationErrors['sponsor_' + i + '_contactEmail']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['sponsor_' + i + '_contactEmail']
+                        "
+                      >
+                        {{
+                          editValidationErrors["sponsor_" + i + "_contactEmail"]
+                        }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Logo <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="file"
+                        class="form-control"
+                        accept="image/*"
+                        (change)="onEditSponsorLogoChange($event, i)"
+                        [name]="'editSponsorLogo' + i"
+                        [required]="!sponsor.logo"
+                        [class.is-invalid]="
+                          editValidationErrors['sponsor_' + i + '_logo']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="editValidationErrors['sponsor_' + i + '_logo']"
+                      >
+                        {{ editValidationErrors["sponsor_" + i + "_logo"] }}
+                      </div>
+                      <div *ngIf="sponsor.logo" class="mt-1">
+                        <small class="text-muted"
+                          >Current logo: {{ getFileName(sponsor.logo) }}</small
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Description <span class="text-danger">*</span></label
+                      >
+                      <textarea
+                        class="form-control"
+                        rows="2"
+                        placeholder="Brief description about the sponsor"
+                        [(ngModel)]="sponsor.description"
+                        [name]="'editSponsorDesc' + i"
+                        required
+                        (blur)="
+                          onFieldBlur('sponsor_description_' + i, true, i)
+                        "
+                        [class.is-invalid]="
+                          editValidationErrors['sponsor_' + i + '_description']
+                        "
+                      ></textarea>
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['sponsor_' + i + '_description']
+                        "
+                      >
+                        {{
+                          editValidationErrors["sponsor_" + i + "_description"]
+                        }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Speakers Section -->
+            <div class="mb-4">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h6 class="text-primary mb-0">Speakers</h6>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="addEditSpeaker()"
+                >
+                  <i class="bi bi-plus-circle me-1"></i>Add Speaker
+                </button>
+              </div>
+              <div
+                class="invalid-feedback d-block"
+                *ngIf="editValidationErrors.speakers"
+              >
+                {{ editValidationErrors.speakers }}
+              </div>
+
+              <div
+                *ngIf="editEventForm.speakers.length === 0"
+                class="text-center py-4 text-muted"
+              >
+                <i class="bi bi-person-video3 fs-1 mb-2"></i>
+                <p>
+                  No speakers added yet. Click "Add Speaker" to get started.
+                </p>
+              </div>
+
+              <div
+                *ngFor="let speaker of editEventForm.speakers; let i = index"
+                class="card border-0 shadow-sm mb-3"
+              >
+                <div
+                  class="card-header bg-light d-flex justify-content-between align-items-center"
+                >
+                  <h6 class="mb-0">Speaker {{ i + 1 }}</h6>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeEditSpeaker(i)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Speaker Name <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Enter speaker name"
+                        [(ngModel)]="speaker.name"
+                        [name]="'editSpeakerName' + i"
+                        required
+                        (blur)="onFieldBlur('speaker_name_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['speaker_' + i + '_name']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="editValidationErrors['speaker_' + i + '_name']"
+                      >
+                        {{ editValidationErrors["speaker_" + i + "_name"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Email <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="email"
+                        class="form-control"
+                        placeholder="speaker@example.com"
+                        [(ngModel)]="speaker.email"
+                        [name]="'editSpeakerEmail' + i"
+                        required
+                        (blur)="onFieldBlur('speaker_email_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['speaker_' + i + '_email']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="editValidationErrors['speaker_' + i + '_email']"
+                      >
+                        {{ editValidationErrors["speaker_" + i + "_email"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Photo <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="file"
+                        class="form-control"
+                        accept="image/*"
+                        (change)="onEditSpeakerPhotoChange($event, i)"
+                        [name]="'editSpeakerPhoto' + i"
+                        [required]="!speaker.photo"
+                        [class.is-invalid]="
+                          editValidationErrors['speaker_' + i + '_photo']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="editValidationErrors['speaker_' + i + '_photo']"
+                      >
+                        {{ editValidationErrors["speaker_" + i + "_photo"] }}
+                      </div>
+                      <div *ngIf="speaker.photo" class="mt-1">
+                        <small class="text-muted"
+                          >Current photo:
+                          {{ getFileName(speaker.photo) }}</small
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"
+                        >Date <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        [(ngModel)]="speaker.date"
+                        [name]="'editSpeakerDate' + i"
+                        required
+                        (blur)="onFieldBlur('speaker_date_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['speaker_' + i + '_date']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="editValidationErrors['speaker_' + i + '_date']"
+                      >
+                        {{ editValidationErrors["speaker_" + i + "_date"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-12 mb-3">
+                      <label class="form-label"
+                        >Bio <span class="text-danger">*</span></label
+                      >
+                      <textarea
+                        class="form-control"
+                        rows="3"
+                        placeholder="Speaker's biography"
+                        [(ngModel)]="speaker.bio"
+                        [name]="'editSpeakerBio' + i"
+                        required
+                        (blur)="onFieldBlur('speaker_bio_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['speaker_' + i + '_bio']
+                        "
+                      ></textarea>
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="editValidationErrors['speaker_' + i + '_bio']"
+                      >
+                        {{ editValidationErrors["speaker_" + i + "_bio"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-12 mb-3">
+                      <label class="form-label"
+                        >Social Links
+                        <span class="text-danger"
+                          >* (at least one required)</span
+                        ></label
+                      >
+                      <div
+                        class="invalid-feedback d-block"
+                        *ngIf="
+                          editValidationErrors['speaker_' + i + '_socialLinks']
+                        "
+                      >
+                        {{
+                          editValidationErrors["speaker_" + i + "_socialLinks"]
+                        }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">LinkedIn</label>
+                      <input
+                        type="url"
+                        class="form-control"
+                        placeholder="https://linkedin.com/in/username"
+                        [(ngModel)]="speaker.socialLinks.linkedin"
+                        [name]="'editSpeakerLinkedIn' + i"
+                        (blur)="
+                          onFieldBlur('speaker_socialLinks_' + i, true, i)
+                        "
+                        [class.is-invalid]="
+                          editValidationErrors['speaker_' + i + '_linkedin']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['speaker_' + i + '_linkedin']
+                        "
+                      >
+                        {{ editValidationErrors["speaker_" + i + "_linkedin"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Twitter</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="@username"
+                        [(ngModel)]="speaker.socialLinks.twitter"
+                        [name]="'editSpeakerTwitter' + i"
+                        (blur)="
+                          onFieldBlur('speaker_socialLinks_' + i, true, i)
+                        "
+                        [class.is-invalid]="
+                          editValidationErrors['speaker_' + i + '_twitter']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['speaker_' + i + '_twitter']
+                        "
+                      >
+                        {{ editValidationErrors["speaker_" + i + "_twitter"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Website</label>
+                      <input
+                        type="url"
+                        class="form-control"
+                        placeholder="https://website.com"
+                        [(ngModel)]="speaker.socialLinks.website"
+                        [name]="'editSpeakerWebsite' + i"
+                        (blur)="
+                          onFieldBlur('speaker_socialLinks_' + i, true, i)
+                        "
+                        [class.is-invalid]="
+                          editValidationErrors['speaker_' + i + '_website']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['speaker_' + i + '_website']
+                        "
+                      >
+                        {{ editValidationErrors["speaker_" + i + "_website"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Instagram</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="@username"
+                        [(ngModel)]="speaker.socialLinks.instagram"
+                        [name]="'editSpeakerInstagram' + i"
+                        (blur)="
+                          onFieldBlur('speaker_socialLinks_' + i, true, i)
+                        "
+                        [class.is-invalid]="
+                          editValidationErrors['speaker_' + i + '_instagram']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['speaker_' + i + '_instagram']
+                        "
+                      >
+                        {{
+                          editValidationErrors["speaker_" + i + "_instagram"]
+                        }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit Schedule Tab Content -->
+          <div
+            class="tab-pane fade"
+            id="edit-schedules"
+            role="tabpanel"
+            aria-labelledby="edit-schedules-tab"
+          >
+            <div class="mb-4">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h6 class="text-primary mb-0">Event Schedule</h6>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="addEditSchedule()"
+                >
+                  <i class="bi bi-plus-circle me-1"></i>Add Schedule
+                </button>
+              </div>
+
+              <div
+                *ngIf="editEventForm.schedules.length === 0"
+                class="text-center py-5 text-muted"
+              >
+                <i class="bi bi-calendar-week fs-1 mb-3"></i>
+                <h6>No schedule items added</h6>
+                <p>Add schedule items to organize your event timeline</p>
+              </div>
+
+              <div
+                *ngFor="let schedule of editEventForm.schedules; let i = index"
+                class="card border-0 shadow-sm mb-3"
+              >
+                <div
+                  class="card-header bg-light d-flex justify-content-between align-items-center"
+                >
+                  <h6 class="mb-0">
+                    <i class="bi bi-clock me-2"></i>Schedule {{ i + 1 }}
+                  </h6>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeEditSchedule(i)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-8 mb-3">
+                      <label class="form-label"
+                        >Schedule Title
+                        <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Enter schedule title"
+                        [(ngModel)]="schedule.title"
+                        [name]="'editScheduleTitle' + i"
+                        required
+                        (blur)="onFieldBlur('schedule_title_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['schedule_' + i + '_title']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="editValidationErrors['schedule_' + i + '_title']"
+                      >
+                        {{ editValidationErrors["schedule_" + i + "_title"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                      <label class="form-label">Location</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Enter location"
+                        [(ngModel)]="schedule.location"
+                        [name]="'editScheduleLocation' + i"
+                      />
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-12 mb-3">
+                      <label class="form-label">Description</label>
+                      <textarea
+                        class="form-control"
+                        rows="2"
+                        placeholder="Enter schedule description"
+                        [(ngModel)]="schedule.description"
+                        [name]="'editScheduleDesc' + i"
+                      ></textarea>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-3 mb-3">
+                      <label class="form-label"
+                        >Start Date <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        [(ngModel)]="schedule.startDate"
+                        [name]="'editScheduleStartDate' + i"
+                        required
+                        (blur)="onFieldBlur('schedule_startDate_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['schedule_' + i + '_startDate']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['schedule_' + i + '_startDate']
+                        "
+                      >
+                        {{
+                          editValidationErrors["schedule_" + i + "_startDate"]
+                        }}
+                      </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <label class="form-label"
+                        >Start Time <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="time"
+                        class="form-control"
+                        [(ngModel)]="schedule.startTime"
+                        [name]="'editScheduleStartTime' + i"
+                        required
+                        (blur)="onFieldBlur('schedule_startTime_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['schedule_' + i + '_startTime']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['schedule_' + i + '_startTime']
+                        "
+                      >
+                        {{
+                          editValidationErrors["schedule_" + i + "_startTime"]
+                        }}
+                      </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <label class="form-label"
+                        >End Date <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        [(ngModel)]="schedule.endDate"
+                        [name]="'editScheduleEndDate' + i"
+                        required
+                        (blur)="onFieldBlur('schedule_endDate_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['schedule_' + i + '_endDate']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['schedule_' + i + '_endDate']
+                        "
+                      >
+                        {{ editValidationErrors["schedule_" + i + "_endDate"] }}
+                      </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <label class="form-label"
+                        >End Time <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="time"
+                        class="form-control"
+                        [(ngModel)]="schedule.endTime"
+                        [name]="'editScheduleEndTime' + i"
+                        required
+                        (blur)="onFieldBlur('schedule_endTime_' + i, true, i)"
+                        [class.is-invalid]="
+                          editValidationErrors['schedule_' + i + '_endTime']
+                        "
+                      />
+                      <div
+                        class="invalid-feedback"
+                        *ngIf="
+                          editValidationErrors['schedule_' + i + '_endTime']
+                        "
+                      >
+                        {{ editValidationErrors["schedule_" + i + "_endTime"] }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Assign Speaker</label>
+                      <ng-select
+                        [items]="getEditAvailableSpeakers()"
+                        bindLabel="name"
+                        bindValue="name"
+                        [(ngModel)]="schedule.speakerId"
+                        [name]="'editScheduleSpeaker' + i"
+                        placeholder="Select a speaker (optional)"
+                        [clearable]="true"
+                      >
+                      </ng-select>
+                      <small class="text-muted"
+                        >Assign a speaker to this schedule item</small
+                      >
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Duration</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        [value]="calculateEditScheduleDuration(schedule)"
+                        readonly
+                        placeholder="Duration will be calculated"
+                      />
+                      <small class="text-muted"
+                        >Automatically calculated from start and end
+                        times</small
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary rounded-pill"
+          (click)="closeEditModal()"
+        >
+          <i class="bi bi-x-circle me-1"></i>Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary rounded-pill"
+          (click)="updateEvent()"
+          [disabled]="editLoading || !validateEditForm()"
+        >
+          <span
+            *ngIf="editLoading"
+            class="spinner-border spinner-border-sm me-2"
+            role="status"
+          ></span>
+          <i *ngIf="!editLoading" class="bi bi-save me-1"></i>
+          {{ editLoading ? "Updating..." : "Update Event" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Event Modal -->
+<div
+  class="modal fade"
+  id="viewEventModal"
+  tabindex="-1"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
+  role="dialog"
+  aria-labelledby="viewEventModalTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-gradient-primary text-white">
+        <h5 class="modal-title" id="viewEventModalTitle">
+          <i class="bi bi-calendar-event me-2"></i>Event Details
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <div class="modal-body p-0" *ngIf="selectedEvent">
+        <!-- Event Banner -->
+        <div *ngIf="selectedEvent.bannerImage" class="position-relative">
+          <img
+            [src]="imageurl + selectedEvent.bannerImage"
+            class="w-100"
+            style="height: 250px; object-fit: cover"
+            alt="Event Banner"
+          />
+          <div
+            class="position-absolute top-0 start-0 w-100 h-100"
+            style="
+              background: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 0.7) 100%
+              );
+            "
+          ></div>
+        </div>
+
+        <div class="p-4">
+          <!-- Event Header -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h3 class="fw-bold text-primary mb-3">
+                {{ selectedEvent.title }}
+              </h3>
+              <p class="lead text-muted mb-3">
+                {{ selectedEvent.description }}
+              </p>
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <span
+                  class="badge bg-info bg-opacity-10 text-info px-3 py-2 fs-6"
+                >
+                  {{ selectedEvent.eventType | titlecase }}
+                </span>
+                <span
+                  class="badge px-3 py-2 fs-6"
+                  [ngClass]="
+                    selectedEvent.isActive ? 'bg-success' : 'bg-secondary'
+                  "
+                >
+                  {{ selectedEvent.isActive ? "Active" : "Inactive" }}
+                </span>
+                <span
+                  *ngIf="selectedEvent.capacity"
+                  class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 fs-6"
+                >
+                  <i class="bi bi-people-fill me-1"></i
+                  >{{ selectedEvent.capacity }} Capacity
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Event Info -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3 text-primary">
+                    <i class="bi bi-calendar-event me-2"></i>Date & Time
+                  </h6>
+                  <div class="mb-3">
+                    <strong class="text-success">Start:</strong>
+                    <div class="ms-3">
+                      {{
+                        formatDateTime(
+                          selectedEvent.startDate,
+                          selectedEvent.startTime
+                        )
+                      }}
+                    </div>
+                  </div>
+                  <div>
+                    <strong class="text-danger">End:</strong>
+                    <div class="ms-3">
+                      {{
+                        formatDateTime(
+                          selectedEvent.endDate,
+                          selectedEvent.endTime
+                        )
+                      }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3 text-primary">
+                    <i class="bi bi-geo-alt me-2"></i>Location
+                  </h6>
+                  <div class="mb-2">
+                    <strong>Location:</strong>
+                    {{ selectedEvent.location || "N/A" }}
+                  </div>
+                  <div class="mb-3" *ngIf="selectedEvent.venue">
+                    <strong>Venue:</strong> {{ selectedEvent.venue }}
+                  </div>
+                  <div *ngIf="selectedEvent.mapUrl">
+                    <a
+                      [href]="selectedEvent.mapUrl"
+                      target="_blank"
+                      class="btn btn-sm btn-outline-primary"
+                    >
+                      <i class="bi bi-map me-1"></i>View Map
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sponsors Section -->
+          <div
+            class="row mb-4"
+            *ngIf="selectedEvent.sponsors && selectedEvent.sponsors.length > 0"
+          >
+            <div class="col-12">
+              <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3 text-primary">
+                    <i class="bi bi-building me-2"></i>Event Sponsors
+                  </h6>
+                  <div class="row">
+                    <div
+                      class="col-md-6 mb-3"
+                      *ngFor="let sponsor of selectedEvent.sponsors"
+                    >
+                      <div
+                        class="d-flex align-items-center p-3 border rounded-3"
+                      >
+                        <div class="me-3" *ngIf="sponsor.logo">
+                          <img
+                            [src]="sponsor.logo"
+                            class="rounded"
+                            width="40"
+                            height="40"
+                            style="object-fit: cover"
+                            alt="Sponsor Logo"
+                          />
+                        </div>
+                        <div class="flex-grow-1">
+                          <h6 class="mb-1">{{ sponsor.name }}</h6>
+                          <small class="text-muted"
+                            >{{ sponsor.tier | titlecase }} Sponsor</small
+                          >
+                          <div *ngIf="sponsor.website">
+                            <a
+                              [href]="sponsor.website"
+                              target="_blank"
+                              class="small text-decoration-none"
+                            >
+                              <i class="bi bi-link-45deg me-1"></i>Visit Website
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Speakers Section -->
+          <div
+            class="row mb-4"
+            *ngIf="selectedEvent.speakers && selectedEvent.speakers.length > 0"
+          >
+            <div class="col-12">
+              <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3 text-primary">
+                    <i class="bi bi-person-video3 me-2"></i>Event Speakers
+                  </h6>
+                  <div class="row">
+                    <div
+                      class="col-lg-6 mb-3"
+                      *ngFor="let speaker of selectedEvent.speakers"
+                    >
+                      <div class="d-flex p-3 border rounded-3">
+                        <div class="me-3" *ngIf="speaker.photo">
+                          <img
+                            [src]="speaker.photo"
+                            class="rounded-circle"
+                            width="50"
+                            height="50"
+                            style="object-fit: cover"
+                            alt="Speaker Photo"
+                          />
+                        </div>
+                        <div class="flex-grow-1">
+                          <h6 class="mb-1">{{ speaker.name }}</h6>
+                          <p class="small text-muted mb-2" *ngIf="speaker.bio">
+                            {{ speaker.bio | slice : 0 : 100
+                            }}<span
+                              *ngIf="speaker.bio && speaker.bio.length > 100"
+                              >...</span
+                            >
+                          </p>
+                          <div class="d-flex gap-2">
+                            <a
+                              *ngIf="
+                                speaker.socialLinks &&
+                                speaker.socialLinks.linkedin
+                              "
+                              [href]="speaker.socialLinks.linkedin"
+                              target="_blank"
+                              class="btn btn-sm btn-outline-primary"
+                            >
+                              <i class="bi bi-linkedin"></i>
+                            </a>
+                            <a
+                              *ngIf="
+                                speaker.socialLinks &&
+                                speaker.socialLinks.twitter
+                              "
+                              [href]="speaker.socialLinks.twitter"
+                              target="_blank"
+                              class="btn btn-sm btn-outline-info"
+                            >
+                              <i class="bi bi-twitter"></i>
+                            </a>
+                            <a
+                              *ngIf="
+                                speaker.socialLinks &&
+                                speaker.socialLinks.website
+                              "
+                              [href]="speaker.socialLinks.website"
+                              target="_blank"
+                              class="btn btn-sm btn-outline-secondary"
+                            >
+                              <i class="bi bi-globe"></i>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Schedule Section -->
+          <div
+            class="row"
+            *ngIf="
+              selectedEvent.schedules && selectedEvent.schedules.length > 0
+            "
+          >
+            <div class="col-12">
+              <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3 text-primary">
+                    <i class="bi bi-calendar-week me-2"></i>Event Schedule
+                  </h6>
+                  <div class="timeline">
+                    <div
+                      class="timeline-item mb-4"
+                      *ngFor="
+                        let schedule of selectedEvent.schedules;
+                        let last = last
+                      "
+                    >
+                      <div class="d-flex">
+                        <div class="flex-shrink-0 me-3">
+                          <div class="timeline-marker bg-primary"></div>
+                          <div *ngIf="!last" class="timeline-line"></div>
+                        </div>
+                        <div class="flex-grow-1">
+                          <div
+                            class="card border-start border-4 border-primary"
+                          >
+                            <div class="card-body">
+                              <h6 class="card-title mb-2">
+                                {{ schedule.title }}
+                              </h6>
+                              <p
+                                class="card-text small text-muted"
+                                *ngIf="schedule.description"
+                              >
+                                {{ schedule.description }}
+                              </p>
+                              <div class="row small">
+                                <div class="col-md-6">
+                                  <strong>Time:</strong>
+                                  {{
+                                    formatScheduleDateTime(schedule.startTime)
+                                  }}
+                                  -
+                                  {{ formatScheduleDateTime(schedule.endTime) }}
+                                </div>
+                                <div class="col-md-6" *ngIf="schedule.location">
+                                  <strong>Location:</strong>
+                                  {{ schedule.location }}
+                                </div>
+                              </div>
+                              <div class="mt-2" *ngIf="schedule.speakerId">
+                                <span
+                                  class="badge bg-info bg-opacity-10 text-info"
+                                >
+                                  <i class="bi bi-person me-1"></i
+                                  >{{ getSpeakerName(schedule.speakerId) }}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary rounded-pill"
+          (click)="closeViewModal()"
+        >
+          <i class="bi bi-x-circle me-1"></i>Close
+        </button>
+        <button
+          type="button"
+          class="btn btn-warning rounded-pill me-2"
+          (click)="editAndCloseView()"
+        >
+          <i class="bi bi-pencil me-1"></i>Edit Event
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger rounded-pill"
+          (click)="deleteAndCloseView()"
+        >
+          <i class="bi bi-trash me-1"></i>Delete Event
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Gallery Management Modal -->
+<div
+  class="modal fade"
+  id="galleryModal"
+  tabindex="-1"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
+  role="dialog"
+  aria-labelledby="galleryModalTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-gradient-primary text-white">
+        <h5 class="modal-title" id="galleryModalTitle">
+          <i class="bi bi-images me-2"></i>Event Gallery
+          <span *ngIf="selectedEventForGallery" class="ms-2 opacity-75">
+            - {{ selectedEventForGallery.title }}
+          </span>
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          (click)="closeGalleryModal()"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <div class="modal-body p-0">
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs nav-fill border-0 bg-light" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link fw-semibold"
+              [class.active]="activeGalleryTab === 'images'"
+              type="button"
+              (click)="switchGalleryTab('images')"
+            >
+              <i class="bi bi-image me-2"></i>Images
+              <span class="badge bg-primary ms-1">{{
+                galleryItems.images.length
+              }}</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link fw-semibold"
+              [class.active]="activeGalleryTab === 'videos'"
+              type="button"
+              (click)="switchGalleryTab('videos')"
+            >
+              <i class="bi bi-camera-video me-2"></i>Videos
+              <span class="badge bg-primary ms-1">{{
+                galleryItems.videos.length
+              }}</span>
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="p-4">
+          <!-- Loading State -->
+          <div *ngIf="galleryLoading" class="text-center my-5 py-5">
+            <div class="spinner-grow text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading gallery...</p>
+          </div>
+
+          <!-- Images Tab -->
+          <div *ngIf="!galleryLoading && activeGalleryTab === 'images'">
+            <!-- Upload Images Section -->
+            <div class="mb-4">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h6 class="text-primary mb-0">Upload Images</h6>
+                <label for="imageUpload" class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-plus-circle me-1"></i>Add Images
+                </label>
+                <input
+                  type="file"
+                  id="imageUpload"
+                  class="d-none"
+                  multiple
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  (change)="onGalleryFileChange($event, 'image')"
+                />
+              </div>
+              <small class="text-muted">
+                Supported formats: JPEG, PNG, GIF, WebP. Maximum size: 5MB per
+                image.
+              </small>
+            </div>
+
+            <!-- Images Grid -->
+            <div *ngIf="galleryItems.images.length > 0" class="row">
+              <div
+                class="col-lg-4 col-md-6 mb-4"
+                *ngFor="let image of galleryItems.images; let i = index"
+              >
+                <div class="card border-0 shadow-sm rounded-3">
+                  <div class="position-relative">
+                    <img
+                      [src]="getGalleryItemPreview(image)"
+                      class="card-img-top rounded-top-3"
+                      style="height: 200px; object-fit: cover"
+                      alt="Gallery Image"
+                      loading="lazy"
+                    />
+                    <div class="position-absolute top-0 end-0 m-2">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-danger rounded-circle"
+                        (click)="
+                          image._id
+                            ? deleteGalleryItem(image, 'image')
+                            : removeGalleryItem(i, 'image')
+                        "
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <label class="form-label small">Caption</label>
+                    <input
+                      type="text"
+                      class="form-control mt-2"
+                      placeholder="Add caption"
+                      [(ngModel)]="image.caption"
+                      (blur)="saveItemCaption(image)"
+                    />
+                    <small
+                      class="text-muted mt-1 d-block"
+                      *ngIf="image.uploadedAt"
+                    >
+                      <i class="bi bi-clock me-1"></i>
+                      {{ image.uploadedAt | date : "medium" }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Images State -->
+            <div
+              *ngIf="galleryItems.images.length === 0"
+              class="text-center py-5"
+            >
+              <i class="bi bi-image fs-1 text-muted mb-3"></i>
+              <h6>No Images Added</h6>
+              <p class="text-muted">
+                Click "Add Images" to upload images to the gallery.
+              </p>
+            </div>
+          </div>
+
+          <!-- Videos Tab -->
+          <div *ngIf="!galleryLoading && activeGalleryTab === 'videos'">
+            <!-- Upload Videos Section -->
+            <div class="mb-4">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h6 class="text-primary mb-0">Upload Videos</h6>
+                <label for="videoUpload" class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-plus-circle me-1"></i>Add Videos
+                </label>
+                <input
+                  type="file"
+                  id="videoUpload"
+                  class="d-none"
+                  multiple
+                  accept="video/mp4,video/avi,video/mov,video/wmv,video/flv,video/webm"
+                  (change)="onGalleryFileChange($event, 'video')"
+                />
+              </div>
+              <small class="text-muted">
+                Supported formats: MP4, AVI, MOV, WMV, FLV, WebM. Maximum size:
+                50MB per video.
+              </small>
+            </div>
+
+            <!-- Videos Grid -->
+            <div *ngIf="galleryItems.videos.length > 0" class="row">
+              <div
+                class="col-lg-4 col-md-6 mb-4"
+                *ngFor="let video of galleryItems.videos; let i = index"
+              >
+                <div class="card border-0 shadow-sm rounded-3">
+                  <div class="position-relative">
+                    <video
+                      [src]="getGalleryItemPreview(video)"
+                      class="card-img-top rounded-top-3"
+                      style="height: 200px; object-fit: cover"
+                      controls
+                      preload="metadata"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                    <div class="position-absolute top-0 end-0 m-2">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-danger rounded-circle"
+                        (click)="
+                          video._id
+                            ? deleteGalleryItem(video, 'video')
+                            : removeGalleryItem(i, 'video')
+                        "
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <label class="form-label small">Caption</label>
+                    <input
+                      type="text"
+                      class="form-control mt-2"
+                      placeholder="Add caption"
+                      [(ngModel)]="video.caption"
+                      (blur)="saveItemCaption(video)"
+                    />
+                    <small
+                      class="text-muted mt-1 d-block"
+                      *ngIf="video.uploadedAt"
+                    >
+                      <i class="bi bi-clock me-1"></i>
+                      {{ video.uploadedAt | date : "medium" }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Videos State -->
+            <div
+              *ngIf="galleryItems.videos.length === 0"
+              class="text-center py-5"
+            >
+              <i class="bi bi-camera-video fs-1 text-muted mb-3"></i>
+              <h6>No Videos Added</h6>
+              <p class="text-muted">
+                Click "Add Videos" to upload videos to the gallery.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary rounded-pill"
+          (click)="closeGalleryModal()"
+        >
+          <i class="bi bi-x-circle me-1"></i>Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary rounded-pill"
+          (click)="saveGalleryChanges()"
+          [disabled]="galleryLoading"
+        >
+          <span
+            *ngIf="galleryLoading"
+            class="spinner-border spinner-border-sm me-2"
+            role="status"
+          ></span>
+          <i *ngIf="!galleryLoading" class="bi bi-save me-1"></i>
+          {{ galleryLoading ? "Saving..." : "Save Changes" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UPI Payment Management Modal -->
+<div
+  class="modal fade"
+  id="paymentModal"
+  tabindex="-1"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
+  role="dialog"
+  aria-labelledby="paymentModalTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-gradient-success text-white">
+        <h5 class="modal-title" id="paymentModalTitle">
+          <i class="bi bi-qr-code me-2"></i>UPI Payment Setup
+          <span *ngIf="selectedEventForPayment" class="ms-2 opacity-75">
+            - {{ selectedEventForPayment.title }}
+          </span>
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          (click)="closePaymentModal()"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <!-- Loading State -->
+        <div *ngIf="paymentLoading" class="text-center my-5 py-5">
+          <div class="spinner-grow text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-3 text-muted">Loading UPI payment details...</p>
+        </div>
+
+        <!-- UPI Payment Form -->
+        <form *ngIf="!paymentLoading">
+          <!-- Event Information Display -->
+          <div class="row mb-4" *ngIf="selectedEventForPayment">
+            <div class="col-12">
+              <div class="card border-0 bg-light">
+                <div class="card-body p-3">
+                  <h6 class="card-title mb-2">
+                    <i class="bi bi-calendar-event me-2 text-primary"></i>
+                    {{ selectedEventForPayment.title }}
+                  </h6>
+                  <div
+                    class="d-flex justify-content-between align-items-center"
+                  >
+                    <span class="text-muted">Event Price:</span>
+                    <span class="fw-bold text-success h5 mb-0">
+                      ₹{{ selectedEventForPayment.ticketPrice }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- UPI Payment Details Form -->
+          <div class="row">
+            <!-- Amount (Read-only) -->
+            <div class="col-md-6 mb-3">
+              <label for="amount" class="form-label">
+                Amount <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">₹</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="amount"
+                  [(ngModel)]="upiPaymentForm.amount"
+                  name="amount"
+                  readonly
+                />
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="col-md-6 mb-3">
+              <label for="status" class="form-label">Payment Status</label>
+              <ng-select
+                id="status"
+                [items]="paymentStatuses"
+                bindLabel="label"
+                bindValue="value"
+                [(ngModel)]="upiPaymentForm.status"
+                name="status"
+                placeholder="Select status"
+              >
+              </ng-select>
+            </div>
+          </div>
+
+          <!-- QR Code Upload Section -->
+          <div class="mb-4">
+            <h6 class="text-success mb-3">
+              <i class="bi bi-qr-code me-2"></i>UPI QR Code
+            </h6>
+
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label for="qrCodeFile" class="form-label">
+                  Upload QR Code <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="file"
+                  class="form-control"
+                  id="qrCodeFile"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  (change)="onQrCodeFileChange($event)"
+                  name="qrCodeFile"
+                />
+                <small class="text-muted">
+                  Upload QR code for UPI payments. Supported formats: JPEG, PNG,
+                  GIF, WebP. Max size: 5MB.
+                </small>
+              </div>
+
+              <!-- QR Code Preview -->
+              <div class="col-md-4 mb-3" *ngIf="upiPaymentForm.qrCodeUrl">
+                <label class="form-label">QR Code Preview</label>
+                <div class="border rounded p-2 bg-light text-center">
+                  <img
+                    [src]="getQrCodePreview()"
+                    class="img-fluid rounded"
+                    style="
+                      max-height: 150px;
+                      max-width: 100%;
+                      object-fit: contain;
+                    "
+                    alt="QR Code Preview"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Approval Section -->
+          <div class="mb-4">
+            <h6 class="text-success mb-3">
+              <i class="bi bi-shield-check me-2"></i>Payment Approval
+            </h6>
+
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="isApproved"
+                [(ngModel)]="upiPaymentForm.isApproved"
+                name="isApproved"
+              />
+              <label class="form-check-label" for="isApproved">
+                <i class="bi bi-check-circle me-2 text-success"></i>
+                Mark as Approved
+              </label>
+            </div>
+            <small class="text-muted">
+              Check this box to approve the UPI payment setup
+            </small>
+          </div>
+
+          <!-- Existing Payment Details Info -->
+          <div *ngIf="existingUpiPayment" class="alert alert-info">
+            <h6 class="alert-heading">
+              <i class="bi bi-info-circle me-2"></i>Existing UPI Payment Setup
+            </h6>
+            <p class="mb-2">
+              <strong>Amount:</strong> ₹{{ existingUpiPayment.amount }} |
+              <strong>Status:</strong>
+              <span
+                class="badge ms-1"
+                [ngClass]="{
+                  'bg-warning': existingUpiPayment.status === 'pending',
+                  'bg-success': existingUpiPayment.status === 'completed',
+                  'bg-danger': existingUpiPayment.status === 'failed'
+                }"
+              >
+                {{ existingUpiPayment.status | titlecase }}
+              </span>
+              |
+              <strong>Approved:</strong>
+              <span
+                class="badge ms-1"
+                [ngClass]="
+                  existingUpiPayment.isApproved ? 'bg-success' : 'bg-secondary'
+                "
+              >
+                {{ existingUpiPayment.isApproved ? "Yes" : "No" }}
+              </span>
+            </p>
+            <small class="text-muted">
+              You are updating existing UPI payment setup. Created:
+              {{ existingUpiPayment.createdAt | date : "medium" }}
+            </small>
+          </div>
+
+          <!-- Help Text -->
+          <div class="alert alert-light border">
+            <h6 class="alert-heading">
+              <i class="bi bi-lightbulb me-2"></i>How to set up UPI Payment
+            </h6>
+            <ol class="mb-0 small">
+              <li>
+                Generate a UPI QR code from your UPI app (Google Pay, PhonePe,
+                Paytm, etc.)
+              </li>
+              <li>Take a screenshot or download the QR code image</li>
+              <li>Upload the QR code image using the form above</li>
+              <li>Set the payment status and approval as needed</li>
+              <li>
+                Save the details - participants can now scan this QR code to pay
+              </li>
+            </ol>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary rounded-pill"
+          (click)="closePaymentModal()"
+        >
+          <i class="bi bi-x-circle me-1"></i>Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-success rounded-pill"
+          (click)="saveUpiPaymentDetails()"
+          [disabled]="paymentLoading"
+        >
+          <span
+            *ngIf="paymentLoading"
+            class="spinner-border spinner-border-sm me-2"
+            role="status"
+          ></span>
+          <i *ngIf="!paymentLoading" class="bi bi-save me-1"></i>
+          {{
+            paymentLoading
+              ? "Saving..."
+              : existingUpiPayment
+              ? "Update UPI Payment"
+              : "Save UPI Payment"
+          }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

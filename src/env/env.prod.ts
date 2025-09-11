@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  baseURL: 'https://gbs-connect.com',
+  baseURL: 'https://travelnexus.itfuturz.in',
   route: 'admin',
-  imageUrl:'https://gbs-connect.com/'
+  imageUrl:'https://travelnexus.itfuturz.in/'
 };

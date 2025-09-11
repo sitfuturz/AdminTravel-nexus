@@ -1,0 +1,243 @@
+<!-- Registrations Table --><div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-person-plus me-2"></i>DMC  Registration Management
+      </h4>
+      <button class="btn btn-light rounded-pill px-4" (click)="openRegisterModal()">
+        <i class="bi bi-plus-circle me-2"></i>Register New DMC
+      </button>
+    </div>
+    
+    <!-- Search and Filter Section -->
+    <div class="card-body p-0">
+      <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
+        <div class="flex-grow-1 me-2">
+          <input type="text" class="form-control" placeholder="Search registrations..." [(ngModel)]="searchQuery" (input)="onSearch()">
+        </div>
+        <div class="ms-2">
+          <ng-select
+            id="limitSelect"
+            [items]="[10, 25, 50, 100]"
+            [(ngModel)]="payload.limit"
+            (change)="onChange()"
+            placeholder="Items per page">
+          </ng-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="registrationsLoading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Registrations Table -->
+    <div class="table-responsive" *ngIf="!registrationsLoading && registrations.docs.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4 py-3">Name</th>
+            <th class="py-3">DMC Name</th>
+            <th class="py-3">Mobile</th>
+            <th class="py-3">Email</th>
+            <th class="py-3">Location</th>
+            <th class="py-3">Registration Date</th>
+            <th class="text-end pe-4 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let registration of registrations.docs | paginate: { id: paginationConfig.id, itemsPerPage: payload.limit, currentPage: payload.page, totalItems: registrations?.totalDocs }; let i=index" class="border-bottom">
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center">
+                <!-- <div class="rounded-circle me-3 shadow-sm border-2 border-white bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                     style="width: 48px; height: 48px;">
+                  <i class="bi bi-person-fill text-primary fs-5"></i>
+                </div> -->
+                <div>
+                  <div class="fw-bold text-dark">{{registration.name || 'Unknown User'}}</div>
+                  <small class="text-muted d-block">ID: {{registration._id ? registration._id.substring(0, 8) : 'N/A'}}</small>
+                </div>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="fw-semibold">{{registration.business_name || 'N/A'}}</div>
+            </td>
+            <td class="py-3">
+              <span class="d-flex align-items-center">
+                <i class="bi bi-telephone-fill text-muted me-2"></i>
+                {{registration.mobile_number || 'N/A'}}
+              </span>
+            </td>
+            <td class="py-3">
+              <span class="d-flex align-items-center">
+                <i class="bi bi-envelope-fill text-muted me-2"></i>
+                {{registration.email || 'N/A'}}
+              </span>
+            </td>
+            <td class="py-3">
+              <div class="small">
+                <div>{{registration.city || 'N/A'}}, {{registration.state || 'N/A'}}</div>
+                <div class="text-muted">{{registration.country || 'N/A'}}</div>
+              </div>
+            </td>
+            <td class="py-3">
+              <span class="small">{{formatDate(registration.createdAt)}}</span>
+            </td>
+            <td class="text-end pe-4 py-3">
+              <button 
+                class="btn btn-success btn-sm rounded-pill px-3"
+                (click)="acceptUser(registration)"
+                [disabled]="acceptingUser === registration._id">
+                <span *ngIf="acceptingUser === registration._id" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                <i *ngIf="acceptingUser !== registration._id" class="bi bi-check-circle-fill me-1"></i>
+                {{ acceptingUser === registration._id ? 'Accepting...' : 'Accept' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="d-flex justify-content-between align-items-center p-3 border-top">
+        <div *ngIf="registrations.docs.length > 0" class="text-muted">
+          Showing {{ (payload.page - 1) * payload.limit + 1 }} to
+          {{ Math.min(payload.page * payload.limit, registrations.totalDocs) }}
+          of {{ registrations.totalDocs }} entries
+        </div>
+        <pagination-controls
+          [id]="paginationConfig.id"
+          (pageChange)="onPageChange($event)"
+          previousLabel="Previous"
+          nextLabel="Next"
+          [directionLinks]="true">
+        </pagination-controls>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!registrationsLoading && (!registrations?.docs || registrations.docs.length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
+        <h5>No Registration Requests</h5>
+        <p class="text-muted">There are no pending registration requests at the moment.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Register Modal -->
+<div class="modal fade" id="registerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="registerModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="registerModalTitle">
+          <i class="bi bi-person-plus me-2"></i>Register New User
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form>
+          <!-- Personal Information Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Personal Information</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" placeholder="Enter full name"
+                  [(ngModel)]="registerForm.name" name="name" required (blur)="onFieldBlur('name')"
+                  [class.is-invalid]="validationErrors.name">
+                <div class="invalid-feedback" *ngIf="validationErrors.name">
+                  {{ validationErrors.name }}
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" id="email" placeholder="Enter email"
+                  [(ngModel)]="registerForm.email" name="email" required (blur)="onFieldBlur('email')"
+                  [class.is-invalid]="validationErrors.email">
+                <div class="invalid-feedback" *ngIf="validationErrors.email">
+                  {{ validationErrors.email }}
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="mobile_number" class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                <input type="tel" class="form-control" id="mobile_number" placeholder="Enter 10-digit mobile number"
+                  [(ngModel)]="registerForm.mobile_number" name="mobile_number" required maxlength="10"
+                  (input)="onMobileInput($event)" (blur)="onFieldBlur('mobile_number')"
+                  [class.is-invalid]="validationErrors.mobile_number">
+                <div class="invalid-feedback" *ngIf="validationErrors.mobile_number">
+                  {{ validationErrors.mobile_number }}
+                </div>
+                <small class="text-muted">Numbers only, exactly 10 digits</small>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="business_name" class="form-label">DMC Name<span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="business_name" placeholder="Enter DMC name"
+                  [(ngModel)]="registerForm.business_name" name="business_name" required
+                  (blur)="onFieldBlur('business_name')" [class.is-invalid]="validationErrors.business_name">
+                <div class="invalid-feedback" *ngIf="validationErrors.business_name">
+                  {{ validationErrors.business_name }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Location Information Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Location Details</h6>
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
+                <ng-select id="country" [items]="countries" bindLabel="name" bindValue="name" placeholder="Select country"
+                  [(ngModel)]="registerForm.country" name="country" required [loading]="countriesLoading"
+                  (blur)="onFieldBlur('country')" [class.is-invalid]="validationErrors.country">
+                </ng-select>
+                <div class="invalid-feedback" *ngIf="validationErrors.country">
+                  {{ validationErrors.country }}
+                </div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="state" class="form-label">State <span class="text-danger">*</span></label>
+                <ng-select id="state" [items]="states" bindLabel="name" bindValue="name" placeholder="Select state"
+                  [(ngModel)]="registerForm.state" name="state" required [loading]="statesLoading"
+                  (blur)="onFieldBlur('state')" [class.is-invalid]="validationErrors.state">
+                </ng-select>
+                <div class="invalid-feedback" *ngIf="validationErrors.state">
+                  {{ validationErrors.state }}
+                </div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                <ng-select id="city" [items]="cities" bindLabel="name" bindValue="name" placeholder="Select city"
+                  [(ngModel)]="registerForm.city" name="city" required [loading]="citiesLoading"
+                  (blur)="onFieldBlur('city')" [class.is-invalid]="validationErrors.city">
+                </ng-select>
+                <div class="invalid-feedback" *ngIf="validationErrors.city">
+                  {{ validationErrors.city }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="registerUser()"
+          [disabled]="loading || !validateForm()">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          <i *ngIf="!loading" class="bi bi-save me-1"></i>
+          {{ loading ? 'Registering...' : 'Register' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

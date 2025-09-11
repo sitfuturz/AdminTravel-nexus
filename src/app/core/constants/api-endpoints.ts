@@ -6,7 +6,7 @@ class ApiEndpoints {
   private PATH1: string = `${environment.baseURL}`;
   
   // User Management
-  public GET_USERS: string = `${this.PATH}/users`;
+  public GET_USERS: string = `${this.PATH}/get-all-members`;
   public UPDATE_USER_STATUS: string = `${this.PATH}/isActiveStatus`;
   public UPDATE_USER: string = `${this.PATH}/updateUser`;
   public DELETE_USER: string = `${this.PATH}/users/delete`;
@@ -187,6 +187,30 @@ public DELETE_REGION= `${this.PATH}/deleteRegion`
 
     public CREATE_COMPLAINT= `${this.PATH}/createComplaint`
     public CREATE_FEEDBACK= `${this.PATH}/createFeedback`
+
+    //newUserRegistation
+
+    public NEW_USER_REGISTRATION= `${this.PATH}/update-register-user`
+    public GET_ALL_NEW_USER_REGISTRATION= `${this.PATH}/users`
+    public ADD_USER_TO_MEMBER= `${this.PATH}/add-to-member`
+
+    //events 
+    public NEW_GET_EVENTS = `${this.PATH}/event/list`;
+    public NEW_GET_EVENT_BY_ID = `${this.PATH}/event/get`;
+    public NEW_CREATE_EVENT = `${this.PATH}/event/create`;
+    public NEW_UPDATE_EVENT = `${this.PATH}/event/update`;
+    public NEW_DELETE_EVENT = `${this.PATH}/event/delete`;
+
+
+    public GET_PAYMENT_DETAILS = `${this.PATH}/event/payment-details/event/:eventId`
+    public CREATE_OR_UPDATE_PAYMENT= `${this.PATH}/event/payment-details`
+    public DELETE_PAYMENT_DETAILS= `${this.PATH}/deletePaymentDetails`
+
+    public UPDATE_EVENT_GALLERY= `${this.PATH}/event/gallery`
+    public NEW_GET_EVENT_GALLERY = `${this.PATH}/events/gallery`; 
+    public UPLOAD_GALLERY_ITEM = `${this.PATH}/events/upload-gallery`; 
+    public DELETE_GALLERY_ITEM = `${this.PATH}/events/delete-gallery-item`; 
+    public UPDATE_GALLERY_ITEM = `${this.PATH}/events/update-gallery-item`;    
   };
   
 
