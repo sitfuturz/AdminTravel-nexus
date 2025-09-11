@@ -1043,8 +1043,6 @@ export class EventService {
 
 
 
-    // Event Service CRUD Methods - Add these to your EventService class
-
 async newGetEvents(requestData: any): Promise<any> {
     try {
         this.getHeaders();
@@ -1138,11 +1136,6 @@ async newUpdateEvent(formData: FormData): Promise<any> {
     }
 }
 
-/**
- * Delete an event (soft delete)
- * @param requestData - Contains the event ID to delete
- * @returns Promise with deletion confirmation
- */
 async newDeleteEvent(requestData: { id: string }): Promise<any> {
     try {
         this.getHeaders();
@@ -1164,36 +1157,9 @@ async newDeleteEvent(requestData: { id: string }): Promise<any> {
 }
 
 
-/**
- * Get event gallery items
- * @param eventId - Event ID to fetch gallery for
- * @returns Promise with gallery data
- */
-async newGetEventGallery(eventId: string): Promise<any> {
-    try {
-        this.getHeaders();
-        const response = await this.apiManager.request(
-            {
-                url: `${apiEndpoints.GET_EVENT_GALLERY}?t=${new Date().getTime()}`,
-                method: 'POST',
-            },
-            { eventId: eventId },
-            this.headers
-        );
-        console.log('getEventGallery Response:', JSON.stringify(response, null, 2));
-        return response;
-    } catch (error) {
-        console.error('Get Event Gallery Error:', error);
-        swalHelper.showToast('Failed to fetch event gallery', 'error');
-        throw error;
-    }
-}
 
-/**
- * Update event gallery (add/update images and videos)
- * @param formData - FormData containing gallery files and metadata
- * @returns Promise with updated gallery data
- */
+
+
 async newUpdateEventGallery(formData: FormData): Promise<any> {
     try {
         this.getHeaders();
@@ -1215,30 +1181,88 @@ async newUpdateEventGallery(formData: FormData): Promise<any> {
     }
 }
 
-/**
- * Delete gallery item from event
- * @param data - Object containing eventId and itemId
- * @returns Promise with deletion confirmation
- */
-async newDeleteGalleryItem(data: { eventId: string; itemId: string }): Promise<any> {
-    try {
-        this.getHeaders();
-        const response = await this.apiManager.request(
-            {
-                url: apiEndpoints.DELETE_GALLERY_ITEM,
-                method: 'POST',
-            },
-            data,
-            this.headers
-        );
-        console.log('deleteGalleryItem Response:', JSON.stringify(response, null, 2));
-        return response;
-    } catch (error) {
-        console.error('Delete Gallery Item Error:', error);
-        swalHelper.showToast('Failed to delete gallery item', 'error');
-        throw error;
-    }
+async newGetEventGallery(data: { id: string }): Promise<any> {
+  try {
+    this.getHeaders();
+    const response = await this.apiManager.request(
+      {
+        url: apiEndpoints.NEW_GET_EVENT_GALLERY, // e.g., '/admin/events/get-gallery'
+        method: 'POST', // Changed from GET to POST
+      },
+      data, // Send { eventId } in the request body
+      this.headers
+    );
+    console.log('newGetEventGallery Response:', JSON.stringify(response, null, 2));
+    return response;
+  } catch (error) {
+    console.error('Get Event Gallery Error:', error);
+    swalHelper.showToast('Failed to fetch event gallery', 'error');
+    throw error;
+  }
 }
+
+  async uploadGalleryItem(formData: FormData): Promise<any> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.UPLOAD_GALLERY_ITEM, // Assuming endpoint like '/events/upload-gallery'
+          method: 'POST',
+          isFormData: true,
+        },
+        formData,
+        this.headers
+      );
+      console.log('uploadGalleryItem Response:', JSON.stringify(response, null, 2));
+      return response;
+    } catch (error) {
+      console.error('Upload Gallery Item Error:', error);
+      swalHelper.showToast('Failed to upload gallery items', 'error');
+      throw error;
+    }
+  }
+
+  async deleteGalleryItem(data: { eventId: string; itemId: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.DELETE_GALLERY_ITEM, // Assuming endpoint like '/events/delete-gallery-item'
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      console.log('deleteGalleryItem Response:', JSON.stringify(response, null, 2));
+      return response;
+    } catch (error) {
+      console.error('Delete Gallery Item Error:', error);
+      swalHelper.showToast('Failed to delete gallery item', 'error');
+      throw error;
+    }
+  }
+
+  async updateGalleryItem(data: { eventId: string; itemId: string; caption: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.UPDATE_GALLERY_ITEM, // Assuming endpoint like '/events/update-gallery-item'
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      console.log('updateGalleryItem Response:', JSON.stringify(response, null, 2));
+      return response;
+    } catch (error) {
+      console.error('Update Gallery Item Error:', error);
+      swalHelper.showToast('Failed to update gallery item caption', 'error');
+      throw error;
+    }
+  }
+
+
 
 
 async getUpiPaymentDetails(eventId: string): Promise<any> {

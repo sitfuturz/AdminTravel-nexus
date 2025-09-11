@@ -200,8 +200,11 @@ public BULK_DELETE_SLOTS=`${this.PATH}/bulkDeleteSlots`
     public CREATE_OR_UPDATE_PAYMENT= `${this.PATH}/event/payment-details`
     public DELETE_PAYMENT_DETAILS= `${this.PATH}/deletePaymentDetails`
 
-    public UPDATE_EVENT_GALLERY= `${this.PATH}/updateEventGallery`
-    public DELETE_GALLERY_ITEM= `${this.PATH}/deleteGalleryItem`
+    public UPDATE_EVENT_GALLERY= `${this.PATH}/event/gallery`
+    public NEW_GET_EVENT_GALLERY = `${this.PATH}/events/gallery`; 
+    public UPLOAD_GALLERY_ITEM = `${this.PATH}/events/upload-gallery`; 
+    public DELETE_GALLERY_ITEM = `${this.PATH}/events/delete-gallery-item`; 
+    public UPDATE_GALLERY_ITEM = `${this.PATH}/events/update-gallery-item`;    
   };
   
 

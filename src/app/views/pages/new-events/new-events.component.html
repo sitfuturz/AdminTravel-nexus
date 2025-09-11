@@ -163,7 +163,10 @@
                 </div>
 
                 <!-- Registration Link -->
-                <div class="d-flex align-items-center mb-2 mt-1" *ngIf="event.registrationLink">
+                <div
+                  class="d-flex align-items-center mb-2 mt-1"
+                  *ngIf="event.registrationLink"
+                >
                   <i class="bi bi-link-45deg text-success me-2"></i>
                   <a
                     [href]="getFullRegistrationLink(event)"
@@ -191,12 +194,12 @@
                   >
                     <i class="bi bi-pencil me-1"></i>Edit
                   </button>
-                  <!-- <button
+                  <button
                     class="btn btn-outline-info btn-sm flex-fill"
                     (click)="openGalleryModal(event)"
                   >
                     <i class="bi bi-images me-1"></i>Gallery
-                  </button> -->
+                  </button>
                   <button
                     class="btn btn-outline-success btn-sm flex-fill"
                     (click)="openPaymentModal(event)"
@@ -3390,26 +3393,28 @@
                       loading="lazy"
                     />
                     <div class="position-absolute top-0 end-0 m-2">
-                      <!-- <button
+                      <button
                         type="button"
                         class="btn btn-sm btn-danger rounded-circle"
-                        (click)="image._id ? deleteGalleryItem(image, 'image') : removeGalleryItem(i, 'image')"
+                        (click)="
+                          image._id
+                            ? deleteGalleryItem(image, 'image')
+                            : removeGalleryItem(i, 'image')
+                        "
                       >
                         <i class="bi bi-trash"></i>
-                      </button> -->
+                      </button>
                     </div>
                   </div>
                   <div class="card-body">
                     <label class="form-label small">Caption</label>
-                    <textarea
-                      class="form-control form-control-sm"
-                      rows="2"
-                      placeholder="Enter image caption..."
+                    <input
+                      type="text"
+                      class="form-control mt-2"
+                      placeholder="Add caption"
                       [(ngModel)]="image.caption"
-                      (blur)="
-                        updateGalleryItemCaption(i, 'image', image.caption)
-                      "
-                    ></textarea>
+                      (blur)="saveItemCaption(image)"
+                    />
                     <small
                       class="text-muted mt-1 d-block"
                       *ngIf="image.uploadedAt"
@@ -3479,26 +3484,28 @@
                       Your browser does not support the video tag.
                     </video>
                     <div class="position-absolute top-0 end-0 m-2">
-                      <!-- <button
+                      <button
                         type="button"
                         class="btn btn-sm btn-danger rounded-circle"
-                        (click)="video._id ? deleteGalleryItem(video, 'video') : removeGalleryItem(i, 'video')"
+                        (click)="
+                          video._id
+                            ? deleteGalleryItem(video, 'video')
+                            : removeGalleryItem(i, 'video')
+                        "
                       >
                         <i class="bi bi-trash"></i>
-                      </button> -->
+                      </button>
                     </div>
                   </div>
                   <div class="card-body">
                     <label class="form-label small">Caption</label>
-                    <textarea
-                      class="form-control form-control-sm"
-                      rows="2"
-                      placeholder="Enter video caption..."
+                    <input
+                      type="text"
+                      class="form-control mt-2"
+                      placeholder="Add caption"
                       [(ngModel)]="video.caption"
-                      (blur)="
-                        updateGalleryItemCaption(i, 'video', video.caption)
-                      "
-                    ></textarea>
+                      (blur)="saveItemCaption(video)"
+                    />
                     <small
                       class="text-muted mt-1 d-block"
                       *ngIf="video.uploadedAt"
@@ -3534,7 +3541,7 @@
         >
           <i class="bi bi-x-circle me-1"></i>Cancel
         </button>
-        <!-- <button
+        <button
           type="button"
           class="btn btn-primary rounded-pill"
           (click)="saveGalleryChanges()"
@@ -3546,8 +3553,8 @@
             role="status"
           ></span>
           <i *ngIf="!galleryLoading" class="bi bi-save me-1"></i>
-          {{ galleryLoading ? 'Saving...' : 'Save Changes' }}
-        </button> -->
+          {{ galleryLoading ? "Saving..." : "Save Changes" }}
+        </button>
       </div>
     </div>
   </div>

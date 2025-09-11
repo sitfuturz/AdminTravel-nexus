@@ -332,6 +332,12 @@ export class NewEventsComponent implements OnInit, AfterViewInit {
     }, 300);
   }
 
+  ngOnDestroy(): void {
+  if (this.upiPaymentForm.qrCodeUrl && this.upiPaymentForm.qrCodeUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(this.upiPaymentForm.qrCodeUrl);
+  }
+}
+
   async fetchEvents(): Promise<void> {
     this.eventsLoading = true;
     try {
@@ -1215,316 +1221,282 @@ export class NewEventsComponent implements OnInit, AfterViewInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }
 
-  async createEvent(): Promise<void> {
-    try {
-      this.markAllFieldsAsTouched();
 
-      if (!this.validateFormForSubmission()) {
-        swalHelper.showToast('Please fix all validation errors', 'warning');
-        return;
+// Updated frontend TypeScript functions
+
+async createEvent(): Promise<void> {
+  try {
+    this.markAllFieldsAsTouched();
+
+    if (!this.validateFormForSubmission()) {
+      swalHelper.showToast('Please fix all validation errors', 'warning');
+      return;
+    }
+
+    this.loading = true;
+    const formData = new FormData();
+
+    const basicFields = [
+      'title',
+      'description',
+      'startDate',
+      'endDate',
+      'startTime',
+      'endTime',
+      'location',
+      'venue',
+      'mapUrl',
+      'eventType',
+      'capacity',
+      'isPaid',
+      'ticketPrice',
+      'stayOption',
+      'stayFee',
+    ];
+
+    basicFields.forEach((key) => {
+      if (
+        this.eventForm[key] !== null &&
+        this.eventForm[key] !== undefined &&
+        this.eventForm[key] !== ''
+      ) {
+        formData.append(key, this.eventForm[key].toString());
+      }
+    });
+
+    if (this.eventForm.bannerImage instanceof File) {
+      formData.append('bannerImage', this.eventForm.bannerImage);
+    }
+
+    const processedSponsors = [];
+    for (let i = 0; i < this.eventForm.sponsors.length; i++) {
+      const sponsor = this.eventForm.sponsors[i];
+      const sponsorData = {
+        name: sponsor.name || '',
+        logo: sponsor.logo instanceof File ? '' : (sponsor.logo || ''),
+        website: sponsor.website || '',
+        tier: sponsor.tier || 'bronze',
+        description: sponsor.description || '',
+        contactEmail: sponsor.contactEmail || '',
+      };
+
+      if (sponsor.logo instanceof File) {
+        formData.append(`sponsorLogo[${i}]`, sponsor.logo);
       }
 
-      this.loading = true;
-      const formData = new FormData();
+      processedSponsors.push(sponsorData);
+    }
+    formData.append('sponsors', JSON.stringify(processedSponsors));
 
-      const basicFields = [
-        'title',
-        'description',
-        'startDate',
-        'endDate',
-        'startTime',
-        'endTime',
-        'location',
-        'venue',
-        'mapUrl',
-        'eventType',
-        'capacity',
-        'isPaid',
-        'ticketPrice',
-        'stayOption',
-        'stayFee',
-      ];
+    const processedSpeakers = [];
+    for (let i = 0; i < this.eventForm.speakers.length; i++) {
+      const speaker = this.eventForm.speakers[i];
+      const speakerData = {
+        name: speaker.name || '',
+        bio: speaker.bio || '',
+        photo: speaker.photo instanceof File ? '' : (speaker.photo || ''),
+        email: speaker.email || '',
+        socialLinks: {
+          linkedin: speaker.socialLinks?.linkedin || '',
+          twitter: speaker.socialLinks?.twitter || '',
+          website: speaker.socialLinks?.website || '',
+          instagram: speaker.socialLinks?.instagram || '',
+        },
+        date: speaker.date || null,
+      };
 
-      basicFields.forEach((key) => {
-        if (
-          this.eventForm[key] !== null &&
-          this.eventForm[key] !== undefined &&
-          this.eventForm[key] !== ''
-        ) {
-          formData.append(key, this.eventForm[key].toString());
-        }
-      });
-
-      if (this.eventForm.bannerImage) {
-        formData.append('bannerImage', this.eventForm.bannerImage);
+      if (speaker.photo instanceof File) {
+        formData.append(`speakerPhoto[${i}]`, speaker.photo);
       }
 
-      const processedSponsors = [];
-      for (const sponsor of this.eventForm.sponsors) {
-        const sponsorData = {
-          name: sponsor.name || '',
-          logo: '',
-          website: sponsor.website || '',
-          tier: sponsor.tier || 'bronze',
-          description: sponsor.description || '',
-          contactEmail: sponsor.contactEmail || '',
+      processedSpeakers.push(speakerData);
+    }
+    formData.append('speakers', JSON.stringify(processedSpeakers));
+
+    const processedSchedules = this.eventForm.schedules.map(
+      (schedule: Schedule) => {
+        return {
+          title: schedule.title || '',
+          description: schedule.description || '',
+          startTime:
+            schedule.startDate && schedule.startTime
+              ? new Date(
+                  `${schedule.startDate}T${schedule.startTime}`
+                ).toISOString()
+              : null,
+          endTime:
+            schedule.endDate && schedule.endTime
+              ? new Date(
+                  `${schedule.endDate}T${schedule.endTime}`
+                ).toISOString()
+              : null,
+          speakerId: schedule.speakerId || null,
+          location: schedule.location || '',
         };
-
-        if (sponsor.logo instanceof File) {
-          try {
-            const reader = new FileReader();
-            const base64 = await new Promise<string>((resolve, reject) => {
-              reader.readAsDataURL(sponsor.logo as File);
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = (error) => reject(error);
-            });
-            sponsorData.logo = base64;
-          } catch (error) {
-            console.warn('Failed to convert sponsor logo:', error);
-            sponsorData.logo = '';
-          }
-        } else {
-          sponsorData.logo = sponsor.logo || '';
-        }
-
-        processedSponsors.push(sponsorData);
       }
-      formData.append('sponsors', JSON.stringify(processedSponsors));
+    );
+    formData.append('schedules', JSON.stringify(processedSchedules));
 
-      const processedSpeakers = [];
-      for (const speaker of this.eventForm.speakers) {
-        const speakerData = {
-          name: speaker.name || '',
-          bio: speaker.bio || '',
-          photo: '',
-          email: speaker.email || '',
-          socialLinks: {
-            linkedin: speaker.socialLinks?.linkedin || '',
-            twitter: speaker.socialLinks?.twitter || '',
-            website: speaker.socialLinks?.website || '',
-            instagram: speaker.socialLinks?.instagram || '',
-          },
-          date: speaker.date || null,
-        };
+    const response = await this.eventService.newCreateEvent(formData);
 
-        if (speaker.photo instanceof File) {
-          try {
-            const reader = new FileReader();
-            const base64 = await new Promise<string>((resolve, reject) => {
-              reader.readAsDataURL(speaker.photo as File);
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = (error) => reject(error);
-            });
-            speakerData.photo = base64;
-          } catch (error) {
-            console.warn('Failed to convert speaker photo:', error);
-            speakerData.photo = '';
-          }
-        } else {
-          speakerData.photo = speaker.photo || '';
-        }
-
-        processedSpeakers.push(speakerData);
-      }
-      formData.append('speakers', JSON.stringify(processedSpeakers));
-
-      const processedSchedules = this.eventForm.schedules.map(
-        (schedule: Schedule) => {
-          return {
-            title: schedule.title || '',
-            description: schedule.description || '',
-            startTime:
-              schedule.startDate && schedule.startTime
-                ? new Date(
-                    `${schedule.startDate}T${schedule.startTime}`
-                  ).toISOString()
-                : null,
-            endTime:
-              schedule.endDate && schedule.endTime
-                ? new Date(
-                    `${schedule.endDate}T${schedule.endTime}`
-                  ).toISOString()
-                : null,
-            speakerId: schedule.speakerId || null,
-            location: schedule.location || '',
-          };
-        }
+    if (response && response.success) {
+      swalHelper.showToast('Event created successfully', 'success');
+      this.closeModal();
+      this.resetForm();
+      this.fetchEvents();
+    } else {
+      swalHelper.showToast(
+        response.message || 'Failed to create event',
+        'error'
       );
-      formData.append('schedules', JSON.stringify(processedSchedules));
-
-      const response = await this.eventService.newCreateEvent(formData);
-
-      if (response && response.success) {
-        swalHelper.showToast('Event created successfully', 'success');
-        this.closeModal();
-        this.resetForm();
-        this.fetchEvents();
-      } else {
-        swalHelper.showToast(
-          response.message || 'Failed to create event',
-          'error'
-        );
-      }
-    } catch (error) {
-      console.error('Error creating event:', error);
-      swalHelper.showToast('Failed to create event', 'error');
-    } finally {
-      this.loading = false;
     }
+  } catch (error) {
+    console.error('Error creating event:', error);
+    swalHelper.showToast('Failed to create event', 'error');
+  } finally {
+    this.loading = false;
   }
+}
 
-  async updateEvent(): Promise<void> {
-    try {
-      this.markAllEditFieldsAsTouched();
+async updateEvent(): Promise<void> {
+  try {
+    this.markAllEditFieldsAsTouched();
 
-      if (!this.validateEditFormForSubmission()) {
-        swalHelper.showToast('Please fix all validation errors', 'warning');
-        return;
-      }
-
-      this.editLoading = true;
-      const formData = new FormData();
-
-      formData.append('id', this.selectedEvent!._id);
-
-      const basicFields = [
-        'title',
-        'description',
-        'startDate',
-        'endDate',
-        'startTime',
-        'endTime',
-        'location',
-        'venue',
-        'mapUrl',
-        'eventType',
-        'capacity',
-        'ticketPrice',
-      ];
-
-      basicFields.forEach((key) => {
-        if (
-          this.editEventForm[key] !== null &&
-          this.editEventForm[key] !== undefined &&
-          this.editEventForm[key] !== ''
-        ) {
-          formData.append(key, this.editEventForm[key].toString());
-        }
-      });
-
-      if (this.editEventForm.bannerImage instanceof File) {
-        formData.append('bannerImage', this.editEventForm.bannerImage);
-      }
-
-      const sponsorsArray = Array.isArray(this.editEventForm.sponsors)
-        ? this.editEventForm.sponsors
-        : [];
-      const processedSponsors: any[] = [];
-
-      for (const sponsor of sponsorsArray) {
-        const sponsorData: any = {
-          name: sponsor?.name || '',
-          logo: sponsor?.logo,
-          website: sponsor?.website || '',
-          tier: sponsor?.tier || 'bronze',
-          description: sponsor?.description || '',
-          contactEmail: sponsor?.contactEmail || '',
-        };
-
-        if (sponsor?.logo instanceof File) {
-          try {
-            const reader = new FileReader();
-            const base64 = await new Promise<string>((resolve, reject) => {
-              reader.readAsDataURL(sponsor.logo as File);
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = (error) => reject(error);
-            });
-            sponsorData.logo = base64;
-          } catch (error) {
-            console.warn('Failed to convert sponsor logo:', error);
-          }
-        }
-        processedSponsors.push(sponsorData);
-      }
-      formData.append('sponsors', JSON.stringify(processedSponsors));
-
-      const speakersArray = Array.isArray(this.editEventForm.speakers)
-        ? this.editEventForm.speakers
-        : [];
-      const processedSpeakers: any[] = [];
-
-      for (const speaker of speakersArray) {
-        const speakerData: any = {
-          name: speaker?.name || '',
-          bio: speaker?.bio || '',
-          photo: speaker?.photo,
-          email: speaker?.email || '',
-          socialLinks: {
-            linkedin: speaker?.socialLinks?.linkedin || '',
-            twitter: speaker?.socialLinks?.twitter || '',
-            website: speaker?.socialLinks?.website || '',
-            instagram: speaker?.socialLinks?.instagram || '',
-          },
-          date: speaker?.date || null,
-        };
-
-        if (speaker?.photo instanceof File) {
-          try {
-            const reader = new FileReader();
-            const base64 = await new Promise<string>((resolve, reject) => {
-              reader.readAsDataURL(speaker.photo as File);
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = (error) => reject(error);
-            });
-            speakerData.photo = base64;
-          } catch (error) {
-            console.warn('Failed to convert speaker photo:', error);
-          }
-        }
-        processedSpeakers.push(speakerData);
-      }
-      formData.append('speakers', JSON.stringify(processedSpeakers));
-
-      const schedulesArray = Array.isArray(this.editEventForm.schedules)
-        ? this.editEventForm.schedules
-        : [];
-      const processedSchedules = schedulesArray.map((schedule: any) => ({
-        title: schedule?.title || '',
-        description: schedule?.description || '',
-        startTime:
-          schedule?.startDate && schedule?.startTime
-            ? new Date(
-                `${schedule.startDate}T${schedule.startTime}`
-              ).toISOString()
-            : null,
-        endTime:
-          schedule?.endDate && schedule?.endTime
-            ? new Date(`${schedule.endDate}T${schedule.endTime}`).toISOString()
-            : null,
-        speakerId: schedule?.speakerId || null,
-        location: schedule?.location || '',
-      }));
-      formData.append('schedules', JSON.stringify(processedSchedules));
-
-      const response = await this.eventService.newUpdateEvent(formData);
-
-      if (response && response.success) {
-        swalHelper.showToast('Event updated successfully', 'success');
-        this.closeEditModal();
-        this.fetchEvents();
-      } else {
-        swalHelper.showToast(
-          response.message || 'Failed to update event',
-          'error'
-        );
-      }
-    } catch (error) {
-      console.error('Error updating event:', error);
-      swalHelper.showToast('Failed to update event', 'error');
-    } finally {
-      this.editLoading = false;
+    if (!this.validateEditFormForSubmission()) {
+      swalHelper.showToast('Please fix all validation errors', 'warning');
+      return;
     }
+
+    this.editLoading = true;
+    const formData = new FormData();
+
+    formData.append('id', this.selectedEvent!._id);
+
+    const basicFields = [
+      'title',
+      'description',
+      'startDate',
+      'endDate',
+      'startTime',
+      'endTime',
+      'location',
+      'venue',
+      'mapUrl',
+      'eventType',
+      'capacity',
+      'isPaid',
+      'ticketPrice',
+      'stayOption',
+      'stayFee',
+    ];
+
+    basicFields.forEach((key) => {
+      if (
+        this.editEventForm[key] !== null &&
+        this.editEventForm[key] !== undefined &&
+        this.editEventForm[key] !== ''
+      ) {
+        formData.append(key, this.editEventForm[key].toString());
+      }
+    });
+
+    if (this.editEventForm.bannerImage instanceof File) {
+      formData.append('bannerImage', this.editEventForm.bannerImage);
+    }
+
+    const sponsorsArray = Array.isArray(this.editEventForm.sponsors)
+      ? this.editEventForm.sponsors
+      : [];
+    const processedSponsors: any[] = [];
+
+    for (let i = 0; i < sponsorsArray.length; i++) {
+      const sponsor = sponsorsArray[i];
+      const sponsorData: any = {
+        name: sponsor?.name || '',
+        logo: sponsor?.logo instanceof File ? '' : (sponsor?.logo || ''),
+        website: sponsor?.website || '',
+        tier: sponsor?.tier || 'bronze',
+        description: sponsor?.description || '',
+        contactEmail: sponsor?.contactEmail || '',
+      };
+
+      if (sponsor?.logo instanceof File) {
+        formData.append(`sponsorLogo[${i}]`, sponsor.logo);
+      }
+
+      processedSponsors.push(sponsorData);
+    }
+    formData.append('sponsors', JSON.stringify(processedSponsors));
+
+    const speakersArray = Array.isArray(this.editEventForm.speakers)
+      ? this.editEventForm.speakers
+      : [];
+    const processedSpeakers: any[] = [];
+
+    for (let i = 0; i < speakersArray.length; i++) {
+      const speaker = speakersArray[i];
+      const speakerData: any = {
+        name: speaker?.name || '',
+        bio: speaker?.bio || '',
+        photo: speaker?.photo instanceof File ? '' : (speaker?.photo || ''),
+        email: speaker?.email || '',
+        socialLinks: {
+          linkedin: speaker?.socialLinks?.linkedin || '',
+          twitter: speaker?.socialLinks?.twitter || '',
+          website: speaker?.socialLinks?.website || '',
+          instagram: speaker?.socialLinks?.instagram || '',
+        },
+        date: speaker?.date || null,
+      };
+
+      if (speaker?.photo instanceof File) {
+        formData.append(`speakerPhoto[${i}]`, speaker.photo);
+      }
+
+      processedSpeakers.push(speakerData);
+    }
+    formData.append('speakers', JSON.stringify(processedSpeakers));
+
+    const schedulesArray = Array.isArray(this.editEventForm.schedules)
+      ? this.editEventForm.schedules
+      : [];
+    const processedSchedules = schedulesArray.map((schedule: any) => ({
+      title: schedule?.title || '',
+      description: schedule?.description || '',
+      startTime:
+        schedule?.startDate && schedule?.startTime
+          ? new Date(
+              `${schedule.startDate}T${schedule.startTime}`
+            ).toISOString()
+          : null,
+      endTime:
+        schedule?.endDate && schedule?.endTime
+          ? new Date(`${schedule.endDate}T${schedule.endTime}`).toISOString()
+          : null,
+      speakerId: schedule?.speakerId || null,
+      location: schedule?.location || '',
+    }));
+    formData.append('schedules', JSON.stringify(processedSchedules));
+
+    const response = await this.eventService.newUpdateEvent(formData);
+
+    if (response && response.success) {
+      swalHelper.showToast('Event updated successfully', 'success');
+      this.closeEditModal();
+      this.fetchEvents();
+    } else {
+      swalHelper.showToast(
+        response.message || 'Failed to update event',
+        'error'
+      );
+    }
+  } catch (error) {
+    console.error('Error updating event:', error);
+    swalHelper.showToast('Failed to update event', 'error');
+  } finally {
+    this.editLoading = false;
   }
+}
 
   async deleteEvent(eventId: string): Promise<void> {
     try {
@@ -2199,29 +2171,55 @@ export class NewEventsComponent implements OnInit, AfterViewInit {
     return speaker?.name || 'Unknown Speaker';
   }
 
-   openGalleryModal(event: Event): void {
-    this.selectedEventForGallery = event;
-    // this.loadEventGallery(event._id);
-    this.showGalleryModal();
-  }
-
-  // async loadEventGallery(eventId: string): Promise<void> {
-  //   try {
-  //     this.galleryLoading = true;
-  //     const response = await this.eventService.getEventGallery(eventId);
-      
-  //     if (response && response.success) {
-  //       const galleryData = response.data || [];
-  //       this.galleryItems.images = galleryData.filter((item: GalleryItem) => item.type === 'image');
-  //       this.galleryItems.videos = galleryData.filter((item: GalleryItem) => item.type === 'video');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error loading gallery:', error);
-  //     swalHelper.showToast('Failed to load gallery', 'error');
-  //   } finally {
-  //     this.galleryLoading = false;
-  //   }
+  //  openGalleryModal(event: Event): void {
+  //   this.selectedEventForGallery = event;
+  //   // this.loadEventGallery(event._id);
+  //   this.showGalleryModal();
   // }
+
+
+  async saveItemCaption(item: GalleryItem): Promise<void> {
+  if (!item._id || !this.selectedEventForGallery) return; // Only save for existing items
+
+  try {
+    const response = await this.eventService.updateGalleryItem({
+      eventId: this.selectedEventForGallery._id,
+      itemId: item._id,
+      caption: item.caption || ''
+    });
+
+    if (response && response.success) {
+      // Optionally show toast: swalHelper.showToast('Caption updated successfully', 'success');
+    } else {
+      console.error('Failed to update caption:', response.message);
+      // Optionally revert or show error
+    }
+  } catch (error) {
+    console.error('Error updating caption:', error);
+    // Optionally show toast: swalHelper.showToast('Failed to update caption', 'error');
+  }
+}
+
+async loadEventGallery(id: string): Promise<void> {
+  this.galleryLoading = true;
+  try {
+    const response = await this.eventService.newGetEventGallery({ id }); // Pass eventId in an object for POST body
+
+    if (response && response.success) {
+      const galleryData = response.data || []; // Assuming response.data is the array of gallery items
+      this.galleryItems.images = galleryData.filter((item: GalleryItem) => item.type === 'image');
+      this.galleryItems.videos = galleryData.filter((item: GalleryItem) => item.type === 'video');
+    } else {
+      this.galleryItems = { images: [], videos: [] };
+    }
+  } catch (error) {
+    console.error('Error loading gallery:', error);
+    swalHelper.showToast('Failed to load gallery', 'error');
+    this.galleryItems = { images: [], videos: [] };
+  } finally {
+    this.galleryLoading = false;
+  }
+}
 
   onGalleryFileChange(event: any, type: 'image' | 'video'): void {
     const files = Array.from(event.target.files) as File[];
@@ -2290,113 +2288,87 @@ export class NewEventsComponent implements OnInit, AfterViewInit {
     return typeof item.url === 'string' ? this.imageurl + item.url : '';
   }
 
-  // async saveGalleryChanges(): Promise<void> {
-  //   if (!this.selectedEventForGallery) return;
+async saveGalleryChanges(): Promise<void> {
+  if (!this.selectedEventForGallery) return;
 
-  //   try {
-  //     this.galleryLoading = true;
-  //     const formData = new FormData();
-      
-  //     formData.append('eventId', this.selectedEventForGallery._id);
+  try {
+    this.galleryLoading = true;
 
-  //     // Process images
-  //     const imageFiles: File[] = [];
-  //     const imageCaptions: string[] = [];
-  //     const existingImages: any[] = [];
+    // Collect all new files (both images and videos)
+    const newItems = [
+      ...this.galleryItems.images.filter(item => item.url instanceof File),
+      ...this.galleryItems.videos.filter(item => item.url instanceof File)
+    ];
 
-  //     this.galleryItems.images.forEach(item => {
-  //       if (item.url instanceof File) {
-  //         imageFiles.push(item.url);
-  //         imageCaptions.push(item.caption || '');
-  //       } else {
-  //         existingImages.push({
-  //           _id: item._id,
-  //           url: item.url,
-  //           caption: item.caption,
-  //           type: item.type
-  //         });
-  //       }
-  //     });
+    if (newItems.length === 0) {
+      swalHelper.showToast('No new items to upload', 'info');
+      this.closeGalleryModal();
+      return;
+    }
 
-  //     // Process videos
-  //     const videoFiles: File[] = [];
-  //     const videoCaptions: string[] = [];
-  //     const existingVideos: any[] = [];
+    const formData = new FormData();
+    formData.append('id', this.selectedEventForGallery._id);
 
-  //     this.galleryItems.videos.forEach(item => {
-  //       if (item.url instanceof File) {
-  //         videoFiles.push(item.url);
-  //         videoCaptions.push(item.caption || '');
-  //       } else {
-  //         existingVideos.push({
-  //           _id: item._id,
-  //           url: item.url,
-  //           caption: item.caption,
-  //           type: item.type
-  //         });
-  //       }
-  //     });
+    newItems.forEach(item => {
+      if (item.url instanceof File) {
+        formData.append('files', item.url); // Append all files to 'files'
+        formData.append('captions[]', item.caption || '');
+        formData.append('types[]', item.type);
+      }
+    });
 
-  //     // Append files
-  //     imageFiles.forEach(file => {
-  //       formData.append('images', file);
-  //     });
+    const response = await this.eventService.uploadGalleryItem(formData);
 
-  //     videoFiles.forEach(file => {
-  //       formData.append('videos', file);
-  //     });
+    if (response && response.success) {
+      swalHelper.showToast('New gallery items uploaded successfully', 'success');
+      this.closeGalleryModal();
+      // Optionally reload if needed, but since closing modal, it will reload on reopen
+    } else {
+      swalHelper.showToast(response.message || 'Failed to upload gallery items', 'error');
+    }
+  } catch (error) {
+    console.error('Error uploading gallery items:', error);
+    swalHelper.showToast('Failed to upload gallery items', 'error');
+  } finally {
+    this.galleryLoading = false;
+  }
+}
 
-  //     // Append metadata
-  //     formData.append('imageCaptions', JSON.stringify(imageCaptions));
-  //     formData.append('videoCaptions', JSON.stringify(videoCaptions));
-  //     formData.append('existingImages', JSON.stringify(existingImages));
-  //     formData.append('existingVideos', JSON.stringify(existingVideos));
+// Update openGalleryModal to load the gallery
+openGalleryModal(event: Event): void {
+  this.selectedEventForGallery = event;
+  this.loadEventGallery(event._id);
+  this.showGalleryModal();
+}
 
-  //     const response = await this.eventService.updateGallery(formData);
+async deleteGalleryItem(item: GalleryItem, type: 'image' | 'video'): Promise<void> {
+  if (!this.selectedEventForGallery || !item._id) return;
 
-  //     if (response && response.success) {
-  //       swalHelper.showToast('Gallery updated successfully', 'success');
-  //       this.closeGalleryModal();
-  //       this.loadEventGallery(this.selectedEventForGallery._id);
-  //     } else {
-  //       swalHelper.showToast(response.message || 'Failed to update gallery', 'error');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error updating gallery:', error);
-  //     swalHelper.showToast('Failed to update gallery', 'error');
-  //   } finally {
-  //     this.galleryLoading = false;
-  //   }
-  // }
+  try {
+    const result = await swalHelper.confirmation(
+      'Delete Gallery Item',
+      'Are you sure you want to delete this item from the gallery?',
+      'warning'
+    );
 
-  // async deleteGalleryItem(item: GalleryItem, type: 'image' | 'video'): Promise<void> {
-  //   if (!this.selectedEventForGallery || !item._id) return;
+    if (result.isConfirmed) {
+      const response = await this.eventService.deleteGalleryItem({
+        eventId: this.selectedEventForGallery._id,
+        itemId: item._id
+      });
 
-  //   try {
-  //     const result = await swalHelper.confirmation(
-  //       'Delete Gallery Item',
-  //       'Are you sure you want to delete this item from the gallery?',
-  //       'warning'
-  //     );
-
-  //     if (result.isConfirmed) {
-  //       const response = await this.eventService.deleteGalleryItem({
-  //         eventId: this.selectedEventForGallery._id,
-  //         itemId: item._id
-  //       });
-
-  //       if (response && response.success) {
-  //         swalHelper.showToast('Gallery item deleted successfully', 'success');
-  //         this.loadEventGallery(this.selectedEventForGallery._id);
-  //       } else {
-  //         swalHelper.showToast('Failed to delete gallery item', 'error');
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error('Error deleting gallery item:', error);
-  //     swalHelper.showToast('Failed to delete gallery item', 'error');
-  //   }
-  // }
+      if (response && response.success) {
+        swalHelper.showToast('Gallery item deleted successfully', 'success');
+        await this.loadEventGallery(this.selectedEventForGallery._id); // Reload to reflect changes
+      } else {
+        swalHelper.showToast('Failed to delete gallery item', 'error');
+      }
+    }
+  } catch (error) {
+    console.error('Error deleting gallery item:', error);
+    swalHelper.showToast('Failed to delete gallery item', 'error');
+  }
+}
 
   switchGalleryTab(tab: 'images' | 'videos'): void {
     this.activeGalleryTab = tab;
@@ -2479,19 +2451,19 @@ export class NewEventsComponent implements OnInit, AfterViewInit {
   }
 
   onQrCodeFileChange(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      if (this.validateQrCodeFile(file)) {
-        this.upiPaymentForm.qrCodeFile = file;
-        // Show preview
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.upiPaymentForm.qrCodeUrl = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
+  const file = event.target.files[0];
+  if (file && this.validateQrCodeFile(file)) {
+    this.upiPaymentForm.qrCodeFile = file;
+
+    // revoke old preview if exists
+    if (this.upiPaymentForm.qrCodeUrl && this.upiPaymentForm.qrCodeUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(this.upiPaymentForm.qrCodeUrl);
     }
+
+    // generate new blob URL for preview
+    this.upiPaymentForm.qrCodeUrl = URL.createObjectURL(file);
   }
+}
 
   validateQrCodeFile(file: File): boolean {
     const maxSize = 5 * 1024 * 1024; // 5MB
@@ -2576,11 +2548,16 @@ export class NewEventsComponent implements OnInit, AfterViewInit {
   }
 
   getQrCodePreview(): string {
-    if (this.upiPaymentForm.qrCodeFile) {
-      return URL.createObjectURL(this.upiPaymentForm.qrCodeFile);
-    }
-    return this.upiPaymentForm.qrCodeUrl ? this.imageurl + this.upiPaymentForm.qrCodeUrl : '';
+  if (this.upiPaymentForm.qrCodeFile) {
+    // already set in onQrCodeFileChange
+    return this.upiPaymentForm.qrCodeUrl;
   }
+  return this.upiPaymentForm.qrCodeUrl
+    ? this.upiPaymentForm.qrCodeUrl.startsWith('blob:')
+      ? this.upiPaymentForm.qrCodeUrl
+      : this.imageurl + this.upiPaymentForm.qrCodeUrl
+    : '';
+}
 
   isPaymentButtonEnabled(event: Event): boolean {
     return event.ticketPrice > 0; // Only enable for paid events
