@@ -1,0 +1,130 @@
+/* Custom CSS for Regions component */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+  color: white;
+}
+
+.rounded-4 {
+  border-radius: 0.75rem !important;
+}
+
+.empty-state {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+}
+
+/* Hover effect for table rows */
+tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Custom styles for action buttons */
+.dropdown-item {
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Animation for status toggle */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+  transition: all 0.3s ease;
+}
+
+.badge:hover {
+  transform: scale(1.05);
+}
+
+/* Style for modal */
+.modal-content {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Countries list styling */
+.countries-list {
+  max-width: 250px;
+}
+
+.countries-list .badge {
+  font-size: 0.7rem;
+  margin-bottom: 2px;
+}
+
+/* Countries container in modal */
+.countries-container {
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+}
+
+.countries-container .badge {
+  font-size: 0.8rem;
+  padding: 0.5rem 0.8rem;
+}
+
+/* Country input styling */
+#countryInput {
+  text-transform: capitalize;
+}
+
+#regionCode {
+  text-transform: uppercase;
+}
+
+/* Custom close button for country badges */
+.btn-close-white {
+  background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3e%3cpath d='m.235 1.027 4.61-4.61c.317-.317.794-.317 1.111 0l5.15 5.15a.5.5 0 0 1 0 .707l-1.4 1.4c-.317.317-.794.317-1.111 0L4.5 9.5l-4.073 4.073c-.317.317-.794.317-1.111 0L-1.4 12.86c-.317-.317-.317-.794 0-1.111l4.61-4.61L.235 1.027z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+  width: 0.8em;
+  height: 0.8em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .countries-list {
+    max-width: 200px;
+  }
+  
+  .modal-lg {
+    max-width: 90vw;
+  }
+  
+  .countries-container .badge {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+/* Table cell adjustments */
+.table td {
+  vertical-align: middle;
+}
+
+/* Form validation styling */
+.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc3545;
+}

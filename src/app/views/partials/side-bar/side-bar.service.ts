@@ -108,6 +108,10 @@ export class SideBarService {
               link: 'city',
               icon: 'map-pin',
             },
+            { title: 'Regions',
+              link: 'regions',
+              icon: 'map-signs',
+            },
             // {
             //   title: 'Chapters',
             //   link: 'chapter',

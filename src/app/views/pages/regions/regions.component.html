@@ -1,0 +1,204 @@
+<div class="container-fluid">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+        <h4 class="mb-0 fw-bold text-white">
+          <i class="bi bi-globe me-2"></i>Regions Management
+        </h4>
+        <button class="btn btn-light rounded-pill px-4" (click)="openAddRegionModal()">
+          <i class="bi bi-plus-circle me-2"></i>Add Region
+        </button>
+      </div>
+      <div class="card-body p-0">
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+          <div class="d-flex w-100 align-items-center">
+            <div class="flex-grow-1 me-2">
+              <input type="text" class="form-control"
+                    placeholder="Search regions..."
+                    [(ngModel)]="searchQuery"
+                    (input)="onSearch()">
+            </div>
+            <div>
+              <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit" placeholder="Items per page"></ng-select>
+            </div>
+          </div>
+        </div>
+      </div>
+       
+      <div *ngIf="loading" class="text-center my-5 py-5">
+        <div class="spinner-grow text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+  
+      <div class="table-responsive" *ngIf="!loading && regions.docs && regions.docs.length > 0">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="ps-4 py-3">Region Name</th>
+              <th class="py-3">Code</th>
+              <th class="py-3">Countries</th>
+              <th class="py-3">Status</th>
+              <th class="py-3">Created At</th>
+              <th class="text-end pe-4 py-3">Action</th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            <tr *ngFor="let region of regions.docs | paginate: {itemsPerPage: payload.limit, currentPage: payload.page, totalItems: regions.totalDocs}; let i=index" class="border-bottom">
+              <td class="ps-4 py-3">
+                <div class="d-flex align-items-center">
+                  <div class="bg-gradient-primary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm  border-2 border-white"
+                    style="width: 40px; height: 40px; color: white;">
+                    {{region.name ? region.name.charAt(0).toUpperCase() : 'R'}}
+                  </div>
+                  <div>
+                    <div class="fw-bold text-dark">{{region.name}}</div>
+                    <small class="text-muted d-block">{{region.description}}</small>
+                    <small class="text-muted d-block">ID: {{region._id ? region._id.substring(0, 8) : 'N/A'}}</small>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3">
+                <span class="badge bg-info text-white">{{region.code}}</span>
+              </td>
+              <td class="py-3">
+                <div class="countries-list">
+                  <span *ngFor="let country of region.countries; let last = last" 
+                        class="badge bg-light text-dark me-1 mb-1">
+                    {{country}}<span *ngIf="!last">,</span>
+                  </span>
+                 
+                </div>
+              </td>
+              <td class="py-3">
+                <span class="badge rounded-pill" 
+                      [ngClass]="region.isActive ? 'badge bg-success' : 'badge bg-danger'"
+                      style="cursor: pointer;"
+                      (click)="toggleRegionStatus(region)">
+                  {{region.isActive ? 'Active' : 'Inactive'}}
+                </span>
+              </td>
+              <td class="py-3">
+                {{formatDate(region.createdAt)}}
+              </td>
+              <td class="text-end pe-4 py-3">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button" 
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                    <li><a class="dropdown-item" (click)="openEditRegionModal(region)" style="cursor: pointer;">
+                      <i class="bi bi-pencil-fill me-2 text-primary"></i> Edit
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" (click)="deleteRegion(region._id)" style="cursor: pointer;">
+                      <i class="bi bi-trash-fill me-2"></i> Delete
+                    </a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <!-- Pagination Controls -->
+        <div class="d-flex justify-content-end p-3">
+          <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+        </div>
+      </div>
+  
+      <!-- No Regions Found -->
+      <div *ngIf="!loading && (!regions.docs || regions.docs.length === 0)" class="text-center my-5 py-4 px-4">
+        <div class="empty-state">
+          <i class="bi bi-globe fs-1 text-muted mb-3"></i>
+          <h5>No Regions Found</h5>
+          <p class="text-muted">Try adding some regions or adjusting your search criteria.</p>
+          <button class="btn btn-primary rounded-pill mt-3" (click)="openAddRegionModal()">
+            <i class="bi bi-plus-circle me-2"></i>Add Region
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Region Modal (Add/Edit) -->
+  <div class="modal fade" id="regionModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+    aria-labelledby="regionModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title" id="regionModalTitle">
+            <i class="bi bi-globe me-2"></i> {{editMode ? 'Edit Region' : 'Add New Region'}}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="regionName" class="form-label">Region Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="regionName" placeholder="Enter region name" 
+                        [(ngModel)]="newRegion.name" name="regionName" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="regionCode" class="form-label">Region Code <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="regionCode" placeholder="Enter region code (e.g., ME)" 
+                        [(ngModel)]="newRegion.code" name="regionCode" required maxlength="10" style="text-transform: uppercase;">
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="regionDescription" class="form-label">Description</label>
+              <textarea class="form-control" id="regionDescription" rows="3" placeholder="Enter region description"
+                       [(ngModel)]="newRegion.description" name="regionDescription"></textarea>
+            </div>
+            
+            <div class="mb-3">
+              <label for="countries" class="form-label">Countries <span class="text-danger">*</span></label>
+              <div class="input-group mb-2">
+                <input type="text" class="form-control" id="countryInput" placeholder="Enter country name"
+                      [(ngModel)]="countryInput" name="countryInput" (keyup.enter)="addCountry()">
+                <button type="button" class="btn btn-outline-primary" (click)="addCountry()">
+                  <i class="bi bi-plus"></i> Add
+                </button>
+              </div>
+              
+              <div class="countries-container mt-2" *ngIf="newRegion.countries && newRegion.countries.length > 0">
+                <small class="text-muted mb-2 d-block">Added Countries:</small>
+                <div class="d-flex flex-wrap gap-2">
+                  <span *ngFor="let country of newRegion.countries; let i = index" 
+                        class="badge bg-primary d-flex align-items-center">
+                    {{country}}
+                    <button type="button" class="btn-close btn-close-white ms-2" 
+                           (click)="removeCountry(i)" style="font-size: 0.7em;"></button>
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" id="regionStatus" 
+                    [(ngModel)]="newRegion.isActive" name="regionStatus">
+              <label class="form-check-label" for="regionStatus">
+                {{newRegion.isActive ? 'Active' : 'Inactive'}}
+              </label>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i> Cancel
+          </button>
+          <button type="button" class="btn btn-primary rounded-pill" (click)="saveRegion()" 
+                  [disabled]="!newRegion.name || !newRegion.code || !newRegion.countries || newRegion.countries.length === 0">
+            <i class="bi bi-save me-1"></i> {{editMode ? 'Update' : 'Save'}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

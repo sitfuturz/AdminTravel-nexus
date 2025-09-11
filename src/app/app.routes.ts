@@ -46,6 +46,7 @@ import { BookingsComponent } from './views/pages/podcastBooking/podcastBooking.c
 import { FinanceComponent } from './views/pages/financeModule/finance.component';
 import { ExpenseComponent } from './views/pages/expense/expense.component';
 import { AnalyticsComponent } from './views/pages/analytics/analytics.component';
+import { RegionsComponent } from './views/pages/regions/regions.component';
 
 
 
@@ -82,6 +83,7 @@ export const routes: Routes = [
       { path: 'otp', component: OtpRecordsComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
 
       { path: 'city', component: CitiesComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
+      {path:'regions', component: RegionsComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
       { path: 'leaderboard', component: LeaderboardComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
       { path: 'referralReport', component: ReferralsComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
       { path: 'testimonialReport', component: TestimonialsComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },

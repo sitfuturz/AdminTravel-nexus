@@ -178,6 +178,12 @@ public BULK_DELETE_SLOTS=`${this.PATH}/bulkDeleteSlots`
     public UPDATE_FEEDBACK_STATUS= `${this.PATH}/updateFeedbackStatus`
     public DELETE_COMPLAINT= `${this.PATH}/deleteComplaint`
     public DELETE_FEEDBACK= `${this.PATH}/deleteFeedback`
+    public GET_ALL_REGIONS=`${this.PATH}/getAllRegions`
+public CREATE_REGION= `${this.PATH}/createRegion`
+
+public UPDATE_REGION= `${this.PATH}/updateRegion`
+public GET_REGION_BY_ID= `${this.PATH}/getRegion`
+public DELETE_REGION= `${this.PATH}/deleteRegion`
 
     public CREATE_COMPLAINT= `${this.PATH}/createComplaint`
     public CREATE_FEEDBACK= `${this.PATH}/createFeedback`

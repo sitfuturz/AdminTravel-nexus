@@ -1947,6 +1947,181 @@ export class EventService {
           }
         }
 
+        // Add these interfaces to your auth.service.ts file
+
+export interface RegionResponse {
+  docs: Region[];
+  totalDocs: string | number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
+export interface Region {
+  _id: string;
+  name: string;
+  code: string;
+  description: string;
+  countries: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+// Add this service class to your auth.service.ts file
+
+@Injectable({
+  providedIn: 'root',
+})
+export class RegionService {
+  private headers: any = [];
+  
+  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+  
+  private getHeaders = () => {
+    this.headers = [];
+    let token = this.storage.get(common.TOKEN);
+    
+    if (token != null) {
+      this.headers.push({ Authorization: `Bearer ${token}` });
+    }
+  };
+
+  async getRegions(data: { page: number; limit: number; search: string }): Promise<RegionResponse> {
+    try {
+      this.getHeaders();
+      
+      // Create query parameters
+      let queryParams = `?page=${data.page}&limit=${data.limit}`;
+      if (data.search) {
+        queryParams += `&search=${encodeURIComponent(data.search)}`;
+      }
+      
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.GET_ALL_REGIONS + queryParams,
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+      
+      // Return just the data part of the response, which should match RegionResponse
+      return response.data || response;
+    } catch (error) {
+      console.error('API Error:', error);
+      swalHelper.showToast('Failed to fetch regions', 'error');
+      throw error;
+    }
+  }
+
+  async createRegion(data: {
+    name: string;
+    code: string;
+    description: string;
+    countries: string[];
+    isActive?: boolean;
+  }): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.CREATE_REGION,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      
+      return response;
+    } catch (error: any) {
+      console.error('Create Region Error:', error);
+      
+      if (error && error.error) {
+        return error.error;
+      }
+      
+      swalHelper.showToast('Failed to create region', 'error');
+      throw error;
+    }
+  }
+
+  async updateRegion(id: string, data: {
+    name: string;
+    description: string;
+    countries: string[];
+    isActive?: boolean;
+  }): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.UPDATE_REGION}/${id}`,
+          method: 'PUT',
+        },
+        data,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Update Region Error:', error);
+      swalHelper.showToast('Failed to update region', 'error');
+      throw error;
+    }
+  }
+
+  async getRegionById(id: string): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.GET_REGION_BY_ID}/${id}`,
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Get Region By ID Error:', error);
+      swalHelper.showToast('Failed to fetch region details', 'error');
+      throw error;
+    }
+  }
+
+  async deleteRegion(id: string): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.DELETE_REGION}/${id}`,
+          method: 'DELETE',
+        },
+        null,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Delete Region Error:', error);
+      swalHelper.showToast('Failed to delete region', 'error');
+      throw error;
+    }
+  }
+}
+
         export interface OtpRecord {
           _id: string;
           mobileNo: string;
