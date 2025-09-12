@@ -7,6 +7,7 @@ import { RegisterUserAuthService, User } from '../../../services/auth.service';
 import { CountryService, Country } from '../../../services/auth.service';
 import { StateService, State } from '../../../services/auth.service';
 import { CityService, City } from '../../../services/auth.service';
+import { RegionService } from '../../../services/auth.service'; // Add RegionService import
 import { AuthService } from '../../../services/auth.service';
 import { DashboardService } from '../../../services/auth.service';
 import { swalHelper } from '../../../core/constants/swal-helper';
@@ -26,8 +27,19 @@ interface Registration {
   city: string;
   business_name: string;
   isMember: boolean;
+  regions: RegionObject[];
+  dmc_specializations: string[];
+  services_offered: string[];
   createdAt: string;
   updatedAt?: string;
+}
+
+// Interface for Region Object in response
+interface RegionObject {
+  _id: string;
+  name: string;
+  description: string;
+  countries: string[];
 }
 
 // Interface for API Response Data
@@ -52,11 +64,17 @@ interface RegistrationResponse {
   status: number;
 }
 
+// Interface for Region
+interface Region {
+  _id: string;
+  name: string;
+}
+
 @Component({
   selector: 'app-new-user-registration',
   standalone: true,
   imports: [CommonModule, FormsModule, NgSelectModule, NgxPaginationModule],
-  providers: [RegisterUserAuthService, CountryService, StateService, CityService, AuthService, DashboardService],
+  providers: [RegisterUserAuthService, CountryService, StateService, CityService, RegionService, AuthService, DashboardService],
   templateUrl: './new-user-registration.component.html',
   styleUrl: './new-user-registration.component.css'
 })
@@ -68,12 +86,28 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     city: '',
     state: '',
     country: '',
-    business_name: ''
+    business_name: '',
+    regions: [],
+    dmc_specializations: [],
+    services_offered: []
   };
 
   countries: Country[] = [];
   states: State[] = [];
   cities: City[] = [];
+  regions: Region[] = [];
+  
+  // Predefined specializations array
+  specializations: string[] = [
+    'MICE', 'Adventure', 'Luxury', 'Cultural', 'Corporate',
+    'Leisure', 'Educational', 'Medical', 'Religious', 'Eco-Tourism'
+  ];
+
+  // Predefined services array
+  servicesOffered: string[] = [
+    'Hotel Booking', 'Transportation', 'Guided Tours', 'Event Management',
+    'Airport Transfers', 'Visa Assistance', 'Travel Insurance', 'Custom Packages'
+  ];
   
   // Registration list data - matching your backend response structure
   registrations: RegistrationData = {
@@ -93,12 +127,14 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
   countriesLoading: boolean = false;
   statesLoading: boolean = false;
   citiesLoading: boolean = false;
+  regionsLoading: boolean = false;
   registrationsLoading: boolean = false;
   acceptingUser: string = ''; // Track which user is being accepted
   
   countriesLoaded: boolean = false;
   statesLoaded: boolean = false;
   citiesLoaded: boolean = false;
+  regionsLoaded: boolean = false;
 
   // Search and pagination
   searchQuery: string = '';
@@ -120,7 +156,10 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     country: false,
     state: false,
     city: false,
-    business_name: false
+    business_name: false,
+    regions: false,
+    dmc_specializations: false,
+    services_offered: false
   };
 
   // Validation error messages
@@ -131,7 +170,10 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     country: '',
     state: '',
     city: '',
-    business_name: ''
+    business_name: '',
+    regions: '',
+    dmc_specializations: '',
+    services_offered: ''
   };
 
   Math = Math;
@@ -143,6 +185,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     private countryService: CountryService,
     private stateService: StateService,
     private cityService: CityService,
+    private regionService: RegionService, // Add RegionService
     private authService: AuthService,
     private dashboardService: DashboardService,
     private cdr: ChangeDetectorRef
@@ -156,6 +199,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     this.fetchCountries();
     this.fetchStates();
     this.fetchCities();
+    this.fetchRegions(); // Add this
     this.fetchRegistrations();
   }
 
@@ -228,6 +272,27 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // Add new method to fetch regions
+  async fetchRegions(): Promise<void> {
+    this.regionsLoading = true;
+    this.regionsLoaded = false;
+    try {
+      const response = await this.regionService.getRegions({
+        page: 1,
+        limit: 1000,
+        search: ''
+      });
+      this.regions = response.docs;
+      this.regionsLoaded = true;
+    } catch (error) {
+      console.error('Error fetching regions:', error);
+      swalHelper.showToast('Failed to fetch regions', 'error');
+    } finally {
+      this.regionsLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
   async fetchRegistrations(): Promise<void> {
     this.registrationsLoading = true;
     try {
@@ -241,6 +306,9 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       if (response && response.success && response.data) {
         this.registrations = response.data;
         this.cdr.detectChanges();
+        
+        // Reinitialize tooltips after data loads
+        this.initializeTooltips();
       }
     } catch (error) {
       console.error('Error fetching registrations:', error);
@@ -309,7 +377,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.cdr.detectChanges();
     }
   }
-
 
   onMobileInput(event: any): void {
     const input = event.target;
@@ -447,6 +514,46 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     return true;
   }
 
+  // Add validation methods for new fields
+  validateRegions(): boolean {
+    if (!this.touchedFields.regions) {
+      return true;
+    }
+
+    if (!this.registerForm.regions || this.registerForm.regions.length === 0) {
+      this.validationErrors.regions = 'At least one region is required';
+      return false;
+    }
+    this.validationErrors.regions = '';
+    return true;
+  }
+
+  validateSpecializations(): boolean {
+    if (!this.touchedFields.dmc_specializations) {
+      return true;
+    }
+
+    if (!this.registerForm.dmc_specializations || this.registerForm.dmc_specializations.length === 0) {
+      this.validationErrors.dmc_specializations = 'At least one specialization is required';
+      return false;
+    }
+    this.validationErrors.dmc_specializations = '';
+    return true;
+  }
+
+  validateServicesOffered(): boolean {
+    if (!this.touchedFields.services_offered) {
+      return true;
+    }
+
+    if (!this.registerForm.services_offered || this.registerForm.services_offered.length === 0) {
+      this.validationErrors.services_offered = 'At least one service is required';
+      return false;
+    }
+    this.validationErrors.services_offered = '';
+    return true;
+  }
+
   onFieldBlur(fieldName: string): void {
     // Mark field as touched
     this.touchedFields[fieldName] = true;
@@ -474,6 +581,15 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       case 'business_name':
         this.validateBusinessName();
         break;
+      case 'regions':
+        this.validateRegions();
+        break;
+      case 'dmc_specializations':
+        this.validateSpecializations();
+        break;
+      case 'services_offered':
+        this.validateServicesOffered();
+        break;
     }
   }
 
@@ -489,14 +605,24 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
 
       this.loading = true;
       
-      // Create request body object instead of FormData
+      // Create request body object
       const requestBody: any = {};
       
       Object.keys(this.registerForm).forEach(key => {
         if (this.registerForm[key] !== null && this.registerForm[key] !== '') {
-          requestBody[key] = this.registerForm[key];
+          if (key === 'regions') {
+            // For regions, send array of IDs
+            requestBody[key] = this.registerForm[key];
+          } else if (key === 'dmc_specializations' || key === 'services_offered') {
+            // For specializations and services, send array of strings
+            requestBody[key] = this.registerForm[key];
+          } else {
+            requestBody[key] = this.registerForm[key];
+          }
         }
       });
+
+      console.log('Request body:', requestBody);
 
       const response = await this.registerService.newRegisterUser(requestBody);
       console.log('Register response:', response);
@@ -517,7 +643,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     }
   }
 
-
   markAllRequiredFieldsAsTouched(): void {
     this.touchedFields.name = true;
     this.touchedFields.email = true;
@@ -526,6 +651,9 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     this.touchedFields.state = true;
     this.touchedFields.city = true;
     this.touchedFields.business_name = true;
+    this.touchedFields.regions = true;
+    this.touchedFields.dmc_specializations = true;
+    this.touchedFields.services_offered = true;
   }
 
   validateFormForSubmission(): boolean {
@@ -607,6 +735,30 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.validationErrors.business_name = '';
     }
 
+    // Validate regions
+    if (!this.registerForm.regions || this.registerForm.regions.length === 0) {
+      this.validationErrors.regions = 'At least one region is required';
+      isValid = false;
+    } else {
+      this.validationErrors.regions = '';
+    }
+
+    // Validate specializations
+    if (!this.registerForm.dmc_specializations || this.registerForm.dmc_specializations.length === 0) {
+      this.validationErrors.dmc_specializations = 'At least one specialization is required';
+      isValid = false;
+    } else {
+      this.validationErrors.dmc_specializations = '';
+    }
+
+    // Validate services offered
+    if (!this.registerForm.services_offered || this.registerForm.services_offered.length === 0) {
+      this.validationErrors.services_offered = 'At least one service is required';
+      isValid = false;
+    } else {
+      this.validationErrors.services_offered = '';
+    }
+
     return isValid;
   }
 
@@ -622,7 +774,10 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
            this.registerForm.country &&
            this.registerForm.state &&
            this.registerForm.city &&
-           businessName && businessName.length >= 2;
+           businessName && businessName.length >= 2 &&
+           this.registerForm.regions && this.registerForm.regions.length > 0 &&
+           this.registerForm.dmc_specializations && this.registerForm.dmc_specializations.length > 0 &&
+           this.registerForm.services_offered && this.registerForm.services_offered.length > 0;
   }
 
   resetForm(): void {
@@ -633,7 +788,10 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       city: '',
       state: '',
       country: '',
-      business_name: ''
+      business_name: '',
+      regions: [],
+      dmc_specializations: [],
+      services_offered: []
     };
 
     // Reset validation errors
@@ -644,7 +802,10 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       country: '',
       state: '',
       city: '',
-      business_name: ''
+      business_name: '',
+      regions: '',
+      dmc_specializations: '',
+      services_offered: ''
     };
 
     // Reset touched fields
@@ -655,7 +816,10 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       country: false,
       state: false,
       city: false,
-      business_name: false
+      business_name: false,
+      regions: false,
+      dmc_specializations: false,
+      services_offered: false
     };
   }
 
@@ -686,5 +850,31 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
+  }
+
+  // Helper method to display arrays in template
+  getArrayDisplay(arr: string[]): string {
+    if (!arr || arr.length === 0) return 'N/A';
+    return arr.join(', ');
+  }
+
+  // Initialize Bootstrap tooltips
+  initializeTooltips(): void {
+    setTimeout(() => {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+      tooltipTriggerList.forEach(tooltipTriggerEl => {
+        new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    }, 500);
+  }
+
+  // Helper method to generate tooltip text for multiple regions
+  getRegionsTooltip(regions: RegionObject[]): string {
+    if (!regions || regions.length <= 1) return '';
+    
+    const additionalRegions = regions.slice(1);
+    return additionalRegions.map(region => 
+      `${region.name} - Countries: ${region.countries?.join(', ') || 'N/A'}`
+    ).join('\n');
   }
 }

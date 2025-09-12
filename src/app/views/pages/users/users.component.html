@@ -6,22 +6,6 @@
       <h4 class="mb-0 fw-bold text-white">
         <i class="bi bi-people-fill me-2"></i>All Members
       </h4>
-      <!-- <div>
-        <button
-          class="btn btn-dark rounded-pill me-2 bg-light text-black"
-          (click)="exportToExcel()"
-          [disabled]="loading || exporting || !users?.docs?.length"
-        >
-          <i class="bi bi-file-earmark-excel-fill me-2"></i>Export to Excel
-        </button>
-        <button
-          class="btn btn-light rounded-pill me-2 bg-light text-black"
-          (click)="exportToPDF()"
-          [disabled]="loading || exporting || !users?.docs?.length"
-        >
-          <i class="bi bi-file-earmark-pdf-fill me-2"></i>Export to PDF
-        </button>
-      </div> -->
     </div>
     <div class="card-body p-0">
       <div
@@ -36,19 +20,6 @@
             (input)="onSearch()"
           />
         </div>
-        <!-- <div class="me-2">
-          <ng-select
-            id="chapterSelect"
-            [items]="chapters"
-            bindLabel="name"
-            bindValue="name"
-            [(ngModel)]="selectedChapter"
-            (change)="onChapterChange()"
-            placeholder="Select Chapter"
-            [clearable]="true"
-          >
-          </ng-select>
-        </div> -->
         <div class="ms-2">
           <ng-select
             id="limitSelect"
@@ -86,12 +57,12 @@
         <thead class="bg-light">
           <tr>
             <th class="ps-4 py-3">Name</th>
-            <th class="py-3">Business</th>
+            <th class="py-3">Business Name</th>
             <th class="py-3">Mobile</th>
             <th class="py-3">Email</th>
-            <!-- <th class="py-3">DigitalCardLink</th>
-            <th class="py-3">User Type</th> -->
-            <!-- <th class="py-3">Status</th> -->
+            <th class="py-3">Specializations</th>
+            <th class="py-3">Services</th>
+            <th class="py-3">Regions</th>
             <th class="text-end pe-4 py-3">Action</th>
           </tr>
         </thead>
@@ -112,18 +83,6 @@
           >
             <td class="ps-4 py-3">
               <div class="d-flex align-items-center">
-                <!-- <img
-                  [src]="
-                    user.profilePic
-                      ? imageurl + user.profilePic
-                      : '/assets/images/placeholder-image.png'
-                  "
-                  class="rounded-circle me-3 shadow-sm border-2 border-white"
-                  width="48"
-                  height="48"
-                  alt="User"
-                  onerror="this.src='assets/images/placeholder-image.png'"
-                /> -->
                 <div>
                   <div class="fw-bold text-dark">
                     {{ user.name || "Unknown User" }}
@@ -139,9 +98,6 @@
               <span class="d-flex align-items-center">{{
                 user.business_name || "N/A"
               }}</span>
-              <!-- <small class="text-muted" *ngIf="user.business && user.business.length > 0 && user.business[0].about_business_details">
-                {{user.business[0].about_business_details | slice:0:25}}{{user.business[0].about_business_details.length > 25 ? '...' : ''}}
-              </small> -->
             </td>
             <td class="py-3">
               <span class="d-flex align-items-center">
@@ -155,27 +111,41 @@
                 {{ user.email || "N/A" }}
               </span>
             </td>
-            <!-- <td class="py-3">
-              <ng-container *ngIf="user.digitalCardLink; else noLink">
-                <a [href]="user.digitalCardLink" target="_blank" class="text-primary">
-                  <i class="bi bi-link-45deg me-2"></i>Digital Card
-                </a>
-              </ng-container>
-              <ng-template #noLink>N/A</ng-template>
+            <td class="py-3">
+              <div class="small">
+                <span class="badge bg-primary me-1" *ngFor="let spec of user.dmc_specializations?.slice(0, 2)">{{spec}}</span>
+                <span *ngIf="user.dmc_specializations && user.dmc_specializations.length > 2" class="text-muted">+{{user.dmc_specializations.length - 2}} more</span>
+                <span *ngIf="!user.dmc_specializations || user.dmc_specializations.length === 0" class="text-muted">N/A</span>
+              </div>
             </td>
             <td class="py-3">
-              <span class="badge rounded-pill px-3 py-2 bg-primary bg-opacity-10 text-primary">
-                {{user.meeting_role || 'N/A'}}
-              </span>
-            </td> -->
-            <!-- <td class="py-3">
-              <span class="badge rounded-pill"
-                    [ngClass]="user.isActive ? 'badge bg-success' : 'badge bg-danger'"
-                    style="cursor: pointer;"
-                    (click)="toggleUserStatus(user)">
-                {{user.isActive ? 'Active' : 'Inactive'}}
-              </span>
-            </td> -->
+              <div class="small">
+                <span class="badge bg-success me-1" *ngFor="let service of user.services_offered?.slice(0, 2)">{{service}}</span>
+                <span *ngIf="user.services_offered && user.services_offered.length > 2" class="text-muted">+{{user.services_offered.length - 2}} more</span>
+                <span *ngIf="!user.services_offered || user.services_offered.length === 0" class="text-muted">N/A</span>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="small">
+                <div *ngFor="let region of user.regions?.slice(0, 1)" class="mb-1">
+                  <span class="badge bg-info me-1 region-tooltip" 
+                        [attr.data-bs-toggle]="'tooltip'" 
+                        [attr.data-bs-placement]="'top'"
+                        [attr.title]="region.name + ' - Countries: ' + (region.countries?.join(', ') || 'N/A')">
+                    {{region.name}}
+                  </span>
+                  <small class="text-muted d-block">{{region.countries?.[0] || 'N/A'}}</small>
+                </div>
+                <span *ngIf="user.regions && user.regions.length > 1" 
+                      class="text-muted region-more-tooltip"
+                      [attr.data-bs-toggle]="'tooltip'" 
+                      [attr.data-bs-placement]="'top'"
+                      [attr.title]="getRegionsTooltip(user.regions)">
+                  +{{user.regions.length - 1}} more
+                </span>
+                <span *ngIf="!user.regions || user.regions.length === 0" class="text-muted">N/A</span>
+              </div>
+            </td>
             <td class="text-end pe-4 py-3">
               <div class="dropdown">
                 <button
@@ -278,7 +248,7 @@
   aria-hidden="true"
 >
   <div
-    class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg"
+    class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl"
     role="document"
   >
     <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
@@ -306,18 +276,12 @@
               >Profile</a
             >
           </li>
-          <!-- <li class="nav-item">
-            <a class="nav-link" [class.active]="activeTab === 'referrals'" (click)="setActiveTab('referrals')" style="cursor: pointer;">Referrals</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" [class.active]="activeTab === 'pdf'" (click)="setActiveTab('pdf')" style="cursor: pointer;">PDF</a>
-          </li> -->
         </ul>
         <!-- Profile Tab Content -->
         <div *ngIf="activeTab === 'profile' && selectedUser">
           <div class="row">
             <!-- Left Column - Profile Info -->
-            <div class="col-md-12">
+            <div class="col-md-6">
               <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body text-center">
                   <img
@@ -327,7 +291,7 @@
                         : '/assets/images/placeholder-image.png'
                     "
                     class="img-fluid rounded-circle mb-3 shadow-sm border-3 border-white"
-                    style="width: 180px; height: 180px; object-fit: cover"
+                    style="width: 150px; height: 150px; object-fit: cover"
                     alt="User Image"
                     onerror="this.src='assets/images/placeholder-image.png'"
                   />
@@ -380,274 +344,82 @@
                   </div>
                 </div>
               </div>
+            </div>
 
+            <!-- Right Column - Business Details -->
+            <div class="col-md-6">
               <!-- Business Info -->
-              <div
-                class="card border-0 shadow-sm rounded-4 mb-4"
-                *ngIf="selectedUser.business_name"
-              >
+              <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-light py-3">
                   <h6 class="mb-0 fw-bold">
                     <i class="bi bi-building me-2"></i> Business Information
                   </h6>
                 </div>
                 <div class="card-body">
-                  <p class="mb-1 text-muted small">Business Name:</p>
-                  <p class="fw-bold">{{ selectedUser.business_name }}</p>
+                  <div class="mb-3">
+                    <p class="mb-1 text-muted small">Business Name:</p>
+                    <p class="fw-bold">{{ selectedUser.business_name || "N/A" }}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Referrals Tab Content -->
-        <div *ngIf="activeTab === 'referrals'">
-          <div class="card border-0 shadow-sm rounded-4 mb-3">
-            <div class="card-header bg-light py-3">
-              <h6 class="mb-0 fw-bold">
-                <i class="bi bi-share-fill me-2"></i> Referral History
-              </h6>
-            </div>
-            <div class="card-body">
-              <!-- Sub-tabs for Given and Received Referrals -->
-              <ul class="nav nav-pills mb-3">
-                <li class="nav-item">
-                  <a
-                    class="nav-link"
-                    [class.active]="referralTab === 'given'"
-                    (click)="setReferralTab('given')"
-                    style="cursor: pointer"
-                    >Given</a
-                  >
-                </li>
-                <li class="nav-item">
-                  <a
-                    class="nav-link"
-                    [class.active]="referralTab === 'received'"
-                    (click)="setReferralTab('received')"
-                    style="cursor: pointer"
-                    >Received</a
-                  >
-                </li>
-              </ul>
-              <!-- Loading State -->
-              <div *ngIf="referralLoading" class="text-center my-5">
-                <div class="spinner-grow text-primary" role="status">
-                  <span class="visually-hidden">Loading...</span>
+              <!-- Regions Card -->
+              <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-light py-3">
+                  <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-geo-alt-fill me-2"></i> Operating Regions
+                  </h6>
                 </div>
-              </div>
-              <!-- Given Referrals -->
-              <div *ngIf="referralTab === 'given' && !referralLoading">
-                <div *ngIf="referralsGiven.length > 0; else noGivenReferrals">
-                  <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                      <thead class="bg-light">
-                        <tr>
-                          <th>Receiver</th>
-                          <th>Type</th>
-                          <th>Rating</th>
-                          <th>Status</th>
-                          <th>Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr
-                          *ngFor="
-                            let referral of referralsGiven
-                              | paginate
-                                : {
-                                    id: referralPaginationConfig.givenId,
-                                    itemsPerPage: referralPayload.limit,
-                                    currentPage: referralPayload.givenPage,
-                                    totalItems: referralsGivenTotal
-                                  };
-                            let i = index
-                          "
-                        >
-                          <td>{{ referral.receiver_id?.name || "N/A" }}</td>
-                          <td>{{ referral.referral_type | titlecase }}</td>
-                          <td>{{ referral.rating || "N/A" }}</td>
-                          <td>
-                            <span
-                              class="badge"
-                              [ngClass]="{
-                                'bg-success':
-                                  referral.referral_status.given_card,
-                                'bg-warning':
-                                  !referral.referral_status.given_card
-                              }"
-                            >
-                              {{
-                                referral.referral_status.given_card
-                                  ? "Card Given"
-                                  : "Pending"
-                              }}
-                            </span>
-                          </td>
-                          <td>
-                            {{ referral.createdAt | date : "mediumDate" }}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div
-                    class="d-flex justify-content-between align-items-center p-3 border-top"
-                  >
-                    <div *ngIf="referralsGiven.length > 0" class="text-muted">
-                      Showing
-                      {{
-                        (referralPayload.givenPage - 1) *
-                          referralPayload.limit +
-                          1
-                      }}
-                      to
-                      {{
-                        Math.min(
-                          referralPayload.givenPage * referralPayload.limit,
-                          referralsGivenTotal
-                        )
-                      }}
-                      of {{ referralsGivenTotal }} entries
+                <div class="card-body">
+                  <div *ngIf="selectedUser.regions && selectedUser.regions.length > 0; else noRegions">
+                    <div *ngFor="let region of selectedUser.regions" class="mb-2">
+                      <span class="badge bg-info me-2">{{ region.name }}</span>
+                      <small class="text-muted">{{ region.countries?.join(', ') || 'N/A' }}</small>
                     </div>
-                    <pagination-controls
-                      [id]="referralPaginationConfig.givenId"
-                      (pageChange)="onGivenReferralPageChange($event)"
-                      previousLabel="Previous"
-                      nextLabel="Next"
-                      [directionLinks]="true"
-                    >
-                    </pagination-controls>
                   </div>
+                  <ng-template #noRegions>
+                    <p class="text-muted mb-0">No regions specified</p>
+                  </ng-template>
                 </div>
-                <ng-template #noGivenReferrals>
-                  <div class="text-center py-4">
-                    <i class="bi bi-info-circle fs-1 text-muted mb-3"></i>
-                    <p>No referrals given by this user.</p>
-                  </div>
-                </ng-template>
               </div>
-              <!-- Received Referrals -->
-              <div *ngIf="referralTab === 'received' && !referralLoading">
-                <div
-                  *ngIf="referralsReceived.length > 0; else noReceivedReferrals"
-                >
-                  <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                      <thead class="bg-light">
-                        <tr>
-                          <th>Giver</th>
-                          <th>Type</th>
-                          <th>Rating</th>
-                          <th>Status</th>
-                          <th>Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr
-                          *ngFor="
-                            let referral of referralsReceived
-                              | paginate
-                                : {
-                                    id: referralPaginationConfig.receivedId,
-                                    itemsPerPage: referralPayload.limit,
-                                    currentPage: referralPayload.receivedPage,
-                                    totalItems: referralsReceivedTotal
-                                  };
-                            let i = index
-                          "
-                        >
-                          <td>{{ referral.giver_id?.name || "N/A" }}</td>
-                          <td>{{ referral.referral_type | titlecase }}</td>
-                          <td>{{ referral.rating || "N/A" }}</td>
-                          <td>
-                            <span
-                              class="badge"
-                              [ngClass]="{
-                                'bg-success':
-                                  referral.referral_status.given_card,
-                                'bg-warning':
-                                  !referral.referral_status.given_card
-                              }"
-                            >
-                              {{
-                                referral.referral_status.given_card
-                                  ? "Card Given"
-                                  : "Pending"
-                              }}
-                            </span>
-                          </td>
-                          <td>
-                            {{ referral.createdAt | date : "mediumDate" }}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div
-                    class="d-flex justify-content-between align-items-center p-3 border-top"
-                  >
-                    <div
-                      *ngIf="referralsReceived.length > 0"
-                      class="text-muted"
-                    >
-                      Showing
-                      {{
-                        (referralPayload.receivedPage - 1) *
-                          referralPayload.limit +
-                          1
-                      }}
-                      to
-                      {{
-                        Math.min(
-                          referralPayload.receivedPage * referralPayload.limit,
-                          referralsReceivedTotal
-                        )
-                      }}
-                      of {{ referralsReceivedTotal }} entries
-                    </div>
-                    <pagination-controls
-                      [id]="referralPaginationConfig.receivedId"
-                      (pageChange)="onReceivedReferralPageChange($event)"
-                      previousLabel="Previous"
-                      nextLabel="Next"
-                      [directionLinks]="true"
-                    >
-                    </pagination-controls>
-                  </div>
+
+              <!-- Specializations Card -->
+              <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-light py-3">
+                  <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-star-fill me-2"></i> Specializations
+                  </h6>
                 </div>
-                <ng-template #noReceivedReferrals>
-                  <div class="text-center py-4">
-                    <i class="bi bi-info-circle fs-1 text-muted mb-3"></i>
-                    <p>No referrals received by this user.</p>
+                <div class="card-body">
+                  <div *ngIf="selectedUser.dmc_specializations && selectedUser.dmc_specializations.length > 0; else noSpecializations">
+                    <span class="badge bg-primary me-2 mb-2" *ngFor="let spec of selectedUser.dmc_specializations">
+                      {{ spec }}
+                    </span>
                   </div>
-                </ng-template>
+                  <ng-template #noSpecializations>
+                    <p class="text-muted mb-0">No specializations specified</p>
+                  </ng-template>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-        <!-- PDF Tab Content -->
-        <div *ngIf="activeTab === 'pdf'">
-          <div class="card border-0 shadow-sm rounded-4 mb-3">
-            <div class="card-header bg-light py-3">
-              <h6 class="mb-0 fw-bold">
-                <i class="bi bi-file-earmark-pdf-fill me-2"></i> Generate PDF
-              </h6>
-            </div>
-            <div class="card-body text-center">
-              <p class="text-muted mb-4">
-                Click the button below to generate a PDF with the user's
-                details, including contact and business information.
-              </p>
-              <button
-                class="btn btn-primary rounded-pill px-4"
-                (click)="generateUserPDF()"
-                [disabled]="pdfLoading"
-              >
-                <i class="bi bi-download me-2"></i>
-                <span *ngIf="!pdfLoading">Generate PDF</span>
-                <span *ngIf="pdfLoading">Generating...</span>
-              </button>
+
+              <!-- Services Card -->
+              <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-light py-3">
+                  <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-gear-fill me-2"></i> Services Offered
+                  </h6>
+                </div>
+                <div class="card-body">
+                  <div *ngIf="selectedUser.services_offered && selectedUser.services_offered.length > 0; else noServices">
+                    <span class="badge bg-success me-2 mb-2" *ngFor="let service of selectedUser.services_offered">
+                      {{ service }}
+                    </span>
+                  </div>
+                  <ng-template #noServices>
+                    <p class="text-muted mb-0">No services specified</p>
+                  </ng-template>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -664,6 +436,7 @@
     </div>
   </div>
 </div>
+
 <!-- Edit User Modal -->
 <div
   class="modal fade"
@@ -675,7 +448,7 @@
   aria-labelledby="editUserModalTitle"
   aria-hidden="true"
 >
-  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+  <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
     <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
       <div class="modal-header bg-gradient-primary text-white">
         <h5 class="modal-title" id="editUserModalTitle">
@@ -836,6 +609,69 @@
                 <div class="invalid-feedback" *ngIf="editError.city">
                   {{ editError.city }}
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Business Details Section -->
+          <div class="mb-4">
+            <h6 class="text-primary mb-3">Business Details</h6>
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="editRegions" class="form-label">Operating Regions</label>
+                <ng-select 
+                  id="editRegions" 
+                  [items]="regions" 
+                  bindLabel="name" 
+                  bindValue="_id" 
+                  placeholder="Select regions"
+                  [(ngModel)]="editForm.regions" 
+                  name="regions" 
+                  [multiple]="true" 
+                  [loading]="regionsLoading"
+                  [class.is-invalid]="editError.regions"
+                >
+                </ng-select>
+                <div class="invalid-feedback" *ngIf="editError.regions">
+                  {{ editError.regions }}
+                </div>
+                <small class="text-muted">Select all regions where you operate</small>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="editSpecializations" class="form-label">Specializations</label>
+                <ng-select 
+                  id="editSpecializations" 
+                  [items]="specializations" 
+                  placeholder="Select specializations"
+                  [(ngModel)]="editForm.dmc_specializations" 
+                  name="dmc_specializations" 
+                  [multiple]="true"
+                  [class.is-invalid]="editError.dmc_specializations"
+                >
+                </ng-select>
+                <div class="invalid-feedback" *ngIf="editError.dmc_specializations">
+                  {{ editError.dmc_specializations }}
+                </div>
+                <small class="text-muted">Select your area of expertise</small>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="editServices" class="form-label">Services Offered</label>
+                <ng-select 
+                  id="editServices" 
+                  [items]="servicesOffered" 
+                  placeholder="Select services"
+                  [(ngModel)]="editForm.services_offered" 
+                  name="services_offered" 
+                  [multiple]="true"
+                  [class.is-invalid]="editError.services_offered"
+                >
+                </ng-select>
+                <div class="invalid-feedback" *ngIf="editError.services_offered">
+                  {{ editError.services_offered }}
+                </div>
+                <small class="text-muted">Select all services you provide</small>
               </div>
             </div>
           </div>

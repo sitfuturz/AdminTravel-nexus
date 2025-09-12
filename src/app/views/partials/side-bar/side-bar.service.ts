@@ -129,63 +129,63 @@ export class SideBarService {
             // },
           ]
         },
-        {
-          title: 'Reports Sections',
-          icon: 'file-text',
-          hasSubmenu: true,
-          submenu: [
-            // {
-            //   title: 'Referral Given Report',
-            //   link: 'referralReport',
-            //   icon: 'corner-up-right',
-            // },
-            // {
-            //   title: 'Referral Received Report',
-            //   link: 'referralReportRecieved',
-            //   icon: 'corner-down-left',
-            // },
-            // {
-            //   title: 'Testimonial Report',
-            //   link: 'testimonialReport',
-            //   icon: 'message-square',
-            // },
-            // {
-            //   title: 'One To One Report',
-            //   link: 'oneTooneReport',
-            //   icon: 'user-check',
-            // },
-            // {
-            //   title: 'TYFCB Report',
-            //   link: 'tyfcb',
-            //   icon: 'trending-up',
-            // },
-            // {
-            //   title: 'Visitors Report',
-            //   link: 'VisitorsReport',
-            //   icon: 'user',
-            // },
-            // {
-            //   title: 'Ask Management',
-            //   link: 'askManagement',
-            //   icon: 'question-circle',
-            // },
-            // {
-            //   title: 'Points History',
-            //   link: 'pointHistory',
-            //   icon: 'history',
-            // },
-            {
-              title: 'Attendance Record',
-              link: 'attendanceRecord',
-              icon: 'clipboard',
-            },
+        // {
+        //   title: 'Reports Sections',
+        //   icon: 'file-text',
+        //   hasSubmenu: true,
+        //   submenu: [
+        //     // {
+        //     //   title: 'Referral Given Report',
+        //     //   link: 'referralReport',
+        //     //   icon: 'corner-up-right',
+        //     // },
+        //     // {
+        //     //   title: 'Referral Received Report',
+        //     //   link: 'referralReportRecieved',
+        //     //   icon: 'corner-down-left',
+        //     // },
+        //     // {
+        //     //   title: 'Testimonial Report',
+        //     //   link: 'testimonialReport',
+        //     //   icon: 'message-square',
+        //     // },
+        //     // {
+        //     //   title: 'One To One Report',
+        //     //   link: 'oneTooneReport',
+        //     //   icon: 'user-check',
+        //     // },
+        //     // {
+        //     //   title: 'TYFCB Report',
+        //     //   link: 'tyfcb',
+        //     //   icon: 'trending-up',
+        //     // },
+        //     // {
+        //     //   title: 'Visitors Report',
+        //     //   link: 'VisitorsReport',
+        //     //   icon: 'user',
+        //     // },
+        //     // {
+        //     //   title: 'Ask Management',
+        //     //   link: 'askManagement',
+        //     //   icon: 'question-circle',
+        //     // },
+        //     // {
+        //     //   title: 'Points History',
+        //     //   link: 'pointHistory',
+        //     //   icon: 'history',
+        //     // },
+        //     {
+        //       title: 'Attendance Record',
+        //       link: 'attendanceRecord',
+        //       icon: 'clipboard',
+        //     },
             // {
             //   title: 'Fees Record',
             //   link: 'fees',
             //   icon: 'credit-card',
             // },
-          ]
-        },
+        //   ]
+        // },
         {
           title: 'Content Management',
           icon: 'layout',
@@ -196,16 +196,16 @@ export class SideBarService {
               link: 'banners',
               icon: 'banner',
             },
-            {
-              title: 'Badges',
-              link: 'badges',
-              icon: 'award',
-            },
-            {
-              title: 'Badge Management',
-              link: 'badgeManagement',
-              icon: 'cog',
-            },
+            // {
+            //   title: 'Badges',
+            //   link: 'badges',
+            //   icon: 'award',
+            // },
+            // {
+            //   title: 'Badge Management',
+            //   link: 'badgeManagement',
+            //   icon: 'cog',
+            // },
             // {
             //   title: 'Podcasts',
             //   link: 'podcasts',
@@ -241,36 +241,36 @@ export class SideBarService {
         //   link: 'expense',
         //   icon: 'credit-card',
         // },
-        {
-          title: 'Analytics',
-          icon: 'bar-chart',
-          hasSubmenu: true,
-          submenu: [
-            // {
-            //   title: 'LeaderBoard',
-            //   link: 'leaderboard',
-            //   icon: 'award',
-            // },
-            {
-              title: 'Analytics',
-              link: 'analytics',
-              icon: 'chart-bar',
-            },
-            {
-              title: 'Attendance Data',
-              link: 'attendanceRecord',
-              icon: 'clipboard-list',
-            },
+        // {
+        //   title: 'Analytics',
+        //   icon: 'bar-chart',
+        //   hasSubmenu: true,
+        //   submenu: [
+        //     // {
+        //     //   title: 'LeaderBoard',
+        //     //   link: 'leaderboard',
+        //     //   icon: 'award',
+        //     // },
+        //     {
+        //       title: 'Analytics',
+        //       link: 'analytics',
+        //       icon: 'chart-bar',
+        //     },
+        //     {
+        //       title: 'Attendance Data',
+        //       link: 'attendanceRecord',
+        //       icon: 'clipboard-list',
+        //     },
 
             
 
 
-          ]
-        // },{
-        // title:'Business Data',
-        // link:'LTPoints',
-        // icon:'history'
-        }
+        //   ]
+        // // },{
+        // // title:'Business Data',
+        // // link:'LTPoints',
+        // // icon:'history'
+        // }
       ],
     },
   ];

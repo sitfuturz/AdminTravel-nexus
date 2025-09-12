@@ -4135,89 +4135,149 @@ export class ParticipationService {
         throw error;
       }
     }}
-    export interface User {
-      _id: string;
-      name: string;
-      email: string;
-      mobile_number: string;
-      chapter_name: string;
-      meeting_role: string;
+    // export interface User {
+    //   _id: string;
+    //   name: string;
+    //   email: string;
+    //   mobile_number: string;
+    //   chapter_name: string;
+    //   meeting_role: string;
       
-        induction_date: string;
+    //     induction_date: string;
       
-      profilePic: string;
-      date_of_birth: string;
-      city: string;
-      state: string;
-      country: string;
-      sponseredBy: string;
-      status: boolean;
-      createdAt: string;
-      keywords: string;
-    }
+    //   profilePic: string;
+    //   date_of_birth: string;
+    //   city: string;
+    //   state: string;
+    //   country: string;
+    //   sponseredBy: string;
+    //   status: boolean;
+    //   createdAt: string;
+    //   keywords: string;
+    // }
     
-    @Injectable({
-      providedIn: 'root'
-    })
-    export class RegisterUserAuthService {
-      private headers: any = [];
+    // @Injectable({
+    //   providedIn: 'root'
+    // })
+    // export class RegisterUserAuthService {
+    //   private headers: any = [];
     
-      constructor(
-        private apiManager: ApiManager,
-        private storage: AppStorage
-      ) {}
+    //   constructor(
+    //     private apiManager: ApiManager,
+    //     private storage: AppStorage
+    //   ) {}
     
-      private getHeaders = () => {
-        this.headers = [];
-        let token = this.storage.get(common.TOKEN);
-        if (token != null) {
-          this.headers.push({ Authorization: `Bearer ${token}` });
-        }
-      };
+    //   private getHeaders = () => {
+    //     this.headers = [];
+    //     let token = this.storage.get(common.TOKEN);
+    //     if (token != null) {
+    //       this.headers.push({ Authorization: `Bearer ${token}` });
+    //     }
+    //   };
     
-      async registerUser(formData: FormData): Promise<any> {
-        try {
-          this.getHeaders();
+    //   async registerUser(formData: FormData): Promise<any> {
+    //     try {
+    //       this.getHeaders();
           
-          const response = await this.apiManager.request(
-            {
-              url: `${apiEndpoints.REGISTER_USER}`,
+    //       const response = await this.apiManager.request(
+    //         {
+    //           url: `${apiEndpoints.REGISTER_USER}`,
              
-              method: 'POST'
-            },
-            formData,
-            this.headers
-          );
+    //           method: 'POST'
+    //         },
+    //         formData,
+    //         this.headers
+    //       );
           
-          return response;
-        } catch (error) {
-          console.error('Register User Error:', error);
-          swalHelper.showToast('Failed to register user', 'error');
-          throw error;
-        }
-      }
+    //       return response;
+    //     } catch (error) {
+    //       console.error('Register User Error:', error);
+    //       swalHelper.showToast('Failed to register user', 'error');
+    //       throw error;
+    //     }
+    //   }
 
-      async newRegisterUser(formData: FormData): Promise<any> {
-        try {
-          this.getHeaders();
-          
-          const response = await this.apiManager.request(
-            {
-              url: `${apiEndpoints.NEW_USER_REGISTRATION}`,
-             
-              method: 'POST'
-            },
-            formData,
-            this.headers
-          );
-          
-          return response;
-        } catch (error) {
-          console.error('Register User Error:', error);
-          swalHelper.showToast('Failed to register user', 'error');
-          throw error;
-        }
-      }
+  export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  mobile_number: string;
+  chapter_name: string;
+  meeting_role: string;
+  induction_date: string;
+  profilePic: string;
+  date_of_birth: string;
+  city: string;
+  state: string;
+  country: string;
+  sponseredBy: string;
+  status: boolean;
+  createdAt: string;
+  keywords: string;
+  business_name: string;
+  dmc_specializations: string[];
+  services_offered: string[];
+  regions: string[];
+  isMember: boolean;
+}
+@Injectable({
+  providedIn: 'root'
+})
+export class RegisterUserAuthService {
+  private headers: any = [];
+
+  constructor(
+    private apiManager: ApiManager,
+    private storage: AppStorage
+  ) {}
+
+  private getHeaders = () => {
+    this.headers = [];
+    let token = this.storage.get(common.TOKEN);
+    if (token != null) {
+      this.headers.push({ Authorization: `Bearer ${token}` });
+    }
+  };
+
+async registerUser(formData: FormData): Promise<any> {
+    try {
+      this.getHeaders();
+      const response = await this.apiManager.request(
+        {
+          url: 'http://localhost:3200/admin/update-register-user',
+          method: 'POST'
+        },
+        formData,
+        this.headers
+      );
+      return response;
+    } catch (error) {
+      console.error('Register User Error:', error);
+      swalHelper.showToast('Failed to register user', 'error');
+      throw error;
+    }
+  }
+
+  async newRegisterUser(requestBody: any): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: 'http://localhost:3200/admin/update-register-user', // Updated endpoint
+          method: 'POST'
+        },
+        requestBody, // Send as JSON body instead of FormData
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Register User Error:', error);
+      swalHelper.showToast('Failed to register user', 'error');
+      throw error;
+    }
+  }
 
       async getAllMembers(payload: any): Promise<any> {
   try {
