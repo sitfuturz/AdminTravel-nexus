@@ -112,6 +112,11 @@ export class SideBarService {
               link: 'regions',
               icon: 'map-signs',
             },
+            {
+              title: 'Brand Templates',
+              link: 'photoCategories',
+              icon: 'image',
+            },
             // {
             //   title: 'Chapters',
             //   link: 'chapter',

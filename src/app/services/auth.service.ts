@@ -4244,7 +4244,7 @@ async registerUser(formData: FormData): Promise<any> {
       this.getHeaders();
       const response = await this.apiManager.request(
         {
-          url: 'http://localhost:3200/admin/update-register-user',
+          url: '',
           method: 'POST'
         },
         formData,
@@ -4264,7 +4264,8 @@ async registerUser(formData: FormData): Promise<any> {
       
       const response = await this.apiManager.request(
         {
-          url: 'http://localhost:3200/admin/update-register-user', // Updated endpoint
+      //    url: 'http://localhost:3200/admin/update-register-user', // Updated endpoint
+      url:`${apiEndpoints.REGISTER_USERS}`,
           method: 'POST'
         },
         requestBody, // Send as JSON body instead of FormData
@@ -4325,6 +4326,240 @@ async addToMember(payload: { id: string }): Promise<any> {
 
       
     }
+
+ 
+
+export interface PhotoCategory {
+  _id: string;
+  category: string;
+  title: string;
+  description: string;
+  images: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface PhotoCategoryResponse {
+  docs: PhotoCategory[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
+export interface ApiResponse<T> {
+  message: string;
+  data: T;
+  status: number;
+  success: boolean;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class PhotoCategoryService {
+  private headers: any = [];
+
+  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+
+  private getHeaders = () => {
+    this.headers = [];
+    let token = this.storage.get(common.TOKEN);
+
+    if (token != null) {
+      this.headers.push({ Authorization: `Bearer ${token}` });
+    }
+  };
+
+  /**
+   * Get all photo categories with pagination
+   * POST /admin/category-photos/list
+   */
+  async getAllPhotoCategories(data: { page: number; limit: number }): Promise<any> {
+    try {
+      this.getHeaders();
+
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.GET_ALL_CATEGORIES}`, // Update with your base URL
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+
+      return response;
+    } catch (error) {
+      console.error('API Error:', error);
+      swalHelper.showToast('Failed to fetch photo categories', 'error');
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new photo category with multiple images
+   * POST /admin/category-photos
+   */
+  async createPhotoCategory(formData: FormData): Promise<any> {
+    try {
+      this.getHeaders();
+
+      const fileHeaders = this.headers.filter((header: any) => !header['Content-Type']);
+
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.CREATE_PHOTO_CATEGORY}`, // Update with your base URL
+          method: 'POST',
+        },
+        formData,
+        fileHeaders
+      );
+
+      return response;
+    } catch (error: any) {
+      console.error('Create Photo Category Error:', error);
+      if (error && error.error) {
+        return error.error;
+      }
+      swalHelper.showToast('Failed to create photo category', 'error');
+      throw error;
+    }
+  }
+
+  /**
+   * Update an existing photo category
+   * PUT /admin/category-photos/:id
+   */
+  async updatePhotoCategory(id: string, formData: FormData): Promise<any> {
+    try {
+      this.getHeaders();
+
+      const fileHeaders = this.headers.filter((header: any) => !header['Content-Type']);
+
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.UPDATE_PHOTO_CATEGORY}/${id}`, // Update with your base URL
+          method: 'PUT',
+        },
+        formData,
+        fileHeaders
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Update Photo Category Error:', error);
+      swalHelper.showToast('Failed to update photo category', 'error');
+      throw error;
+    }
+  }
+
+  /**
+   * Get photo category by ID
+   * GET /admin/category-photos/:id
+   */
+  async getCategoryById(id: string): Promise<any> {
+    try {
+      this.getHeaders();
+
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.GET_PHOTO_CATEGORY_BY_ID}/${id}`, // Update with your base URL
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Get Category By ID Error:', error);
+      swalHelper.showToast('Failed to fetch category details', 'error');
+      throw error;
+    }
+  }
+
+  /**
+   * Remove a specific image from a category
+   * PATCH /admin/category-photos/:id/remove-image
+   */
+  async removeImageFromCategory(categoryId: string, imageUrl: string): Promise<any> {
+    try {
+      this.getHeaders();
+
+      const requestData = {
+        imageUrl: imageUrl
+      };
+
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.PATH}/category-photos/${categoryId}/remove-image`, // Update with your base URL
+          method: 'PATCH',
+        },
+        requestData,
+        this.headers
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Remove Image Error:', error);
+      swalHelper.showToast('Failed to remove image', 'error');
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a photo category entirely
+   * DELETE /admin/category-photos/:id
+   */
+  async deletePhotoCategory(id: string): Promise<any> {
+    try {
+      this.getHeaders();
+
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints. DELETE_PHOTO_CATEGORY}${id}`, 
+          method: 'DELETE',
+        },
+        null,
+        this.headers
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Delete Photo Category Error:', error);
+      swalHelper.showToast('Failed to delete photo category', 'error');
+      throw error;
+    }
+  }
+}
+
+// Additional utility types that might be useful
+export interface CreateCategoryRequest {
+  category: string;
+  title: string;
+  description?: string;
+  images: File[];
+}
+
+export interface UpdateCategoryRequest {
+  title?: string;
+  description?: string;
+  images?: File[];
+}
+
+export interface RemoveImageRequest {
+  imageUrl: string;
+}
+
+// API Endpoints - Add these to your existing apiEndpoints object
+
     export interface Badge {
       _id: string;
       name: string;
@@ -5223,7 +5458,7 @@ export class FinanceService {
             this.getHeaders();
             const response = await this.apiManager.request(
               {
-                url: 'http://localhost:3200/users/convertToDigitalCard',
+               url:`${apiEndpoints.REGISTER_USERS}`,
                 method: 'POST',
               },
               

@@ -2,7 +2,7 @@ import { Referral } from './../../services/auth.service';
 import { environment } from '../../../env/env.local';
 
 class ApiEndpoints {
-  private PATH: string = `${environment.baseURL}/${environment.route}`;
+  public PATH: string = `${environment.baseURL}/${environment.route}`;
   private PATH1: string = `${environment.baseURL}`;
   
   // User Management
@@ -210,7 +210,17 @@ public DELETE_REGION= `${this.PATH}/deleteRegion`
     public NEW_GET_EVENT_GALLERY = `${this.PATH}/events/gallery`; 
     public UPLOAD_GALLERY_ITEM = `${this.PATH}/events/upload-gallery`; 
     public DELETE_GALLERY_ITEM = `${this.PATH}/events/delete-gallery-item`; 
-    public UPDATE_GALLERY_ITEM = `${this.PATH}/events/update-gallery-item`;    
+    public UPDATE_GALLERY_ITEM = `${this.PATH}/events/update-gallery-item`;   
+    public REGISTER_USERS = `${this.PATH}/update-register-user`; 
+
+
+  public CREATE_PHOTO_CATEGORY= `${this.PATH}/category-photos`;
+
+  GET_ALL_CATEGORIES= `${this.PATH}/category-photos/list`;
+  UPDATE_PHOTO_CATEGORY= `${this.PATH}/category-photos`; // append /:id
+  GET_PHOTO_CATEGORY_BY_ID= `${this.PATH}/category-photos`; // append /:id
+  DELETE_PHOTO_CATEGORY= `${this.PATH}/category-photos`; // append /:id
+  REMOVE_IMAGE= `${this.PATH}/category-photos`;
   };
   
 

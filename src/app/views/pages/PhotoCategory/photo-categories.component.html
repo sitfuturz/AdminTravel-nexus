@@ -1,0 +1,284 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-images me-2"></i>Brand Post Management
+      </h4>
+      <button class="btn btn-light rounded-pill px-4" (click)="openAddCategoryModal()">
+        <i class="bi bi-plus-circle me-2"></i>Add Category
+      </button>
+    </div>
+    
+    <div class="card-body p-0">
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <div class="d-flex w-100 align-items-center">
+          <div class="flex-grow-1 me-2">
+            <input type="text" class="form-control"
+              placeholder="Search categories..."
+              [(ngModel)]="searchQuery"
+              (input)="onSearch()">
+          </div>
+          <div>
+            <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit" placeholder="Items per page"></ng-select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && photoCategories?.docs && photoCategories.docs.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4 py-3">Preview</th>
+            <th class="py-3">Category</th>
+            <th class="py-3">Title</th>
+            <th class="py-3">Description</th>
+            <th class="py-3">Images</th>
+            <th class="py-3">Created At</th>
+            <th class="text-end pe-4 py-3">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let category of photoCategories.docs | paginate: { itemsPerPage: payload.limit, currentPage: payload.page, totalItems: photoCategories.totalDocs }; let i=index" class="border-bottom">
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center">
+                <div class="category-image-container me-3 position-relative" style="cursor: pointer;" (click)="openCategoryPreview(category)">
+                  <div class="image-grid" *ngIf="category.images && category.images.length > 0">
+                    <img *ngIf="category.images.length >= 1"
+                      [src]="getImageUrl(category.images[0])"
+                      alt="Category Image"
+                      class="category-thumbnail rounded shadow-sm main-image"
+                      style="width: 60px; height: 60px; object-fit: cover;">
+                    <div *ngIf="category.images.length > 1" class="image-overlay">
+                      <span class="badge bg-dark">+{{category.images.length - 1}}</span>
+                    </div>
+                  </div>
+                  <div *ngIf="!category.images || category.images.length === 0"
+                    class="bg-gradient-primary rounded d-flex align-items-center justify-content-center shadow-sm"
+                    style="width: 60px; height: 60px; color: white;">
+                    <i class="bi bi-images"></i>
+                  </div>
+                  <div class="position-absolute top-0 end-0 bg-dark bg-opacity-75 rounded-circle p-1"
+                    style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin: 2px;">
+                    <i class="bi bi-eye text-white" style="font-size: 10px;"></i>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="fw-bold text-dark">{{category.category || 'Untitled'}}</div>
+            </td>
+            <td class="py-3">
+              <div class="text-muted">{{category.title || 'N/A'}}</div>
+            </td>
+            <td class="py-3">
+              <span class="text-muted">{{category.description || 'No description'}}</span>
+            </td>
+            <td class="py-3">
+              <span class="badge bg-info rounded-pill">
+                {{getImageCount(category)}} {{getImageCount(category) === 1 ? 'Image' : 'Images'}}
+              </span>
+            </td>
+            <td class="py-3">
+              {{formatDate(category.createdAt)}}
+            </td>
+            <td class="text-end pe-4 py-3">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                  <li><a class="dropdown-item" (click)="openCategoryPreview(category)" style="cursor: pointer;">
+                    <i class="bi bi-eye-fill me-2 text-info"></i> View Details
+                  </a></li>
+                  <li><a class="dropdown-item" (click)="openEditCategoryModal(category)" style="cursor: pointer;">
+                    <i class="bi bi-pencil-fill me-2 text-primary"></i> Edit
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" (click)="deleteCategory(category._id)" style="cursor: pointer;">
+                    <i class="bi bi-trash-fill me-2"></i> Delete
+                  </a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="d-flex justify-content-end p-3">
+        <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && (!photoCategories?.docs || photoCategories.docs.length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-images fs-1 text-muted mb-3"></i>
+        <h5>No Photo Categories Found</h5>
+        <p class="text-muted">Try adding some photo categories or adjusting your search criteria.</p>
+        <button class="btn btn-primary rounded-pill mt-3" (click)="openAddCategoryModal()">
+          <i class="bi bi-plus-circle me-2"></i>Add Category
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Category Preview Modal -->
+<div class="modal fade" id="categoryPreviewModal" tabindex="-1" role="dialog" aria-labelledby="categoryPreviewModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="categoryPreviewModalTitle">
+          <i class="bi bi-images me-2"></i>{{selectedCategoryForPreview?.category}} - Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4" *ngIf="selectedCategoryForPreview">
+        <div class="row mb-4">
+          <div class="col-md-8">
+            <h4 class="fw-bold text-dark mb-2">{{selectedCategoryForPreview.title}}</h4>
+            <p class="text-muted mb-3" *ngIf="selectedCategoryForPreview.description">
+              {{selectedCategoryForPreview.description}}
+            </p>
+            <div class="d-flex align-items-center">
+              <span class="badge bg-primary me-2">{{selectedCategoryForPreview.category}}</span>
+              <span class="badge bg-info">{{selectedCategoryForPreview.images?.length || 0}} Images</span>
+            </div>
+          </div>
+          <div class="col-md-4 text-end">
+            <small class="text-muted">Created: {{formatDate(selectedCategoryForPreview.createdAt)}}</small>
+          </div>
+        </div>
+
+        <div class="row g-3" *ngIf="selectedCategoryForPreview.images && selectedCategoryForPreview.images.length > 0">
+          <div class="col-lg-3 col-md-4 col-sm-6" *ngFor="let image of selectedCategoryForPreview.images; let i = index">
+            <div class="image-card position-relative">
+              <img [src]="getImageUrl(image)" 
+                   alt="Category Image {{i + 1}}"
+                   class="img-fluid rounded shadow-sm w-100"
+                   style="height: 200px; object-fit: cover; cursor: pointer;"
+                   [attr.data-bs-toggle]="'modal'"
+                   [attr.data-bs-target]="'#imageModal' + i">
+              <div class="image-overlay-actions position-absolute top-0 end-0 m-2">
+                <!-- <button class="btn btn-danger btn-sm rounded-circle p-1" 
+                        (click)="removeImageFromCategory(image)"
+                        title="Remove Image">
+                  <i class="bi bi-trash-fill" style="font-size: 12px;"></i>
+                </button> -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!selectedCategoryForPreview.images || selectedCategoryForPreview.images.length === 0" class="text-center py-5">
+          <i class="bi bi-image fs-1 text-muted mb-3"></i>
+          <h6 class="text-muted">No images in this category</h6>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-outline-primary rounded-pill me-2"
+          *ngIf="selectedCategoryForPreview"
+          (click)="openEditCategoryModal(selectedCategoryForPreview)"
+          data-bs-dismiss="modal">
+          <i class="bi bi-pencil-fill me-1"></i>Edit Category
+        </button>
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="categoryModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="categoryModalTitle">
+          <i class="bi bi-images me-2"></i> {{editMode ? 'Edit Category' : 'Add New Category'}}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form #categoryForm="ngForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="categoryName" class="form-label">Category <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="categoryName" placeholder="Enter category name"
+                [(ngModel)]="newCategory.category" name="categoryName" required #categoryInput="ngModel"
+                [class.is-invalid]="categoryInput.invalid && (categoryInput.dirty || categoryInput.touched || formSubmitted)">
+              <div class="invalid-feedback" *ngIf="categoryInput.invalid && (categoryInput.dirty || categoryInput.touched || formSubmitted)">
+                Category name is required.
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="categoryTitle" class="form-label">Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="categoryTitle" placeholder="Enter title"
+                [(ngModel)]="newCategory.title" name="categoryTitle" required #titleInput="ngModel"
+                [class.is-invalid]="titleInput.invalid && (titleInput.dirty || titleInput.touched || formSubmitted)">
+              <div class="invalid-feedback" *ngIf="titleInput.invalid && (titleInput.dirty || titleInput.touched || formSubmitted)">
+                Title is required.
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="categoryDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="categoryDescription" rows="3" placeholder="Enter category description"
+              [(ngModel)]="newCategory.description" name="categoryDescription"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="categoryImages" class="form-label">Images <span class="text-danger" *ngIf="!editMode">*</span></label>
+            <input type="file" class="form-control" id="categoryImages" accept="image/*" multiple
+              (change)="onImagesSelect($event)" name="categoryImages" #imagesInput
+              [class.is-invalid]="selectedFiles.length === 0 && !editMode && formSubmitted">
+            <div class="invalid-feedback" *ngIf="selectedFiles.length === 0 && !editMode && formSubmitted">
+              At least one image is required.
+            </div>
+            <small class="form-text text-muted">Supported formats: JPG, PNG (Max: 5MB each, up to 10 images)</small>
+          </div>
+
+          <div *ngIf="imagePreviews.length > 0" class="mb-3">
+            <label class="form-label">Image Previews:</label>
+            <div class="row g-2">
+              <div class="col-md-3 col-sm-4 col-6" *ngFor="let preview of imagePreviews; let i = index">
+                <div class="position-relative">
+                  <img [src]="preview" alt="Preview {{i + 1}}" 
+                       class="img-thumbnail w-100" 
+                       style="height: 100px; object-fit: cover;">
+                  <button type="button" 
+                          class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-1 p-1"
+                          (click)="removeImagePreview(i)"
+                          style="width: 25px; height: 25px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-x" style="font-size: 12px;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="saveCategory()"
+          [disabled]="loading">
+          <i class="bi bi-save me-1"></i> {{editMode ? 'Update' : 'Save'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
