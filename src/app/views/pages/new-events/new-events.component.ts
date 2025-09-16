@@ -1224,6 +1224,140 @@ export class NewEventsComponent implements OnInit, AfterViewInit {
 
 // Updated frontend TypeScript functions
 
+// async createEvent(): Promise<void> {
+//   try {
+//     this.markAllFieldsAsTouched();
+
+//     if (!this.validateFormForSubmission()) {
+//       swalHelper.showToast('Please fix all validation errors', 'warning');
+//       return;
+//     }
+
+//     this.loading = true;
+//     const formData = new FormData();
+
+//     const basicFields = [
+//       'title',
+//       'description',
+//       'startDate',
+//       'endDate',
+//       'startTime',
+//       'endTime',
+//       'location',
+//       'venue',
+//       'mapUrl',
+//       'eventType',
+//       'capacity',
+//       'isPaid',
+//       'ticketPrice',
+//       'stayOption',
+//       'stayFee',
+//     ];
+
+//     basicFields.forEach((key) => {
+//       if (
+//         this.eventForm[key] !== null &&
+//         this.eventForm[key] !== undefined &&
+//         this.eventForm[key] !== ''
+//       ) {
+//         formData.append(key, this.eventForm[key].toString());
+//       }
+//     });
+
+//     if (this.eventForm.bannerImage instanceof File) {
+//       formData.append('bannerImage', this.eventForm.bannerImage);
+//     }
+
+//     const processedSponsors = [];
+//     for (let i = 0; i < this.eventForm.sponsors.length; i++) {
+//       const sponsor = this.eventForm.sponsors[i];
+//       const sponsorData = {
+//         name: sponsor.name || '',
+//         logo: sponsor.logo instanceof File ? '' : (sponsor.logo || ''),
+//         website: sponsor.website || '',
+//         tier: sponsor.tier || 'bronze',
+//         description: sponsor.description || '',
+//         contactEmail: sponsor.contactEmail || '',
+//       };
+
+//       if (sponsor.logo instanceof File) {
+//         formData.append(`sponsorLogo[${i}]`, sponsor.logo);
+//       }
+
+//       processedSponsors.push(sponsorData);
+//     }
+//     formData.append('sponsors', JSON.stringify(processedSponsors));
+
+//     const processedSpeakers = [];
+//     for (let i = 0; i < this.eventForm.speakers.length; i++) {
+//       const speaker = this.eventForm.speakers[i];
+//       const speakerData = {
+//         name: speaker.name || '',
+//         bio: speaker.bio || '',
+//         photo: speaker.photo instanceof File ? '' : (speaker.photo || ''),
+//         email: speaker.email || '',
+//         socialLinks: {
+//           linkedin: speaker.socialLinks?.linkedin || '',
+//           twitter: speaker.socialLinks?.twitter || '',
+//           website: speaker.socialLinks?.website || '',
+//           instagram: speaker.socialLinks?.instagram || '',
+//         },
+//         date: speaker.date || null,
+//       };
+
+//       if (speaker.photo instanceof File) {
+//         formData.append(`speakerPhoto[${i}]`, speaker.photo);
+//       }
+
+//       processedSpeakers.push(speakerData);
+//     }
+//     formData.append('speakers', JSON.stringify(processedSpeakers));
+
+//     const processedSchedules = this.eventForm.schedules.map(
+//       (schedule: Schedule) => {
+//         return {
+//           title: schedule.title || '',
+//           description: schedule.description || '',
+//           startTime:
+//             schedule.startDate && schedule.startTime
+//               ? new Date(
+//                   `${schedule.startDate}T${schedule.startTime}`
+//                 ).toISOString()
+//               : null,
+//           endTime:
+//             schedule.endDate && schedule.endTime
+//               ? new Date(
+//                   `${schedule.endDate}T${schedule.endTime}`
+//                 ).toISOString()
+//               : null,
+//           speakerId: schedule.speakerId || null,
+//           location: schedule.location || '',
+//         };
+//       }
+//     );
+//     formData.append('schedules', JSON.stringify(processedSchedules));
+
+//     const response = await this.eventService.newCreateEvent(formData);
+
+//     if (response && response.success) {
+//       swalHelper.showToast('Event created successfully', 'success');
+//       this.closeModal();
+//       this.resetForm();
+//       this.fetchEvents();
+//     } else {
+//       swalHelper.showToast(
+//         response.message || 'Failed to create event',
+//         'error'
+//       );
+//     }
+//   } catch (error) {
+//     console.error('Error creating event:', error);
+//     swalHelper.showToast('Failed to create event', 'error');
+//   } finally {
+//     this.loading = false;
+//   }
+// }
+
 async createEvent(): Promise<void> {
   try {
     this.markAllFieldsAsTouched();
@@ -1236,6 +1370,7 @@ async createEvent(): Promise<void> {
     this.loading = true;
     const formData = new FormData();
 
+    // Basic fields
     const basicFields = [
       'title',
       'description',
@@ -1264,37 +1399,50 @@ async createEvent(): Promise<void> {
       }
     });
 
+    // Banner Image
     if (this.eventForm.bannerImage instanceof File) {
       formData.append('bannerImage', this.eventForm.bannerImage);
     }
 
+    // Process sponsors
     const processedSponsors = [];
     for (let i = 0; i < this.eventForm.sponsors.length; i++) {
       const sponsor = this.eventForm.sponsors[i];
+      
+      // Add sponsor logo to FormData with correct field name
+      if (sponsor.logo instanceof File) {
+        formData.append('sponsorLogo', sponsor.logo); // Remove index, just use 'sponsorLogo'
+      }
+
+      // Prepare sponsor data without the file
       const sponsorData = {
         name: sponsor.name || '',
-        logo: sponsor.logo instanceof File ? '' : (sponsor.logo || ''),
+        logo: '', // Will be populated by backend
         website: sponsor.website || '',
         tier: sponsor.tier || 'bronze',
         description: sponsor.description || '',
         contactEmail: sponsor.contactEmail || '',
       };
 
-      if (sponsor.logo instanceof File) {
-        formData.append(`sponsorLogo[${i}]`, sponsor.logo);
-      }
-
       processedSponsors.push(sponsorData);
     }
     formData.append('sponsors', JSON.stringify(processedSponsors));
 
+    // Process speakers
     const processedSpeakers = [];
     for (let i = 0; i < this.eventForm.speakers.length; i++) {
       const speaker = this.eventForm.speakers[i];
+      
+      // Add speaker photo to FormData with correct field name
+      if (speaker.photo instanceof File) {
+        formData.append('speakerPhoto', speaker.photo); // Remove index, just use 'speakerPhoto'
+      }
+
+      // Prepare speaker data without the file
       const speakerData = {
         name: speaker.name || '',
         bio: speaker.bio || '',
-        photo: speaker.photo instanceof File ? '' : (speaker.photo || ''),
+        photo: '', // Will be populated by backend
         email: speaker.email || '',
         socialLinks: {
           linkedin: speaker.socialLinks?.linkedin || '',
@@ -1305,37 +1453,34 @@ async createEvent(): Promise<void> {
         date: speaker.date || null,
       };
 
-      if (speaker.photo instanceof File) {
-        formData.append(`speakerPhoto[${i}]`, speaker.photo);
-      }
-
       processedSpeakers.push(speakerData);
     }
     formData.append('speakers', JSON.stringify(processedSpeakers));
 
+    // Process schedules
     const processedSchedules = this.eventForm.schedules.map(
-      (schedule: Schedule) => {
-        return {
-          title: schedule.title || '',
-          description: schedule.description || '',
-          startTime:
-            schedule.startDate && schedule.startTime
-              ? new Date(
-                  `${schedule.startDate}T${schedule.startTime}`
-                ).toISOString()
-              : null,
-          endTime:
-            schedule.endDate && schedule.endTime
-              ? new Date(
-                  `${schedule.endDate}T${schedule.endTime}`
-                ).toISOString()
-              : null,
-          speakerId: schedule.speakerId || null,
-          location: schedule.location || '',
-        };
-      }
+      (schedule: Schedule) => ({
+        title: schedule.title || '',
+        description: schedule.description || '',
+        startTime:
+          schedule.startDate && schedule.startTime
+            ? new Date(`${schedule.startDate}T${schedule.startTime}`).toISOString()
+            : null,
+        endTime:
+          schedule.endDate && schedule.endTime
+            ? new Date(`${schedule.endDate}T${schedule.endTime}`).toISOString()
+            : null,
+        speakerId: schedule.speakerId || null,
+        location: schedule.location || '',
+      })
     );
     formData.append('schedules', JSON.stringify(processedSchedules));
+
+    // Debug FormData contents
+    console.log('FormData contents:');
+    formData.forEach((value, key) => {
+      console.log(key, value instanceof File ? `File: ${value.name}` : value);
+    });
 
     const response = await this.eventService.newCreateEvent(formData);
 
