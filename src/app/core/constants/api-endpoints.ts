@@ -185,6 +185,12 @@ public UPDATE_REGION= `${this.PATH}/updateRegion`
 public GET_REGION_BY_ID= `${this.PATH}/getRegion`
 public DELETE_REGION= `${this.PATH}/deleteRegion`
 
+
+  public GET_BANNER_RATES= `${this.PATH}/getRates`
+  public CREATE_BANNER_RATES= `${this.PATH}/createRates`
+  public UPDATE_BANNER_RATES= `${this.PATH}/updateRates` 
+  public DELETE_BANNER_RATES= `${this.PATH}/deleteRates`
+
     public CREATE_COMPLAINT= `${this.PATH}/createComplaint`
     public CREATE_FEEDBACK= `${this.PATH}/createFeedback`
 
@@ -202,6 +208,7 @@ public DELETE_REGION= `${this.PATH}/deleteRegion`
     public NEW_DELETE_EVENT = `${this.PATH}/event/delete`;
 
 
+
     public GET_PAYMENT_DETAILS = `${this.PATH}/event/payment-details/event/:eventId`
     public CREATE_OR_UPDATE_PAYMENT= `${this.PATH}/event/payment-details`
     public DELETE_PAYMENT_DETAILS= `${this.PATH}/deletePaymentDetails`
@@ -215,6 +222,10 @@ public DELETE_REGION= `${this.PATH}/deleteRegion`
 
 
   public CREATE_PHOTO_CATEGORY= `${this.PATH}/category-photos`;
+
+  public UPDATE_PAYMENT_STATUS = `${this.PATH1}/mobile/updatePaymentStatus`
+  public GET_REGISTRATIONS_BY_EVENT_ID = `${this.PATH1}/mobile/getRegistrationsByEventId`
+
 
   GET_ALL_CATEGORIES= `${this.PATH}/category-photos/list`;
   UPDATE_PHOTO_CATEGORY= `${this.PATH}/category-photos`; // append /:id

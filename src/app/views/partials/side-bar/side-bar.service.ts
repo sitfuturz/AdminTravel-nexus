@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { link } from 'fs';
+import { title } from 'process';
 
 @Injectable({
   providedIn: 'root',
@@ -60,6 +61,11 @@ export class SideBarService {
           link: 'newEvents',
           icon: 'calendar',
         },
+        {
+          title:'Event Regesteration',
+          link:'payment',
+          icon:'p'
+        },
         // {
         //   title: ' Event And participation ',
         //   icon: 'calendar',
@@ -112,6 +118,12 @@ export class SideBarService {
               link: 'regions',
               icon: 'map-signs',
             },
+            // {
+            //   title:'Banner rates',
+            //   link:'bannerRates',
+            //   icon:'advertisement'
+            // },
+
             {
               title: 'Brand Templates',
               link: 'photoCategories',
@@ -223,6 +235,7 @@ export class SideBarService {
             // },  
           ]
         },
+
 
         {
           title: 'Complaints & Feedbacks',

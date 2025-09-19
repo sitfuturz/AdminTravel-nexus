@@ -1,33 +1,18 @@
+<!-- Users Table -->
 <div class="container-fluid">
   <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-    <div
-      class="card-header bg-primary d-flex justify-content-between align-items-center py-3"
-    >
+    <div class="card-header bg-primary d-flex justify-content-between align-items-center py-3">
       <h4 class="mb-0 fw-bold text-white">
         <i class="bi bi-people-fill me-2"></i>All Members
       </h4>
     </div>
     <div class="card-body p-0">
-      <div
-        class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom"
-      >
+      <div class="d-flex flex-wrap justify-content-between align-items-center p-3 border-bottom">
         <div class="flex-grow-1 me-2">
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Search..."
-            [(ngModel)]="searchQuery"
-            (input)="onSearch()"
-          />
+          <input type="text" class="form-control" placeholder="Search..." [(ngModel)]="searchQuery" (input)="onSearch()" />
         </div>
         <div class="ms-2">
-          <ng-select
-            id="limitSelect"
-            [items]="[10, 25, 50, 100]"
-            [(ngModel)]="payload.limit"
-            (change)="onChange()"
-            placeholder="Items per page"
-          >
+          <ng-select id="limitSelect" [items]="[10, 25, 50, 100]" [(ngModel)]="payload.limit" (change)="onChange()" placeholder="Items per page">
           </ng-select>
         </div>
       </div>
@@ -39,11 +24,7 @@
       </div>
     </div>
 
-    <div
-      *ngIf="exporting"
-      class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
-      style="background: rgba(0, 0, 0, 0.3); z-index: 1050"
-    >
+    <div *ngIf="exporting" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background: rgba(0, 0, 0, 0.3); z-index: 1050">
       <div class="bg-white p-4 rounded shadow-lg text-center">
         <div class="spinner-border text-primary mb-3" role="status">
           <span class="visually-hidden">Exporting...</span>
@@ -58,6 +39,7 @@
           <tr>
             <th class="ps-4 py-3">Name</th>
             <th class="py-3">Business Name</th>
+            <th class="py-3">Business Type</th> <!-- Added Business Type column -->
             <th class="py-3">Mobile</th>
             <th class="py-3">Email</th>
             <th class="py-3">Specializations</th>
@@ -67,37 +49,20 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            *ngFor="
-              let user of users?.docs
-                | paginate
-                  : {
-                      id: paginationConfig.id,
-                      itemsPerPage: payload.limit,
-                      currentPage: payload.page,
-                      totalItems: users?.totalDocs
-                    };
-              let i = index
-            "
-            class="border-bottom"
-          >
+          <tr *ngFor="let user of users?.docs | paginate: { id: paginationConfig.id, itemsPerPage: payload.limit, currentPage: payload.page, totalItems: users?.totalDocs }; let i = index" class="border-bottom">
             <td class="ps-4 py-3">
               <div class="d-flex align-items-center">
                 <div>
-                  <div class="fw-bold text-dark">
-                    {{ user.name || "Unknown User" }}
-                  </div>
-                  <small class="text-muted d-block"
-                    >ID:
-                    {{ user._id ? user._id.substring(0, 8) : "N/A" }}</small
-                  >
+                  <div class="fw-bold text-dark">{{ user.name || "Unknown User" }}</div>
+                  <small class="text-muted d-block">ID: {{ user._id ? user._id.substring(0, 8) : "N/A" }}</small>
                 </div>
               </div>
             </td>
             <td class="py-3">
-              <span class="d-flex align-items-center">{{
-                user.business_name || "N/A"
-              }}</span>
+              <span class="d-flex align-items-center">{{ user.business_name || "N/A" }}</span>
+            </td>
+            <td class="py-3">
+              <span class="d-flex align-items-center">{{ user.business[0]?.business_type || "N/A" }}</span> <!-- Added Business Type display -->
             </td>
             <td class="py-3">
               <span class="d-flex align-items-center">
@@ -128,19 +93,12 @@
             <td class="py-3">
               <div class="small">
                 <div *ngFor="let region of user.regions?.slice(0, 1)" class="mb-1">
-                  <span class="badge bg-info me-1 region-tooltip" 
-                        [attr.data-bs-toggle]="'tooltip'" 
-                        [attr.data-bs-placement]="'top'"
-                        [attr.title]="region.name + ' - Countries: ' + (region.countries?.join(', ') || 'N/A')">
+                  <span class="badge bg-info me-1 region-tooltip" [attr.data-bs-toggle]="'tooltip'" [attr.data-bs-placement]="'top'" [attr.title]="region.name + ' - Countries: ' + (region.countries?.join(', ') || 'N/A')">
                     {{region.name}}
                   </span>
                   <small class="text-muted d-block">{{region.countries?.[0] || 'N/A'}}</small>
                 </div>
-                <span *ngIf="user.regions && user.regions.length > 1" 
-                      class="text-muted region-more-tooltip"
-                      [attr.data-bs-toggle]="'tooltip'" 
-                      [attr.data-bs-placement]="'top'"
-                      [attr.title]="getRegionsTooltip(user.regions)">
+                <span *ngIf="user.regions && user.regions.length > 1" class="text-muted region-more-tooltip" [attr.data-bs-toggle]="'tooltip'" [attr.data-bs-placement]="'top'" [attr.title]="getRegionsTooltip(user.regions)">
                   +{{user.regions.length - 1}} more
                 </span>
                 <span *ngIf="!user.regions || user.regions.length === 0" class="text-muted">N/A</span>
@@ -148,50 +106,27 @@
             </td>
             <td class="text-end pe-4 py-3">
               <div class="dropdown">
-                <button
-                  class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle"
-                  type="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
+                <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   Actions
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                   <li>
-                    <a
-                      class="dropdown-item"
-                      (click)="viewUserDetails(user)"
-                      style="cursor: pointer"
-                    >
-                      <i class="bi bi-eye-fill me-2 text-primary"></i> View
-                      Details
+                    <a class="dropdown-item" (click)="viewUserDetails(user)" style="cursor: pointer">
+                      <i class="bi bi-eye-fill me-2 text-primary"></i> View Details
                     </a>
                   </li>
                   <li>
-                    <a
-                      class="dropdown-item"
-                      (click)="editUser(user)"
-                      style="cursor: pointer"
-                    >
+                    <a class="dropdown-item" (click)="editUser(user)" style="cursor: pointer">
                       <i class="bi bi-pencil-fill me-2 text-warning"></i> Edit
                     </a>
                   </li>
                   <li>
-                    <a
-                      class="dropdown-item"
-                      (click)="openNotificationModal(user)"
-                      style="cursor: pointer"
-                    >
-                      <i class="bi bi-bell-fill me-2 text-info"></i> Send
-                      Notification
+                    <a class="dropdown-item" (click)="openNotificationModal(user)" style="cursor: pointer">
+                      <i class="bi bi-bell-fill me-2 text-info"></i> Send Notification
                     </a>
                   </li>
                   <li>
-                    <a
-                      class="dropdown-item text-danger"
-                      (click)="deleteUser(user._id)"
-                      style="cursor: pointer"
-                    >
+                    <a class="dropdown-item text-danger" (click)="deleteUser(user._id)" style="cursor: pointer">
                       <i class="bi bi-trash-fill me-2"></i> Delete
                     </a>
                   </li>
@@ -202,79 +137,41 @@
         </tbody>
       </table>
 
-      <div
-        class="d-flex justify-content-between align-items-center p-3 border-top"
-      >
+      <div class="d-flex justify-content-between align-items-center p-3 border-top">
         <div *ngIf="users?.docs?.length > 0" class="text-muted">
-          Showing {{ (payload.page - 1) * payload.limit + 1 }} to
-          {{ Math.min(payload.page * payload.limit, users.totalDocs) }}
-          of {{ users.totalDocs }} entries
+          Showing {{ (payload.page - 1) * payload.limit + 1 }} to {{ Math.min(payload.page * payload.limit, users.totalDocs) }} of {{ users.totalDocs }} entries
         </div>
-        <pagination-controls
-          [id]="paginationConfig.id"
-          (pageChange)="onPageChange($event)"
-          previousLabel="Previous"
-          nextLabel="Next"
-          [directionLinks]="true"
-        >
+        <pagination-controls [id]="paginationConfig.id" (pageChange)="onPageChange($event)" previousLabel="Previous" nextLabel="Next" [directionLinks]="true">
         </pagination-controls>
       </div>
     </div>
 
-    <div
-      *ngIf="!loading && (!users?.docs || users?.docs.length === 0)"
-      class="text-center my-5 py-4 px-4"
-    >
+    <div *ngIf="!loading && (!users?.docs || users?.docs.length === 0)" class="text-center my-5 py-4 px-4">
       <div class="empty-state">
         <i class="bi bi-search fs-1 text-muted mb-3"></i>
         <h5>No Users Found</h5>
-        <p class="text-muted">
-          Try adjusting your search criteria or check back later.
-        </p>
+        <p class="text-muted">Try adjusting your search criteria or check back later.</p>
       </div>
     </div>
   </div>
 </div>
 
 <!-- User Details Modal -->
-<div
-  class="modal fade"
-  id="userDetailsModal"
-  tabindex="-1"
-  data-bs-backdrop="static"
-  data-bs-keyboard="false"
-  role="dialog"
-  aria-labelledby="modalTitleId"
-  aria-hidden="true"
->
-  <div
-    class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl"
-    role="document"
-  >
+<div class="modal fade" id="userDetailsModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="modalTitleId" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl" role="document">
     <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
       <div class="modal-header bg-gradient-primary text-white">
         <h5 class="modal-title" id="modalTitleId">
           <i class="bi bi-person-badge-fill me-2"></i> User Details
         </h5>
-        <button
-          type="button"
-          class="btn-close btn-close-black"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
       <div class="modal-body p-4" *ngIf="selectedUser">
         <!-- Tab Navigation -->
         <ul class="nav nav-tabs mb-4">
           <li class="nav-item">
-            <a
-              class="nav-link"
-              [class.active]="activeTab === 'profile'"
-              (click)="setActiveTab('profile')"
-              style="cursor: pointer"
-              >Profile</a
-            >
+            <a class="nav-link" [class.active]="activeTab === 'profile'" (click)="setActiveTab('profile')" style="cursor: pointer">Profile</a>
           </li>
         </ul>
         <!-- Profile Tab Content -->
@@ -284,27 +181,10 @@
             <div class="col-md-6">
               <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body text-center">
-                  <img
-                    [src]="
-                      selectedUser.profilePic
-                        ? imageurl + selectedUser.profilePic
-                        : '/assets/images/placeholder-image.png'
-                    "
-                    class="img-fluid rounded-circle mb-3 shadow-sm border-3 border-white"
-                    style="width: 150px; height: 150px; object-fit: cover"
-                    alt="User Image"
-                    onerror="this.src='assets/images/placeholder-image.png'"
-                  />
-
-                  <h4 class="mb-1 mt-2">
-                    {{ selectedUser.name || "Unknown User" }}
-                  </h4>
-
+                  <img [src]="selectedUser.profilePic ? imageurl + selectedUser.profilePic : '/assets/images/placeholder-image.png'" class="img-fluid rounded-circle mb-3 shadow-sm border-3 border-white" style="width: 150px; height: 150px; object-fit: cover" alt="User Image" onerror="this.src='assets/images/placeholder-image.png'"/>
+                  <h4 class="mb-1 mt-2">{{ selectedUser.name || "Unknown User" }}</h4>
                   <div class="mt-2">
-                    <span class="badge bg-light text-dark px-3 py-2">
-                      {{ selectedUser.city || "N/A" }},
-                      {{ selectedUser.state || "N/A" }}
-                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2">{{ selectedUser.city || "N/A" }}, {{ selectedUser.state || "N/A" }}</span>
                   </div>
                 </div>
               </div>
@@ -312,35 +192,20 @@
               <!-- Contact Information Card -->
               <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-light py-3">
-                  <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-person-lines-fill me-2"></i> Contact
-                    Information
-                  </h6>
+                  <h6 class="mb-0 fw-bold"><i class="bi bi-person-lines-fill me-2"></i> Contact Information</h6>
                 </div>
                 <div class="card-body">
                   <div class="mb-3">
-                    <p class="mb-1 text-muted small">
-                      <i class="bi bi-telephone-fill me-2"></i>Mobile:
-                    </p>
-                    <p class="fw-bold">
-                      {{ selectedUser.mobile_number || "N/A" }}
-                    </p>
+                    <p class="mb-1 text-muted small"><i class="bi bi-telephone-fill me-2"></i>Mobile:</p>
+                    <p class="fw-bold">{{ selectedUser.mobile_number || "N/A" }}</p>
                   </div>
                   <div class="mb-3">
-                    <p class="mb-1 text-muted small">
-                      <i class="bi bi-envelope-fill me-2"></i>Email:
-                    </p>
+                    <p class="mb-1 text-muted small"><i class="bi bi-envelope-fill me-2"></i>Email:</p>
                     <p class="fw-bold">{{ selectedUser.email || "N/A" }}</p>
                   </div>
                   <div class="mb-3">
-                    <p class="mb-1 text-muted small">
-                      <i class="bi bi-geo-alt-fill me-2"></i>Location:
-                    </p>
-                    <p class="fw-bold">
-                      {{ selectedUser.city || "N/A" }},
-                      {{ selectedUser.state || "N/A" }},
-                      {{ selectedUser.country || "N/A" }}
-                    </p>
+                    <p class="mb-1 text-muted small"><i class="bi bi-geo-alt-fill me-2"></i>Location:</p>
+                    <p class="fw-bold">{{ selectedUser.city || "N/A" }}, {{ selectedUser.state || "N/A" }}, {{ selectedUser.country || "N/A" }}</p>
                   </div>
                 </div>
               </div>
@@ -351,24 +216,24 @@
               <!-- Business Info -->
               <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-light py-3">
-                  <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-building me-2"></i> Business Information
-                  </h6>
+                  <h6 class="mb-0 fw-bold"><i class="bi bi-building me-2"></i> Business Information</h6>
                 </div>
                 <div class="card-body">
                   <div class="mb-3">
                     <p class="mb-1 text-muted small">Business Name:</p>
                     <p class="fw-bold">{{ selectedUser.business_name || "N/A" }}</p>
                   </div>
+                  <!-- <div class="mb-3">
+                    <p class="mb-1 text-muted small">Business Type:</p>
+                    <p class="fw-bold">{{ selectedUser?.business[0]?.business_type || "N/A" }}</p> <!-- Added Business Type display -->
+                  <!-- </div> --> 
                 </div>
               </div>
 
               <!-- Regions Card -->
               <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-light py-3">
-                  <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-geo-alt-fill me-2"></i> Operating Regions
-                  </h6>
+                  <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2"></i> Operating Regions</h6>
                 </div>
                 <div class="card-body">
                   <div *ngIf="selectedUser.regions && selectedUser.regions.length > 0; else noRegions">
@@ -386,9 +251,7 @@
               <!-- Specializations Card -->
               <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-light py-3">
-                  <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-star-fill me-2"></i> Specializations
-                  </h6>
+                  <h6 class="mb-0 fw-bold"><i class="bi bi-star-fill me-2"></i> Specializations</h6>
                 </div>
                 <div class="card-body">
                   <div *ngIf="selectedUser.dmc_specializations && selectedUser.dmc_specializations.length > 0; else noSpecializations">
@@ -405,9 +268,7 @@
               <!-- Services Card -->
               <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-light py-3">
-                  <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-gear-fill me-2"></i> Services Offered
-                  </h6>
+                  <h6 class="mb-0 fw-bold"><i class="bi bi-gear-fill me-2"></i> Services Offered</h6>
                 </div>
                 <div class="card-body">
                   <div *ngIf="selectedUser.services_offered && selectedUser.services_offered.length > 0; else noServices">
@@ -425,11 +286,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-outline-primary rounded-pill"
-          (click)="closeModal()"
-        >
+        <button type="button" class="btn btn-outline-primary rounded-pill" (click)="closeModal()">
           <i class="bi bi-x-circle me-1"></i> Close
         </button>
       </div>
@@ -438,29 +295,14 @@
 </div>
 
 <!-- Edit User Modal -->
-<div
-  class="modal fade"
-  id="editUserModal"
-  tabindex="-1"
-  data-bs-backdrop="static"
-  data-bs-keyboard="false"
-  role="dialog"
-  aria-labelledby="editUserModalTitle"
-  aria-hidden="true"
->
+<div class="modal fade" id="editUserModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="editUserModalTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
     <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
       <div class="modal-header bg-gradient-primary text-white">
         <h5 class="modal-title" id="editUserModalTitle">
           <i class="bi bi-pencil-fill me-2"></i> Edit User
         </h5>
-        <button
-          type="button"
-          class="btn-close btn-close-black"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-          (click)="closeEditModal()"
-        ></button>
+        <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Close" (click)="closeEditModal()"></button>
       </div>
       <div class="modal-body p-4">
         <form>
@@ -469,82 +311,26 @@
             <h6 class="text-primary mb-3">Personal Information</h6>
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label for="editName" class="form-label"
-                  >Name <span class="text-danger">*</span></label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="editName"
-                  [(ngModel)]="editForm.name"
-                  name="name"
-                  placeholder="Enter name"
-                  required
-                />
-                <div *ngIf="editError.name" class="text-danger small mt-1">
-                  {{ editError.name }}
-                </div>
+                <label for="editName" class="form-label">Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="editName" [(ngModel)]="editForm.name" name="name" placeholder="Enter name" required />
+                <div *ngIf="editError.name" class="text-danger small mt-1">{{ editError.name }}</div>
               </div>
               <div class="col-md-6 mb-3">
-                <label for="editEmail" class="form-label"
-                  >Email <span class="text-danger">*</span></label
-                >
-                <input
-                  type="email"
-                  class="form-control"
-                  id="editEmail"
-                  [(ngModel)]="editForm.email"
-                  name="email"
-                  placeholder="Enter email"
-                  required
-                />
-                <div *ngIf="editError.email" class="text-danger small mt-1">
-                  {{ editError.email }}
-                </div>
+                <label for="editEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" id="editEmail" [(ngModel)]="editForm.email" name="email" placeholder="Enter email" required />
+                <div *ngIf="editError.email" class="text-danger small mt-1">{{ editError.email }}</div>
               </div>
             </div>
-
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label for="editMobile" class="form-label"
-                  >Mobile Number <span class="text-danger">*</span></label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="editMobile"
-                  [(ngModel)]="editForm.mobile_number"
-                  name="mobile_number"
-                  placeholder="Enter mobile number"
-                  maxlength="10"
-                  required
-                />
-                <div
-                  *ngIf="editError.mobile_number"
-                  class="text-danger small mt-1"
-                >
-                  {{ editError.mobile_number }}
-                </div>
+                <label for="editMobile" class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="editMobile" [(ngModel)]="editForm.mobile_number" name="mobile_number" placeholder="Enter mobile number" maxlength="10" required />
+                <div *ngIf="editError.mobile_number" class="text-danger small mt-1">{{ editError.mobile_number }}</div>
               </div>
               <div class="col-md-6 mb-3">
-                <label for="editBusinessName" class="form-label"
-                  >Business Name <span class="text-danger">*</span></label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="editBusinessName"
-                  [(ngModel)]="editForm.business_name"
-                  name="business_name"
-                  placeholder="Enter business name"
-                  required
-                />
-                <div
-                  *ngIf="editError.business_name"
-                  class="text-danger small mt-1"
-                >
-                  {{ editError.business_name }}
-                </div>
+                <label for="editBusinessName" class="form-label">Business Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="editBusinessName" [(ngModel)]="editForm.business_name" name="business_name" placeholder="Enter business name" required />
+                <div *ngIf="editError.business_name" class="text-danger small mt-1">{{ editError.business_name }}</div>
               </div>
             </div>
           </div>
@@ -555,60 +341,21 @@
             <div class="row">
               <div class="col-md-4 mb-3">
                 <label for="editCountry" class="form-label">Country <span class="text-danger">*</span></label>
-                <ng-select 
-                  id="editCountry" 
-                  [items]="countries" 
-                  bindLabel="name" 
-                  bindValue="name" 
-                  placeholder="Select country"
-                  [(ngModel)]="editForm.country" 
-                  name="country" 
-                  required 
-                  [loading]="countriesLoading"
-                  [class.is-invalid]="editError.country"
-                >
+                <ng-select id="editCountry" [items]="countries" bindLabel="name" bindValue="name" placeholder="Select country" [(ngModel)]="editForm.country" name="country" required [loading]="countriesLoading" [class.is-invalid]="editError.country">
                 </ng-select>
-                <div class="invalid-feedback" *ngIf="editError.country">
-                  {{ editError.country }}
-                </div>
+                <div class="invalid-feedback" *ngIf="editError.country">{{ editError.country }}</div>
               </div>
               <div class="col-md-4 mb-3">
                 <label for="editState" class="form-label">State <span class="text-danger">*</span></label>
-                <ng-select 
-                  id="editState" 
-                  [items]="states" 
-                  bindLabel="name" 
-                  bindValue="name" 
-                  placeholder="Select state"
-                  [(ngModel)]="editForm.state" 
-                  name="state" 
-                  required 
-                  [loading]="statesLoading"
-                  [class.is-invalid]="editError.state"
-                >
+                <ng-select id="editState" [items]="states" bindLabel="name" bindValue="name" placeholder="Select state" [(ngModel)]="editForm.state" name="state" required [loading]="statesLoading" [class.is-invalid]="editError.state">
                 </ng-select>
-                <div class="invalid-feedback" *ngIf="editError.state">
-                  {{ editError.state }}
-                </div>
+                <div class="invalid-feedback" *ngIf="editError.state">{{ editError.state }}</div>
               </div>
               <div class="col-md-4 mb-3">
                 <label for="editCity" class="form-label">City <span class="text-danger">*</span></label>
-                <ng-select 
-                  id="editCity" 
-                  [items]="cities" 
-                  bindLabel="name" 
-                  bindValue="name" 
-                  placeholder="Select city"
-                  [(ngModel)]="editForm.city" 
-                  name="city" 
-                  required 
-                  [loading]="citiesLoading"
-                  [class.is-invalid]="editError.city"
-                >
+                <ng-select id="editCity" [items]="cities" bindLabel="name" bindValue="name" placeholder="Select city" [(ngModel)]="editForm.city" name="city" required [loading]="citiesLoading" [class.is-invalid]="editError.city">
                 </ng-select>
-                <div class="invalid-feedback" *ngIf="editError.city">
-                  {{ editError.city }}
-                </div>
+                <div class="invalid-feedback" *ngIf="editError.city">{{ editError.city }}</div>
               </div>
             </div>
           </div>
@@ -617,60 +364,37 @@
           <div class="mb-4">
             <h6 class="text-primary mb-3">Business Details</h6>
             <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="editBusinessType" class="form-label">Business Type <span class="text-danger">*</span></label>
+                <ng-select id="editBusinessType" [items]="businessTypes" placeholder="Select business type" [(ngModel)]="editForm.business_type" name="business_type" required [class.is-invalid]="editError.business_type">
+                </ng-select>
+                <div class="invalid-feedback" *ngIf="editError.business_type">{{ editError.business_type }}</div>
+                <small class="text-muted">Select B2B or B2C</small>
+              </div>
+              <div class="col-md-6 mb-3"></div> <!-- Empty column for alignment -->
+            </div>
+            <div class="row">
               <div class="col-12 mb-3">
                 <label for="editRegions" class="form-label">Operating Regions</label>
-                <ng-select 
-                  id="editRegions" 
-                  [items]="regions" 
-                  bindLabel="name" 
-                  bindValue="_id" 
-                  placeholder="Select regions"
-                  [(ngModel)]="editForm.regions" 
-                  name="regions" 
-                  [multiple]="true" 
-                  [loading]="regionsLoading"
-                  [class.is-invalid]="editError.regions"
-                >
+                <ng-select id="editRegions" [items]="regions" bindLabel="name" bindValue="_id" placeholder="Select regions" [(ngModel)]="editForm.regions" name="regions" [multiple]="true" [loading]="regionsLoading" [class.is-invalid]="editError.regions">
                 </ng-select>
-                <div class="invalid-feedback" *ngIf="editError.regions">
-                  {{ editError.regions }}
-                </div>
+                <div class="invalid-feedback" *ngIf="editError.regions">{{ editError.regions }}</div>
                 <small class="text-muted">Select all regions where you operate</small>
               </div>
             </div>
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label for="editSpecializations" class="form-label">Specializations</label>
-                <ng-select 
-                  id="editSpecializations" 
-                  [items]="specializations" 
-                  placeholder="Select specializations"
-                  [(ngModel)]="editForm.dmc_specializations" 
-                  name="dmc_specializations" 
-                  [multiple]="true"
-                  [class.is-invalid]="editError.dmc_specializations"
-                >
+                <ng-select id="editSpecializations" [items]="specializations" placeholder="Select specializations" [(ngModel)]="editForm.dmc_specializations" name="dmc_specializations" [multiple]="true" [class.is-invalid]="editError.dmc_specializations">
                 </ng-select>
-                <div class="invalid-feedback" *ngIf="editError.dmc_specializations">
-                  {{ editError.dmc_specializations }}
-                </div>
+                <div class="invalid-feedback" *ngIf="editError.dmc_specializations">{{ editError.dmc_specializations }}</div>
                 <small class="text-muted">Select your area of expertise</small>
               </div>
               <div class="col-md-6 mb-3">
                 <label for="editServices" class="form-label">Services Offered</label>
-                <ng-select 
-                  id="editServices" 
-                  [items]="servicesOffered" 
-                  placeholder="Select services"
-                  [(ngModel)]="editForm.services_offered" 
-                  name="services_offered" 
-                  [multiple]="true"
-                  [class.is-invalid]="editError.services_offered"
-                >
+                <ng-select id="editServices" [items]="servicesOffered" placeholder="Select services" [(ngModel)]="editForm.services_offered" name="services_offered" [multiple]="true" [class.is-invalid]="editError.services_offered">
                 </ng-select>
-                <div class="invalid-feedback" *ngIf="editError.services_offered">
-                  {{ editError.services_offered }}
-                </div>
+                <div class="invalid-feedback" *ngIf="editError.services_offered">{{ editError.services_offered }}</div>
                 <small class="text-muted">Select all services you provide</small>
               </div>
             </div>
@@ -678,19 +402,10 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-outline-primary rounded-pill"
-          (click)="closeEditModal()"
-        >
+        <button type="button" class="btn btn-outline-primary rounded-pill" (click)="closeEditModal()">
           <i class="bi bi-x-circle me-1"></i> Cancel
         </button>
-        <button
-          type="button"
-          class="btn btn-primary rounded-pill"
-          (click)="updateUser()"
-          [disabled]="editLoading"
-        >
+        <button type="button" class="btn btn-primary rounded-pill" (click)="updateUser()" [disabled]="editLoading">
           <i class="bi bi-save-fill me-1"></i>
           <span *ngIf="!editLoading">Save Changes</span>
           <span *ngIf="editLoading">Saving...</span>
@@ -701,98 +416,38 @@
 </div>
 
 <!-- Notification Modal -->
-<div
-  class="modal fade"
-  id="notificationModal"
-  tabindex="-1"
-  data-bs-backdrop="static"
-  data-bs-keyboard="false"
-  role="dialog"
-  aria-labelledby="notificationModalTitle"
-  aria-hidden="true"
->
+<div class="modal fade" id="notificationModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="notificationModalTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-md" role="document">
     <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
       <div class="modal-header bg-gradient-primary text-white">
         <h5 class="modal-title" id="notificationModalTitle">
           <i class="bi bi-bell-fill me-2"></i> Send Notification
         </h5>
-        <button
-          type="button"
-          class="btn-close btn-close-black"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-          (click)="closeNotificationModal()"
-        ></button>
+        <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Close" (click)="closeNotificationModal()"></button>
       </div>
       <div class="modal-body p-4">
         <form>
           <div class="mb-3">
-            <label for="notificationTitle" class="form-label"
-              >Title <span class="text-danger">*</span></label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="notificationTitle"
-              [(ngModel)]="notificationForm.title"
-              name="title"
-              placeholder="Enter notification title"
-              required
-            />
-            <div *ngIf="notificationError.title" class="text-danger small mt-1">
-              {{ notificationError.title }}
-            </div>
+            <label for="notificationTitle" class="form-label">Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="notificationTitle" [(ngModel)]="notificationForm.title" name="title" placeholder="Enter notification title" required />
+            <div *ngIf="notificationError.title" class="text-danger small mt-1">{{ notificationError.title }}</div>
           </div>
           <div class="mb-3">
-            <label for="notificationDescription" class="form-label"
-              >Description <span class="text-danger">*</span></label
-            >
-            <textarea
-              class="form-control"
-              id="notificationDescription"
-              [(ngModel)]="notificationForm.description"
-              name="description"
-              rows="4"
-              placeholder="Enter notification description"
-              required
-            ></textarea>
-            <div
-              *ngIf="notificationError.description"
-              class="text-danger small mt-1"
-            >
-              {{ notificationError.description }}
-            </div>
+            <label for="notificationDescription" class="form-label">Description <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="notificationDescription" [(ngModel)]="notificationForm.description" name="description" rows="4" placeholder="Enter notification description" required></textarea>
+            <div *ngIf="notificationError.description" class="text-danger small mt-1">{{ notificationError.description }}</div>
           </div>
           <div class="mb-3">
-            <label for="notificationMessage" class="form-label"
-              >Message (Optional)</label
-            >
-            <textarea
-              class="form-control"
-              id="notificationMessage"
-              [(ngModel)]="notificationForm.message"
-              name="message"
-              rows="3"
-              placeholder="Enter additional message"
-            ></textarea>
+            <label for="notificationMessage" class="form-label">Message (Optional)</label>
+            <textarea class="form-control" id="notificationMessage" [(ngModel)]="notificationForm.message" name="message" rows="3" placeholder="Enter additional message"></textarea>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-outline-primary rounded-pill"
-          (click)="closeNotificationModal()"
-        >
+        <button type="button" class="btn btn-outline-primary rounded-pill" (click)="closeNotificationModal()">
           <i class="bi bi-x-circle me-1"></i> Cancel
         </button>
-        <button
-          type="button"
-          class="btn btn-primary rounded-pill"
-          (click)="sendNotification()"
-          [disabled]="notificationLoading"
-        >
+        <button type="button" class="btn btn-primary rounded-pill" (click)="sendNotification()" [disabled]="notificationLoading">
           <i class="bi bi-send-fill me-1"></i>
           <span *ngIf="!notificationLoading">Send Notification</span>
           <span *ngIf="notificationLoading">Sending...</span>

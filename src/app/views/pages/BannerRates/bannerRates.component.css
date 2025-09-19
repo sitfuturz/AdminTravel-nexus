@@ -1,0 +1,264 @@
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+  color: white;
+}
+
+.rounded-4 {
+  border-radius: 0.75rem !important;
+}
+
+.empty-state {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+}
+
+tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.dropdown-item {
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+  transition: all 0.3s ease;
+}
+
+.badge:hover {
+  transform: scale(1.05);
+}
+
+.modal-content {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.rate-icon-container {
+  position: relative;
+}
+
+.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #dc3545;
+}
+
+.form-control:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.badge.bg-success {
+  background-color: #28a745 !important;
+}
+
+.badge.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+.badge.bg-info {
+  background-color: #17a2b8 !important;
+}
+
+.spinner-grow {
+  width: 3rem;
+  height: 3rem;
+}
+
+.rate-preview-card {
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.rate-preview-card:hover {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 0.1rem rgba(78, 115, 223, 0.15);
+}
+
+.text-success {
+  color: #28a745 !important;
+}
+
+.text-primary {
+  color: #4e73df !important;
+}
+
+@media (max-width: 768px) {
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .rate-icon-container .rounded-circle {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #4e73df;
+  border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #224abe;
+}
+
+.form-check-input:checked {
+  background-color: #4e73df;
+  border-color: #4e73df;
+}
+
+.form-check-input:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+/* Custom number input styling */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Rate card styling */
+.rate-card {
+  border: 2px solid #e9ecef;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.rate-card:hover {
+  border-color: #4e73df;
+  box-shadow: 0 4px 15px rgba(78, 115, 223, 0.1);
+}
+
+.rate-card.active {
+  border-color: #28a745;
+  background: rgba(40, 167, 69, 0.05);
+}
+
+.rate-card.inactive {
+  border-color: #dc3545;
+  background: rgba(220, 53, 69, 0.05);
+  opacity: 0.8;
+}
+
+/* Animation for table rows */
+tbody tr {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced dropdown styling */
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  border-radius: 0.5rem;
+}
+
+.dropdown-item {
+  border-radius: 0.375rem;
+  margin: 0.125rem;
+}
+
+.dropdown-item:active {
+  background-color: #4e73df;
+}
+
+/* Form validation styling */
+.was-validated .form-control:valid {
+  border-color: #28a745;
+}
+
+.was-validated .form-control:invalid {
+  border-color: #dc3545;
+}
+
+/* Loading state */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Responsive table improvements */
+@media (max-width: 576px) {
+  .table-responsive table {
+    font-size: 0.75rem;
+  }
+  
+  .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .badge {
+    font-size: 0.65rem;
+  }
+}

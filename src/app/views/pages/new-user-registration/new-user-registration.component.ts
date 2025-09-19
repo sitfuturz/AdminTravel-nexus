@@ -7,7 +7,7 @@ import { RegisterUserAuthService, User } from '../../../services/auth.service';
 import { CountryService, Country } from '../../../services/auth.service';
 import { StateService, State } from '../../../services/auth.service';
 import { CityService, City } from '../../../services/auth.service';
-import { RegionService } from '../../../services/auth.service'; // Add RegionService import
+import { RegionService } from '../../../services/auth.service';
 import { AuthService } from '../../../services/auth.service';
 import { DashboardService } from '../../../services/auth.service';
 import { swalHelper } from '../../../core/constants/swal-helper';
@@ -26,8 +26,10 @@ interface Registration {
   state: string;
   city: string;
   business_name: string;
+  business_type: string; // Added business_type
   isMember: boolean;
   regions: RegionObject[];
+    business?: { business_name: string; business_type: string; primary_business: boolean }[];
   dmc_specializations: string[];
   services_offered: string[];
   createdAt: string;
@@ -76,7 +78,7 @@ interface Region {
   imports: [CommonModule, FormsModule, NgSelectModule, NgxPaginationModule],
   providers: [RegisterUserAuthService, CountryService, StateService, CityService, RegionService, AuthService, DashboardService],
   templateUrl: './new-user-registration.component.html',
-  styleUrl: './new-user-registration.component.css'
+  styleUrls: ['./new-user-registration.component.css']
 })
 export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
   registerForm: any = {
@@ -87,6 +89,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     state: '',
     country: '',
     business_name: '',
+    business_type: '', // Added business_type
     regions: [],
     dmc_specializations: [],
     services_offered: []
@@ -97,6 +100,9 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
   cities: City[] = [];
   regions: Region[] = [];
   
+  // Predefined business types
+  businessTypes: string[] = ['B2B', 'B2C'];
+
   // Predefined specializations array
   specializations: string[] = [
     'MICE', 'Adventure', 'Luxury', 'Cultural', 'Corporate',
@@ -109,7 +115,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     'Airport Transfers', 'Visa Assistance', 'Travel Insurance', 'Custom Packages'
   ];
   
-  // Registration list data - matching your backend response structure
   registrations: RegistrationData = {
     docs: [],
     totalDocs: 0,
@@ -129,8 +134,8 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
   citiesLoading: boolean = false;
   regionsLoading: boolean = false;
   registrationsLoading: boolean = false;
-  acceptingUser: string = ''; // Track which user is being accepted
-  
+  acceptingUser: string = '';
+
   countriesLoaded: boolean = false;
   statesLoaded: boolean = false;
   citiesLoaded: boolean = false;
@@ -157,6 +162,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     state: false,
     city: false,
     business_name: false,
+    business_type: false, // Added business_type
     regions: false,
     dmc_specializations: false,
     services_offered: false
@@ -171,6 +177,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     state: '',
     city: '',
     business_name: '',
+    business_type: '', // Added business_type
     regions: '',
     dmc_specializations: '',
     services_offered: ''
@@ -185,7 +192,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     private countryService: CountryService,
     private stateService: StateService,
     private cityService: CityService,
-    private regionService: RegionService, // Add RegionService
+    private regionService: RegionService,
     private authService: AuthService,
     private dashboardService: DashboardService,
     private cdr: ChangeDetectorRef
@@ -199,7 +206,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     this.fetchCountries();
     this.fetchStates();
     this.fetchCities();
-    this.fetchRegions(); // Add this
+    this.fetchRegions();
     this.fetchRegistrations();
   }
 
@@ -272,7 +279,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Add new method to fetch regions
   async fetchRegions(): Promise<void> {
     this.regionsLoading = true;
     this.regionsLoaded = false;
@@ -364,7 +370,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
         
         if (response && response.success) {
           swalHelper.showToast('User accepted successfully', 'success');
-          this.fetchRegistrations(); // Refresh the list
+          this.fetchRegistrations();
         } else {
           swalHelper.showToast(response.message || 'Failed to accept user', 'error');
         }
@@ -389,7 +395,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     this.registerForm.mobile_number = value;
     input.value = value;
     
-    // Mark as touched and validate
     this.touchedFields.mobile_number = true;
     if (value.length === 10) {
       this.validationErrors.mobile_number = '';
@@ -400,7 +405,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
 
   validateName(): boolean {
     if (!this.touchedFields.name) {
-      return true; // Don't validate untouched fields
+      return true;
     }
 
     const name = this.registerForm.name.trim();
@@ -514,7 +519,23 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     return true;
   }
 
-  // Add validation methods for new fields
+  validateBusinessType(): boolean {
+    if (!this.touchedFields.business_type) {
+      return true;
+    }
+
+    if (!this.registerForm.business_type) {
+      this.validationErrors.business_type = 'Business type is required';
+      return false;
+    }
+    if (!['B2B', 'B2C'].includes(this.registerForm.business_type)) {
+      this.validationErrors.business_type = 'Business type must be either B2B or B2C';
+      return false;
+    }
+    this.validationErrors.business_type = '';
+    return true;
+  }
+
   validateRegions(): boolean {
     if (!this.touchedFields.regions) {
       return true;
@@ -555,10 +576,8 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
   }
 
   onFieldBlur(fieldName: string): void {
-    // Mark field as touched
     this.touchedFields[fieldName] = true;
     
-    // Then validate
     switch (fieldName) {
       case 'name':
         this.validateName();
@@ -581,6 +600,9 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       case 'business_name':
         this.validateBusinessName();
         break;
+      case 'business_type':
+        this.validateBusinessType();
+        break;
       case 'regions':
         this.validateRegions();
         break;
@@ -595,7 +617,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
 
   async registerUser(): Promise<void> {
     try {
-      // Mark all required fields as touched before final validation
       this.markAllRequiredFieldsAsTouched();
       
       if (!this.validateFormForSubmission()) {
@@ -606,21 +627,23 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.loading = true;
       
       // Create request body object
-      const requestBody: any = {};
-      
-      Object.keys(this.registerForm).forEach(key => {
-        if (this.registerForm[key] !== null && this.registerForm[key] !== '') {
-          if (key === 'regions') {
-            // For regions, send array of IDs
-            requestBody[key] = this.registerForm[key];
-          } else if (key === 'dmc_specializations' || key === 'services_offered') {
-            // For specializations and services, send array of strings
-            requestBody[key] = this.registerForm[key];
-          } else {
-            requestBody[key] = this.registerForm[key];
-          }
-        }
-      });
+      const requestBody: any = {
+        name: this.registerForm.name,
+        email: this.registerForm.email,
+        mobile_number: this.registerForm.mobile_number,
+        city: this.registerForm.city,
+        state: this.registerForm.state,
+        country: this.registerForm.country,
+        business_name: this.registerForm.business_name,
+        regions: this.registerForm.regions,
+        dmc_specializations: this.registerForm.dmc_specializations,
+        services_offered: this.registerForm.services_offered,
+        business: [{
+          business_name: this.registerForm.business_name,
+          business_type: this.registerForm.business_type,
+          primary_business: true
+        }]
+      };
 
       console.log('Request body:', requestBody);
 
@@ -631,7 +654,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
         swalHelper.showToast('User registered successfully', 'success');
         this.closeModal();
         this.resetForm();
-        this.fetchRegistrations(); // Refresh the registrations list
+        this.fetchRegistrations();
       } else {
         swalHelper.showToast(response.message || 'Failed to register user', 'error');
       }
@@ -651,6 +674,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     this.touchedFields.state = true;
     this.touchedFields.city = true;
     this.touchedFields.business_name = true;
+    this.touchedFields.business_type = true;
     this.touchedFields.regions = true;
     this.touchedFields.dmc_specializations = true;
     this.touchedFields.services_offered = true;
@@ -661,10 +685,10 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     const email = this.registerForm.email.trim();
     const mobile = this.registerForm.mobile_number;
     const businessName = this.registerForm.business_name.trim();
+    const businessType = this.registerForm.business_type;
     
     let isValid = true;
 
-    // Validate name
     if (!name) {
       this.validationErrors.name = 'Full name is required';
       isValid = false;
@@ -678,7 +702,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.validationErrors.name = '';
     }
 
-    // Validate email
     if (!email) {
       this.validationErrors.email = 'Email is required';
       isValid = false;
@@ -689,7 +712,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.validationErrors.email = '';
     }
 
-    // Validate mobile
     if (!mobile) {
       this.validationErrors.mobile_number = 'Mobile number is required';
       isValid = false;
@@ -700,7 +722,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.validationErrors.mobile_number = '';
     }
 
-    // Validate country
     if (!this.registerForm.country) {
       this.validationErrors.country = 'Country is required';
       isValid = false;
@@ -708,7 +729,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.validationErrors.country = '';
     }
 
-    // Validate state
     if (!this.registerForm.state) {
       this.validationErrors.state = 'State is required';
       isValid = false;
@@ -716,7 +736,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.validationErrors.state = '';
     }
 
-    // Validate city
     if (!this.registerForm.city) {
       this.validationErrors.city = 'City is required';
       isValid = false;
@@ -724,7 +743,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.validationErrors.city = '';
     }
 
-    // Validate business name
     if (!businessName) {
       this.validationErrors.business_name = 'Business name is required';
       isValid = false;
@@ -735,7 +753,16 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.validationErrors.business_name = '';
     }
 
-    // Validate regions
+    if (!businessType) {
+      this.validationErrors.business_type = 'Business type is required';
+      isValid = false;
+    } else if (!['B2B', 'B2C'].includes(businessType)) {
+      this.validationErrors.business_type = 'Business type must be either B2B or B2C';
+      isValid = false;
+    } else {
+      this.validationErrors.business_type = '';
+    }
+
     if (!this.registerForm.regions || this.registerForm.regions.length === 0) {
       this.validationErrors.regions = 'At least one region is required';
       isValid = false;
@@ -743,7 +770,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.validationErrors.regions = '';
     }
 
-    // Validate specializations
     if (!this.registerForm.dmc_specializations || this.registerForm.dmc_specializations.length === 0) {
       this.validationErrors.dmc_specializations = 'At least one specialization is required';
       isValid = false;
@@ -751,7 +777,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       this.validationErrors.dmc_specializations = '';
     }
 
-    // Validate services offered
     if (!this.registerForm.services_offered || this.registerForm.services_offered.length === 0) {
       this.validationErrors.services_offered = 'At least one service is required';
       isValid = false;
@@ -767,6 +792,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     const email = this.registerForm.email.trim();
     const mobile = this.registerForm.mobile_number;
     const businessName = this.registerForm.business_name.trim();
+    const businessType = this.registerForm.business_type;
 
     return name && name.length >= 2 && /^[a-zA-Z\s]+$/.test(name) &&
            email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
@@ -775,6 +801,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
            this.registerForm.state &&
            this.registerForm.city &&
            businessName && businessName.length >= 2 &&
+           businessType && ['B2B', 'B2C'].includes(businessType) &&
            this.registerForm.regions && this.registerForm.regions.length > 0 &&
            this.registerForm.dmc_specializations && this.registerForm.dmc_specializations.length > 0 &&
            this.registerForm.services_offered && this.registerForm.services_offered.length > 0;
@@ -789,12 +816,12 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       state: '',
       country: '',
       business_name: '',
+      business_type: '',
       regions: [],
       dmc_specializations: [],
       services_offered: []
     };
 
-    // Reset validation errors
     this.validationErrors = {
       name: '',
       email: '',
@@ -803,12 +830,12 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       state: '',
       city: '',
       business_name: '',
+      business_type: '',
       regions: '',
       dmc_specializations: '',
       services_offered: ''
     };
 
-    // Reset touched fields
     this.touchedFields = {
       name: false,
       email: false,
@@ -817,6 +844,7 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
       state: false,
       city: false,
       business_name: false,
+      business_type: false,
       regions: false,
       dmc_specializations: false,
       services_offered: false
@@ -852,13 +880,11 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     return new Date(dateString).toLocaleDateString();
   }
 
-  // Helper method to display arrays in template
   getArrayDisplay(arr: string[]): string {
     if (!arr || arr.length === 0) return 'N/A';
     return arr.join(', ');
   }
 
-  // Initialize Bootstrap tooltips
   initializeTooltips(): void {
     setTimeout(() => {
       const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -868,7 +894,6 @@ export class NewUserRegistrationComponent implements OnInit, AfterViewInit {
     }, 500);
   }
 
-  // Helper method to generate tooltip text for multiple regions
   getRegionsTooltip(regions: RegionObject[]): string {
     if (!regions || regions.length <= 1) return '';
     

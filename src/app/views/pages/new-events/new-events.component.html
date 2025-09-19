@@ -87,7 +87,7 @@
               <img
                 *ngIf="event.bannerImage"
                 [src]="imageurl + event.bannerImage"
-                class="card-img-top rounded-top-4"
+               class="card-img-top rounded-top-4 img-hover-zoom"
                 style="height: 200px; object-fit: cover"
                 alt="Event Banner"
               />
@@ -167,7 +167,7 @@
                   class="d-flex align-items-center mb-2 mt-1"
                   *ngIf="event.registrationLink"
                 >
-                  <i class="bi bi-link-45deg text-success me-2"></i>
+                  <!-- <i class="bi bi-link-45deg text-success me-2"></i>
                   <a
                     [href]="getFullRegistrationLink(event)"
                     target="_blank"
@@ -175,7 +175,7 @@
                     class="text-decoration-none text-success fw-semibold"
                   >
                     Register Link
-                  </a>
+                  </a> -->
                 </div>
               </div>
 
@@ -200,7 +200,7 @@
                   >
                     <i class="bi bi-images me-1"></i>Gallery
                   </button>
-                  <button
+                  <!-- <button
                     class="btn btn-outline-success btn-sm flex-fill"
                     (click)="openPaymentModal(event)"
                     [disabled]="!isPaymentButtonEnabled(event)"
@@ -211,7 +211,7 @@
                     "
                   >
                     <i class="bi bi-credit-card me-1"></i>Payment
-                  </button>
+                  </button> -->
                   <button
                     class="btn btn-outline-danger btn-sm"
                     (click)="deleteEvent(event._id)"
@@ -345,7 +345,7 @@
               aria-controls="sponsors"
               aria-selected="false"
             >
-              <i class="bi bi-people me-2"></i>Sponsors & Speakers
+              <i class="bi bi-people me-2"></i>Sponsors & Presentator
             </button>
           </li>
           <li class="nav-item" role="presentation">
@@ -638,124 +638,79 @@
             aria-labelledby="details-tab"
           >
             <form>
-              <!-- Pricing Section -->
+              <!-- Business Pricing Section -->
               <div class="mb-4">
-                <h6 class="text-primary mb-3">Pricing Information</h6>
+                <h6 class="text-primary mb-3">B2B Pricing</h6>
                 <div class="row">
                   <div class="col-md-6 mb-3">
-                    <label class="form-label">Event Type</label>
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="radio"
-                        name="paidType"
-                        id="freeEvent"
-                        [value]="false"
-                        [(ngModel)]="eventForm.isPaid"
-                        (change)="onPaidTypeChange()"
-                      />
-                      <label class="form-check-label" for="freeEvent">
-                        <i class="bi bi-gift me-2 text-success"></i>Free Event
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="radio"
-                        name="paidType"
-                        id="paidEvent"
-                        [value]="true"
-                        [(ngModel)]="eventForm.isPaid"
-                        (change)="onPaidTypeChange()"
-                      />
-                      <label class="form-check-label" for="paidEvent">
-                        <i class="bi bi-currency-dollar me-2 text-warning"></i
-                        >Paid Event
-                      </label>
-                    </div>
-                  </div>
-                  <div class="col-md-6 mb-3" *ngIf="eventForm.isPaid">
-                    <label for="ticketPrice" class="form-label"
-                      >Ticket Price <span class="text-danger">*</span></label
-                    >
+                    <label for="b2bTicketPrice" class="form-label">Ticket Price</label>
                     <div class="input-group">
                       <span class="input-group-text">$</span>
                       <input
                         type="number"
                         class="form-control"
-                        id="ticketPrice"
+                        id="b2bTicketPrice"
                         placeholder="0.00"
-                        [(ngModel)]="eventForm.ticketPrice"
-                        name="ticketPrice"
-                        min="0.01"
+                        [(ngModel)]="eventForm.b2bTicketPrice"
+                        name="b2bTicketPrice"
+                        min="0"
                         step="0.01"
-                        required
-                        (blur)="onFieldBlur('ticketPrice')"
-                        [class.is-invalid]="validationErrors.ticketPrice"
                       />
                     </div>
-                    <div
-                      class="invalid-feedback"
-                      *ngIf="validationErrors.ticketPrice"
-                    >
-                      {{ validationErrors.ticketPrice }}
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="b2bStayFee" class="form-label">Stay Fee</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="b2bStayFee"
+                        placeholder="0.00"
+                        [(ngModel)]="eventForm.b2bStayFee"
+                        name="b2bStayFee"
+                        min="0"
+                        step="0.01"
+                      />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Stay Option Section -->
               <div class="mb-4">
-                <h6 class="text-primary mb-3">Accommodation</h6>
+                <h6 class="text-primary mb-3">B2C Pricing</h6>
                 <div class="row">
                   <div class="col-md-6 mb-3">
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        id="stayOption"
-                        [(ngModel)]="eventForm.stayOption"
-                        name="stayOption"
-                        (change)="onStayOptionChange()"
-                      />
-                      <label class="form-check-label" for="stayOption">
-                        <i class="bi bi-house me-2 text-info"></i>Accommodation
-                        Available
-                      </label>
-                    </div>
-                    <small class="text-muted"
-                      >Check if you provide accommodation for attendees</small
-                    >
-                  </div>
-                  <div class="col-md-6 mb-3" *ngIf="eventForm.stayOption">
-                    <label for="stayFee" class="form-label"
-                      >Stay Fee <span class="text-danger">*</span></label
-                    >
+                    <label for="b2cTicketPrice" class="form-label">Ticket Price</label>
                     <div class="input-group">
                       <span class="input-group-text">$</span>
                       <input
                         type="number"
                         class="form-control"
-                        id="stayFee"
+                        id="b2cTicketPrice"
                         placeholder="0.00"
-                        [(ngModel)]="eventForm.stayFee"
-                        name="stayFee"
+                        [(ngModel)]="eventForm.b2cTicketPrice"
+                        name="b2cTicketPrice"
                         min="0"
                         step="0.01"
-                        required
-                        (blur)="onFieldBlur('stayFee')"
-                        [class.is-invalid]="validationErrors.stayFee"
                       />
                     </div>
-                    <div
-                      class="invalid-feedback"
-                      *ngIf="validationErrors.stayFee"
-                    >
-                      {{ validationErrors.stayFee }}
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="b2cStayFee" class="form-label">Stay Fee</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="b2cStayFee"
+                        placeholder="0.00"
+                        [(ngModel)]="eventForm.b2cStayFee"
+                        name="b2cStayFee"
+                        min="0"
+                        step="0.01"
+                      />
                     </div>
-                    <small class="text-muted"
-                      >Enter 0 for free accommodation</small
-                    >
                   </div>
                 </div>
               </div>
@@ -1025,13 +980,13 @@
               <div
                 class="d-flex justify-content-between align-items-center mb-3"
               >
-                <h6 class="text-primary mb-0">Speakers</h6>
+                <h6 class="text-primary mb-0">Event Presentator</h6>
                 <button
                   type="button"
                   class="btn btn-sm btn-outline-primary"
                   (click)="addSpeaker()"
                 >
-                  <i class="bi bi-plus-circle me-1"></i>Add Speaker
+                  <i class="bi bi-plus-circle me-1"></i>Add Presentator
                 </button>
               </div>
               <div
@@ -1047,7 +1002,7 @@
               >
                 <i class="bi bi-person-video3 fs-1 mb-2"></i>
                 <p>
-                  No speakers added yet. Click "Add Speaker" to get started.
+                  No Presentator added yet. Click "Add Presentator" to get started.
                 </p>
               </div>
 
@@ -1058,7 +1013,7 @@
                 <div
                   class="card-header bg-light d-flex justify-content-between align-items-center"
                 >
-                  <h6 class="mb-0">Speaker {{ i + 1 }}</h6>
+                  <h6 class="mb-0">Presentator {{ i + 1 }}</h6>
                   <button
                     type="button"
                     class="btn btn-sm btn-outline-danger"
@@ -1071,7 +1026,7 @@
                   <div class="row">
                     <div class="col-md-6 mb-3">
                       <label class="form-label"
-                        >Speaker Name <span class="text-danger">*</span></label
+                        >Presentator Name <span class="text-danger">*</span></label
                       >
                       <input
                         type="text"
@@ -1937,124 +1892,79 @@
             aria-labelledby="edit-details-tab"
           >
             <form>
-              <!-- Pricing Section -->
+              <!-- Business Pricing Section -->
               <div class="mb-4">
-                <h6 class="text-primary mb-3">Pricing Information</h6>
+                <h6 class="text-primary mb-3">B2B Pricing</h6>
                 <div class="row">
                   <div class="col-md-6 mb-3">
-                    <label class="form-label">Event Type</label>
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="radio"
-                        name="editPaidType"
-                        id="editFreeEvent"
-                        [value]="false"
-                        [(ngModel)]="editEventForm.isPaid"
-                        (change)="onEditPaidTypeChange()"
-                      />
-                      <label class="form-check-label" for="editFreeEvent">
-                        <i class="bi bi-gift me-2 text-success"></i>Free Event
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="radio"
-                        name="editPaidType"
-                        id="editPaidEvent"
-                        [value]="true"
-                        [(ngModel)]="editEventForm.isPaid"
-                        (change)="onEditPaidTypeChange()"
-                      />
-                      <label class="form-check-label" for="editPaidEvent">
-                        <i class="bi bi-currency-dollar me-2 text-warning"></i
-                        >Paid Event
-                      </label>
-                    </div>
-                  </div>
-                  <div class="col-md-6 mb-3" *ngIf="editEventForm.isPaid">
-                    <label for="editTicketPrice" class="form-label"
-                      >Ticket Price <span class="text-danger">*</span></label
-                    >
+                    <label for="editB2bTicketPrice" class="form-label">Ticket Price</label>
                     <div class="input-group">
                       <span class="input-group-text">$</span>
                       <input
                         type="number"
                         class="form-control"
-                        id="editTicketPrice"
+                        id="editB2bTicketPrice"
                         placeholder="0.00"
-                        [(ngModel)]="editEventForm.ticketPrice"
-                        name="editTicketPrice"
-                        min="0.01"
+                        [(ngModel)]="editEventForm.b2bTicketPrice"
+                        name="editB2bTicketPrice"
+                        min="0"
                         step="0.01"
-                        required
-                        (blur)="onFieldBlur('ticketPrice', true)"
-                        [class.is-invalid]="editValidationErrors.ticketPrice"
                       />
                     </div>
-                    <div
-                      class="invalid-feedback"
-                      *ngIf="editValidationErrors.ticketPrice"
-                    >
-                      {{ editValidationErrors.ticketPrice }}
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="editB2bStayFee" class="form-label">Stay Fee</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="editB2bStayFee"
+                        placeholder="0.00"
+                        [(ngModel)]="editEventForm.b2bStayFee"
+                        name="editB2bStayFee"
+                        min="0"
+                        step="0.01"
+                      />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Stay Option Section -->
               <div class="mb-4">
-                <h6 class="text-primary mb-3">Accommodation</h6>
+                <h6 class="text-primary mb-3">B2C Pricing</h6>
                 <div class="row">
                   <div class="col-md-6 mb-3">
-                    <div class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        id="editStayOption"
-                        [(ngModel)]="editEventForm.stayOption"
-                        name="editStayOption"
-                        (change)="onEditStayOptionChange()"
-                      />
-                      <label class="form-check-label" for="editStayOption">
-                        <i class="bi bi-house me-2 text-info"></i>Accommodation
-                        Available
-                      </label>
-                    </div>
-                    <small class="text-muted"
-                      >Check if you provide accommodation for attendees</small
-                    >
-                  </div>
-                  <div class="col-md-6 mb-3" *ngIf="editEventForm.stayOption">
-                    <label for="editStayFee" class="form-label"
-                      >Stay Fee <span class="text-danger">*</span></label
-                    >
+                    <label for="editB2cTicketPrice" class="form-label">Ticket Price</label>
                     <div class="input-group">
                       <span class="input-group-text">$</span>
                       <input
                         type="number"
                         class="form-control"
-                        id="editStayFee"
+                        id="editB2cTicketPrice"
                         placeholder="0.00"
-                        [(ngModel)]="editEventForm.stayFee"
-                        name="editStayFee"
+                        [(ngModel)]="editEventForm.b2cTicketPrice"
+                        name="editB2cTicketPrice"
                         min="0"
                         step="0.01"
-                        required
-                        (blur)="onFieldBlur('stayFee', true)"
-                        [class.is-invalid]="editValidationErrors.stayFee"
                       />
                     </div>
-                    <div
-                      class="invalid-feedback"
-                      *ngIf="editValidationErrors.stayFee"
-                    >
-                      {{ editValidationErrors.stayFee }}
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="editB2cStayFee" class="form-label">Stay Fee</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="editB2cStayFee"
+                        placeholder="0.00"
+                        [(ngModel)]="editEventForm.b2cStayFee"
+                        name="editB2cStayFee"
+                        min="0"
+                        step="0.01"
+                      />
                     </div>
-                    <small class="text-muted"
-                      >Enter 0 for free accommodation</small
-                    >
                   </div>
                 </div>
               </div>
@@ -2936,7 +2846,7 @@
         <div *ngIf="selectedEvent.bannerImage" class="position-relative">
           <img
             [src]="imageurl + selectedEvent.bannerImage"
-            class="w-100"
+            class="w-100 img-hover-zoom"
             style="height: 250px; object-fit: cover"
             alt="Event Banner"
           />
@@ -3048,6 +2958,20 @@
             </div>
           </div>
 
+          <!-- Pricing Section -->
+          <div class="row mb-4" *ngIf="selectedEvent.pricing && selectedEvent.pricing.length > 0">
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-currency-dollar me-2"></i>Pricing</h6>
+                  <div *ngFor="let price of selectedEvent.pricing">
+                    <strong>{{price.businessType}}:</strong> Ticket ₹{{price.ticketPrice}} | Stay ₹{{price.stayFee}}<br>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Sponsors Section -->
           <div
             class="row mb-4"
@@ -3069,8 +2993,8 @@
                       >
                         <div class="me-3" *ngIf="sponsor.logo">
                           <img
-                            [src]="sponsor.logo"
-                            class="rounded"
+                            [src]="imageurl + sponsor.logo"
+                            class=" sponsor-logo img-hover-zoom"
                             width="40"
                             height="40"
                             style="object-fit: cover"
@@ -3109,7 +3033,7 @@
               <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-body">
                   <h6 class="fw-bold mb-3 text-primary">
-                    <i class="bi bi-person-video3 me-2"></i>Event Speakers
+                    <i class="bi bi-person-video3 me-2"></i>Event Presentator
                   </h6>
                   <div class="row">
                     <div
@@ -3119,8 +3043,8 @@
                       <div class="d-flex p-3 border rounded-3">
                         <div class="me-3" *ngIf="speaker.photo">
                           <img
-                            [src]="speaker.photo"
-                            class="rounded-circle"
+                            [src]="imageurl + speaker.photo"
+                            class="speaker-photo img-hover-zoom"
                             width="50"
                             height="50"
                             style="object-fit: cover"

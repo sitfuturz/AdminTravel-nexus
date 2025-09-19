@@ -1,0 +1,194 @@
+<div class="container-fluid">
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient-primary d-flex justify-content-between align-items-center py-3">
+      <h4 class="mb-0 fw-bold text-white">
+        <i class="bi bi-tags me-2"></i>Banner Rate Management
+      </h4>
+      <button class="btn btn-light rounded-pill px-4" (click)="openAddRateModal()">
+        <i class="bi bi-plus-circle me-2"></i>Add Rate
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <div class="d-flex w-100 align-items-center">
+          <div class="flex-grow-1 me-2">
+            <input type="text" class="form-control"
+                  placeholder="Search banner rates..."
+                  [(ngModel)]="searchQuery"
+                  (input)="onSearch()">
+          </div>
+          <div>
+            <ng-select [items]="[10,25,50,100]" (change)="onChange()" [(ngModel)]="payload.limit" placeholder="Items per page"></ng-select>
+          </div>
+        </div>
+      </div>
+    </div>
+     
+    <div *ngIf="loading" class="text-center my-5 py-5">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && bannerRates?.docs && bannerRates.docs.length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4 py-3">Duration</th>
+            <th class="py-3">Days</th>
+            <th class="py-3">Cost</th>
+            <th class="py-3">Status</th>
+            <th class="py-3">Created At</th>
+            <th class="text-end pe-4 py-3">Action</th>
+          </tr>
+        </thead>
+        
+        <tbody>
+          <tr *ngFor="let rate of bannerRates.docs | paginate: { itemsPerPage: payload.limit, currentPage: payload.page, totalItems: bannerRates.totalDocs }; let i=index" class="border-bottom">
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center">
+                <div class="rate-icon-container me-3">
+                  <div class="bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                       style="width: 50px; height: 50px; color: white;">
+                    <i class="bi bi-calendar-range"></i>
+                  </div>
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{getDurationText(rate.days)}}</div>
+                  <small class="text-muted">{{rate.days}} day{{rate.days > 1 ? 's' : ''}}</small>
+                </div>
+              </div>
+            </td>
+            <td class="py-3">
+              <span class="badge bg-info text-dark rounded-pill">{{rate.days}}</span>
+            </td>
+            <td class="py-3">
+              <div class="fw-bold text-success">{{formatCurrency(rate.cost)}}</div>
+            </td>
+            <td class="py-3">
+              <span class="badge rounded-pill" 
+                    [ngClass]="rate.isActive ? 'badge bg-success' : 'badge bg-danger'"
+                    style="cursor: pointer;"
+                    (click)="toggleRateStatus(rate)">
+                {{rate.isActive ? 'Active' : 'Inactive'}}
+              </span>
+            </td>
+            <td class="py-3">
+              <div>{{formatDate(rate.createdAt)}}</div>
+              <small class="text-muted">{{formatDate(rate.updatedAt)}}</small>
+            </td>
+            <td class="text-end pe-4 py-3">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" type="button" 
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                  <li><a class="dropdown-item" (click)="openEditRateModal(rate)" style="cursor: pointer;">
+                    <i class="bi bi-pencil-fill me-2 text-primary"></i> Edit
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" (click)="deleteRate(rate._id)" style="cursor: pointer;">
+                    <i class="bi bi-trash-fill me-2"></i> Delete
+                  </a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div class="d-flex justify-content-end p-3">
+        <pagination-controls (pageChange)="onPageChange($event)"></pagination-controls>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && (!bannerRates?.docs || bannerRates.docs.length === 0)" class="text-center my-5 py-4 px-4">
+      <div class="empty-state">
+        <i class="bi bi-tags fs-1 text-muted mb-3"></i>
+        <h5>No Banner Rates Found</h5>
+        <p class="text-muted">Try adding some banner rates or adjusting your search criteria.</p>
+        <button class="btn btn-primary rounded-pill mt-3" (click)="openAddRateModal()">
+          <i class="bi bi-plus-circle me-2"></i>Add Rate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Rate Modal -->
+<div class="modal fade" id="rateModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog"
+  aria-labelledby="rateModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="rateModalTitle">
+          <i class="bi bi-tags me-2"></i> {{editMode ? 'Edit Banner Rate' : 'Add New Banner Rate'}}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form #rateForm="ngForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="rateDays" class="form-label">Duration (Days) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="rateDays" placeholder="Enter number of days" 
+                    [(ngModel)]="newRate.days" name="rateDays" required min="1" #daysInput="ngModel"
+                    [class.is-invalid]="daysInput.invalid && (daysInput.dirty || daysInput.touched || formSubmitted)">
+              <div class="invalid-feedback" *ngIf="daysInput.invalid && (daysInput.dirty || daysInput.touched || formSubmitted)">
+                <div *ngIf="daysInput.errors?.['required']">Duration is required.</div>
+                <div *ngIf="daysInput.errors?.['min']">Duration must be at least 1 day.</div>
+              </div>
+              <small class="form-text text-muted">Number of days the banner will be displayed</small>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="rateCost" class="form-label">Cost (₹) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="rateCost" placeholder="Enter cost amount" 
+                    [(ngModel)]="newRate.cost" name="rateCost" required min="0.01" step="0.01" #costInput="ngModel"
+                    [class.is-invalid]="costInput.invalid && (costInput.dirty || costInput.touched || formSubmitted)">
+              <div class="invalid-feedback" *ngIf="costInput.invalid && (costInput.dirty || costInput.touched || formSubmitted)">
+                <div *ngIf="costInput.errors?.['required']">Cost is required.</div>
+                <div *ngIf="costInput.errors?.['min']">Cost must be greater than 0.</div>
+              </div>
+              <small class="form-text text-muted">Banner advertisement cost for the specified duration</small>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="rateStatus" 
+                      [(ngModel)]="newRate.isActive" name="rateStatus">
+                <label class="form-check-label" for="rateStatus">
+                  {{newRate.isActive ? 'Active' : 'Inactive'}}
+                </label>
+              </div>
+              <small class="form-text text-muted">Toggle to activate or deactivate this rate</small>
+            </div>
+            
+            <div class="col-md-6 mb-3" *ngIf="newRate.days && newRate.cost">
+              <div class="rate-preview-card bg-light rounded p-3">
+                <h6 class="mb-2 text-primary">Rate Preview</h6>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold">{{getDurationText(newRate.days)}}</span>
+                  <span class="fw-bold text-success">{{formatCurrency(newRate.cost)}}</span>
+                </div>
+                <small class="text-muted">Cost per day: {{formatCurrency(newRate.cost / newRate.days)}}</small>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary rounded-pill" (click)="saveRate(rateForm)" 
+                [disabled]="loading || !newRate.days || !newRate.cost">
+          <i class="bi bi-save me-1"></i> {{editMode ? 'Update' : 'Save'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

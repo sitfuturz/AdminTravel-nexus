@@ -7,7 +7,6 @@ import { ExportService } from '../../../services/export.service';
 import { ChapterService } from '../../../services/auth.service';
 import { RegionService } from '../../../services/auth.service';
 import { swalHelper } from '../../../core/constants/swal-helper';
-
 import { debounceTime, Subject } from 'rxjs';
 import { environment } from 'src/env/env.local';
 import { NgxPaginationModule } from 'ngx-pagination';
@@ -27,7 +26,7 @@ interface RegionObject {
   countries: string[];
 }
 
-// Create a new interface instead of extending User
+// Interface for ExtendedUser
 interface ExtendedUser {
   _id: string;
   name: string;
@@ -45,9 +44,11 @@ interface ExtendedUser {
   status: boolean;
   createdAt: string;
   keywords: string;
+ 
   business_name: string;
+  business_type: string; // Added business_type
   isMember: boolean;
-  regions: RegionObject[]; // This is now RegionObject[] instead of string[]
+  regions: RegionObject[];
   dmc_specializations: string[];
   services_offered: string[];
 }
@@ -83,17 +84,17 @@ export class UsersComponent implements OnInit, AfterViewInit {
   regionsLoading: boolean = false;
   pdfLoading: boolean = false;
   Math = Math;
-  
-  // Predefined arrays for specializations and services
+
+  // Predefined arrays for specializations, services, and business types
   specializations: string[] = [
     'MICE', 'Adventure', 'Luxury', 'Cultural', 'Corporate',
     'Leisure', 'Educational', 'Medical', 'Religious', 'Eco-Tourism'
   ];
-
   servicesOffered: string[] = [
     'Hotel Booking', 'Transportation', 'Guided Tours', 'Event Management',
     'Airport Transfers', 'Visa Assistance', 'Travel Insurance', 'Custom Packages'
   ];
+  businessTypes: string[] = ['B2B', 'B2C']; // Added business types
 
   notificationForm = {
     userId: '',
@@ -119,12 +120,11 @@ export class UsersComponent implements OnInit, AfterViewInit {
     state: '',
     country: '',
     business_name: '',
+    business_type: '', // Added business_type
     regions: [] as string[],
     dmc_specializations: [] as string[],
     services_offered: [] as string[]
   };
-
-  // Update the editError object to include new fields
   editError = {
     name: '',
     mobile_number: '',
@@ -133,6 +133,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
     state: '',
     country: '',
     business_name: '',
+    business_type: '', // Added business_type
     regions: '',
     dmc_specializations: '',
     services_offered: ''
@@ -160,12 +161,12 @@ export class UsersComponent implements OnInit, AfterViewInit {
   countries: Country[] = [];
   states: State[] = [];
   cities: City[] = [];
-  
+
   countriesLoading: boolean = false;
   statesLoading: boolean = false;
   citiesLoading: boolean = false;
   usersLoading: boolean = false;
-  
+
   countriesLoaded: boolean = false;
   statesLoaded: boolean = false;
   citiesLoaded: boolean = false;
@@ -182,7 +183,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
     private cityService: CityService,
     private regionService: RegionService,
     private exportService: ExportService,
-    private cdr: ChangeDetectorRef,
+    private cdr: ChangeDetectorRef
   ) {
     this.searchSubject.pipe(debounceTime(500)).subscribe(() => {
       this.fetchUsers();
@@ -218,13 +219,12 @@ export class UsersComponent implements OnInit, AfterViewInit {
       } else {
         console.warn('Notification modal element not found in the DOM');
       }
-      
+
       // Initialize tooltips
       this.initializeTooltips();
     }, 300);
   }
 
-  // Initialize Bootstrap tooltips
   initializeTooltips(): void {
     setTimeout(() => {
       const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -234,29 +234,25 @@ export class UsersComponent implements OnInit, AfterViewInit {
     }, 500);
   }
 
-  // Helper method to generate tooltip text for multiple regions
   getRegionsTooltip(regions: RegionObject[]): string {
     if (!regions || regions.length <= 1) return '';
-    
+
     const additionalRegions = regions.slice(1);
-    return additionalRegions.map(region => 
+    return additionalRegions.map(region =>
       `${region.name} - Countries: ${region.countries?.join(', ') || 'N/A'}`
     ).join('\n');
   }
 
-  // Helper method to display specializations as string
   getSpecializationsDisplay(specializations: string[]): string {
     if (!specializations || specializations.length === 0) return 'N/A';
     return specializations.join(', ');
   }
 
-  // Helper method to display services as string
   getServicesDisplay(services: string[]): string {
     if (!services || services.length === 0) return 'N/A';
     return services.join(', ');
   }
 
-  // Helper method to display regions as string
   getRegionsDisplay(regions: RegionObject[]): string {
     if (!regions || regions.length === 0) return 'N/A';
     return regions.map(region => `${region.name} (${region.countries?.join(', ') || 'N/A'})`).join(', ');
@@ -304,7 +300,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
       if (response) {
         this.users = response;
         this.cdr.detectChanges();
-        
+
         // Reinitialize tooltips after data loads
         this.initializeTooltips();
       }
@@ -527,7 +523,6 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
   editUser(user: ExtendedUser): void {
     this.selectedUser = user;
-    // Initialize edit form with user data including new fields
     this.editForm = {
       name: user.name || '',
       mobile_number: user.mobile_number || '',
@@ -536,18 +531,20 @@ export class UsersComponent implements OnInit, AfterViewInit {
       state: user.state || '',
       country: user.country || '',
       business_name: user.business_name || '',
+      business_type: user.business_type || '', // Added business_type
       regions: user.regions?.map(region => region._id) || [],
       dmc_specializations: user.dmc_specializations || [],
       services_offered: user.services_offered || []
     };
-    this.editError = { 
-      name: '', 
-      mobile_number: '', 
-      email: '', 
-      city: '', 
-      state: '', 
-      country: '', 
+    this.editError = {
+      name: '',
+      mobile_number: '',
+      email: '',
+      city: '',
+      state: '',
+      country: '',
       business_name: '',
+      business_type: '',
       regions: '',
       dmc_specializations: '',
       services_offered: ''
@@ -582,14 +579,15 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
   validateEditForm(): boolean {
     let isValid = true;
-    this.editError = { 
-      name: '', 
-      mobile_number: '', 
-      email: '', 
-      city: '', 
-      state: '', 
-      country: '', 
+    this.editError = {
+      name: '',
+      mobile_number: '',
+      email: '',
+      city: '',
+      state: '',
+      country: '',
       business_name: '',
+      business_type: '',
       regions: '',
       dmc_specializations: '',
       services_offered: ''
@@ -627,6 +625,13 @@ export class UsersComponent implements OnInit, AfterViewInit {
     }
     if (!this.editForm.business_name.trim()) {
       this.editError.business_name = 'Business name is required';
+      isValid = false;
+    }
+    if (!this.editForm.business_type) {
+      this.editError.business_type = 'Business type is required';
+      isValid = false;
+    } else if (!['B2B', 'B2C'].includes(this.editForm.business_type)) {
+      this.editError.business_type = 'Business type must be either B2B or B2C';
       isValid = false;
     }
 
@@ -700,11 +705,18 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     this.editLoading = true;
     try {
-      const response = await this.authService.updateNewUser(this.selectedUser!._id, this.editForm);
+      const response = await this.authService.updateNewUser(this.selectedUser!._id, {
+        ...this.editForm,
+        business: [{
+          business_name: this.editForm.business_name,
+          business_type: this.editForm.business_type,
+          primary_business: true
+        }]
+      });
       if (response.success) {
         swalHelper.showToast('User updated successfully', 'success');
         this.closeEditModal();
-        this.fetchUsers(); // Refresh user list
+        this.fetchUsers();
       } else {
         swalHelper.showToast(response.message || 'Failed to update user', 'error');
       }
@@ -778,48 +790,4 @@ export class UsersComponent implements OnInit, AfterViewInit {
     return new Date(dateString).toLocaleDateString();
   }
 
-  async generateUserPDF(): Promise<void> {
-    this.pdfLoading = true;
-    swalHelper.showToast('Generating User PDF, please wait...', 'info');
-
-    try {
-      const userId = this.selectedUser!._id;
-      if (!userId) {
-        throw new Error('User ID is not available');
-      }
-
-      const pdfUrl = `${this.pathurl}/admin/${userId}/pdf`;
-      console.log('PDF URL:', pdfUrl);
-      
-      const link = document.createElement('a');
-      link.href = pdfUrl;
-      link.download = `${this.selectedUser!.name || 'user'}_profile.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      swalHelper.showToast('PDF download initiated successfully', 'success');
-    } catch (error) {
-      console.error('Error initiating PDF download:', error);
-      swalHelper.showToast('Failed to initiate PDF download', 'error');
-    } finally {
-      this.pdfLoading = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  // Export methods remain the same but can be extended to include new fields
-  async exportToPDF(): Promise<void> {
-    // Implementation remains largely the same but can include new fields in the export
-    this.exporting = true;
-    swalHelper.showToast('Generating PDF, please wait...', 'info');
-    // ... existing implementation
-  }
-
-  async exportToExcel(): Promise<void> {
-    // Implementation remains largely the same but can include new fields in the export
-    this.exporting = true;
-    swalHelper.showToast('Generating Excel, please wait...', 'info');
-    // ... existing implementation
-  }
 }

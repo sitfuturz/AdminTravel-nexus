@@ -578,6 +578,7 @@ async updateUser(userId: string, data: { name: string; mobile_number: string; em
   city: string; 
   state: string; 
   country: string; 
+  business?: { business_name: string; business_type: string; primary_business: boolean }[];
   business_name: string 
 }): Promise<any> {
   try {
@@ -845,6 +846,8 @@ export class DashboardService {
   }
 
   
+
+  
   export interface EventResponse {
     docs: Event[];
     totalDocs: string | number;
@@ -897,6 +900,47 @@ export class EventService {
             this.headers.push({ Authorization: `Bearer ${token}` });
         }
     };
+    async getRegistrationsByEventId(eventId: string, page: number = 1, limit: number = 10): Promise<any> {
+        try {
+            this.getHeaders();
+            const response = await this.apiManager.request(
+                {
+                    url: `${apiEndpoints.GET_REGISTRATIONS_BY_EVENT_ID}?page=${page}&limit=${limit}`,
+                    method: 'POST',
+                },
+                { eventId },
+                this.headers
+            );
+            return response;
+        } catch (error) {
+            console.error('Get Registrations Error:', error);
+            swalHelper.showToast('Failed to fetch registrations', 'error');
+            throw error;
+        }
+    }
+
+    async updatePaymentStatus(paymentId: string, status: string): Promise<any> {
+        try {
+            this.getHeaders();
+            const response = await this.apiManager.request(
+                {
+                    url: apiEndpoints.UPDATE_PAYMENT_STATUS,
+                    method: 'POST',
+                },
+                {
+                    paymentId,
+                    status
+                },
+                this.headers
+            );
+            return response;
+        } catch (error) {
+            console.error('Update Payment Status Error:', error);
+            swalHelper.showToast('Failed to update payment status', 'error');
+            throw error;
+        }
+    }
+
 
     async getAllEvents(): Promise<Event[]> {
         try {
@@ -943,6 +987,7 @@ export class EventService {
           this.getHeaders();
           // Append eventId to FormData
           formData.append('eventId', eventId);
+          console.log("data" ,eventId,)
           const response = await this.apiManager.request(
               {
                   url: apiEndpoints.UPDATE_EVENT, // Now points to /updateEvent
@@ -4215,6 +4260,8 @@ export class ParticipationService {
   createdAt: string;
   keywords: string;
   business_name: string;
+    business?: { business_name: string; business_type: string; primary_business: boolean }[];
+
   dmc_specializations: string[];
   services_offered: string[];
   regions: string[];
@@ -4280,6 +4327,7 @@ async registerUser(formData: FormData): Promise<any> {
     }
   }
 
+  
       async getAllMembers(payload: any): Promise<any> {
   try {
     this.getHeaders();
@@ -4785,6 +4833,151 @@ export interface RemoveImageRequest {
 
     }
     
+    export interface BannerRate {
+  _id: string;
+  days: number;
+  cost: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface BannerRateResponse {
+  docs: BannerRate[];
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
+export interface CreateBannerRateRequest {
+  days: number;
+  cost: number;
+  isActive: boolean;
+}
+
+export interface UpdateBannerRateRequest {
+  days: number;
+  cost: number;
+  isActive: boolean;
+}
+
+// Banner Rate Service
+@Injectable({
+  providedIn: 'root',
+})
+export class BannerRateService {
+  private headers: any = [];
+
+  constructor(private apiManager: ApiManager, private storage: AppStorage) {}
+
+  private getHeaders = () => {
+    this.headers = [];
+    let token = this.storage.get(common.TOKEN);
+    
+    if (token != null) {
+      this.headers.push({ Authorization: `Bearer ${token}` });
+    }
+  };
+
+  async getAllBannerRates(data: { page: number; limit: number; search: string }): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      let queryParams = `?page=${data.page}&limit=${data.limit}`;
+      if (data.search) {
+        queryParams += `&search=${encodeURIComponent(data.search)}`;
+      }
+      
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.GET_BANNER_RATES + queryParams,
+          method: 'GET',
+        },
+        null,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('API Error:', error);
+      swalHelper.showToast('Failed to fetch banner rates', 'error');
+      throw error;
+    }
+  }
+
+  async createBannerRate(data: CreateBannerRateRequest): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: apiEndpoints.CREATE_BANNER_RATES,
+          method: 'POST',
+        },
+        data,
+        this.headers
+      );
+      
+      return response;
+    } catch (error: any) {
+      console.error('Create Banner Rate Error:', error);
+      if (error && error.error) {
+        return error.error;
+      }
+      swalHelper.showToast('Failed to create banner rate', 'error');
+      throw error;
+    }
+  }
+
+  async updateBannerRate(id: string, data: UpdateBannerRateRequest): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.UPDATE_BANNER_RATES}/${id}`,
+          method: 'PUT',
+        },
+        data,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Update Banner Rate Error:', error);
+      swalHelper.showToast('Failed to update banner rate', 'error');
+      throw error;
+    }
+  }
+
+  async deleteBannerRate(id: string): Promise<any> {
+    try {
+      this.getHeaders();
+      
+      const response = await this.apiManager.request(
+        {
+          url: `${apiEndpoints.DELETE_BANNER_RATES}/${id}`,
+          method: 'DELETE',
+        },
+        null,
+        this.headers
+      );
+      
+      return response;
+    } catch (error) {
+      console.error('Delete Banner Rate Error:', error);
+      swalHelper.showToast('Failed to delete banner rate', 'error');
+      throw error;
+    }
+  }
+}
 export interface Collection {
   _id: string;
   amount: number;

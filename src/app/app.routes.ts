@@ -47,6 +47,7 @@ import { FinanceComponent } from './views/pages/financeModule/finance.component'
 import { ExpenseComponent } from './views/pages/expense/expense.component';
 import { AnalyticsComponent } from './views/pages/analytics/analytics.component';
 import { RegionsComponent } from './views/pages/regions/regions.component';
+import {BannerRatesComponent} from './views/pages/BannerRates/bannerRates.component';
 import { PhotoCategoriesComponent } from './views/pages/PhotoCategory/photo-categories.component';
 
 
@@ -56,6 +57,7 @@ import { AdminComplaintComponent } from './views/pages/admin-complaint/admin-com
 import { AdminFeedbackComponent } from './views/pages/admin-feedback/admin-feedback.component';
 import { NewUserRegistrationComponent } from './views/pages/new-user-registration/new-user-registration.component';
 import { NewEventsComponent } from './views/pages/new-events/new-events.component';
+import {EventPaymentsComponent} from './views/pages/paymentStatus/payment.component'
 
 
 export const routes: Routes = [
@@ -112,7 +114,7 @@ export const routes: Routes = [
 
 
       { path: 'finance', component: FinanceComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
-
+{path:'payment', component: EventPaymentsComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
 
       {path:'complaint', component: AdminComplaintComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
       {path:'feedback', component: AdminFeedbackComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
@@ -128,8 +130,8 @@ export const routes: Routes = [
       { path: 'finance', component: FinanceComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
 
 {path: 'podcastBooking', component: BookingsComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
-{path: 'expense', component: ExpenseComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } }
-
+{path: 'expense', component: ExpenseComponent, canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } },
+{path:'bannerRates',component: BannerRatesComponent,canActivate: [RoleGuard], data: { roles: ['admin', 'advisoryBoard', 'supportDirector', 'supportAmbassador'] } } 
     ],
   },
 ];

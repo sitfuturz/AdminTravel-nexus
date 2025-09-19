@@ -42,6 +42,7 @@
           <tr>
             <th class="ps-4 py-3">Name</th>
             <th class="py-3">Business Name</th>
+            <th class="py-3">Business Type</th> <!-- Added Business Type column -->
             <th class="py-3">Mobile</th>
             <th class="py-3">Email</th>
             <th class="py-3">Location</th>
@@ -64,6 +65,9 @@
             </td>
             <td class="py-3">
               <div class="fw-semibold">{{registration.business_name || 'N/A'}}</div>
+            </td>
+            <td class="py-3">
+   <div class="fw-semibold">{{ registration?.business?.[0]?.business_type || 'N/A' }}</div> <!-- Added Business Type display -->
             </td>
             <td class="py-3">
               <span class="d-flex align-items-center">
@@ -264,6 +268,21 @@
           <!-- Business Information Section -->
           <div class="mb-3">
             <h6 class="text-primary mb-2">Business Details</h6>
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <label for="business_type" class="form-label form-label-sm">Business Type <span class="text-danger">*</span></label>
+                <ng-select id="business_type" [items]="businessTypes" placeholder="Select business type"
+                  [(ngModel)]="registerForm.business_type" name="business_type" required
+                  (blur)="onFieldBlur('business_type')" [class.is-invalid]="validationErrors.business_type" class="ng-select-sm">
+                </ng-select>
+                <div class="invalid-feedback" *ngIf="validationErrors.business_type">
+                  {{ validationErrors.business_type }}
+                </div>
+                <small class="text-muted">Select B2B or B2C</small>
+              </div>
+              <div class="col-md-6 mb-2">
+              </div> <!-- Empty column for alignment if needed -->
+            </div>
             <div class="row">
               <div class="col-12 mb-2">
                 <label for="regions" class="form-label form-label-sm">Operating Regions <span class="text-danger">*</span></label>

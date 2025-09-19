@@ -15,3 +15,5 @@ class CommonConstant {
   public ADMIN_DATA: string = 'admin_data';
 }
 export let common = new CommonConstant();
+
+
